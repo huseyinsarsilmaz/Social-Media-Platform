@@ -1,5 +1,6 @@
 package com.hsynsarsilmaz.smp.api_gateway.service;
 
+import com.hsynsarsilmaz.smp.api_gateway.model.dto.request.LoginRequest;
 import com.hsynsarsilmaz.smp.api_gateway.model.dto.request.RegisterRequest;
 import com.hsynsarsilmaz.smp.api_gateway.model.entity.User;
 
@@ -15,4 +16,15 @@ public interface AuthService {
      * @throws RuntimeException if the email is already in use
      */
     public User register(RegisterRequest req);
+
+    /**
+     * Authenticates a user using their login credentials and generates a JWT token
+     * if successful.
+     *
+     * @param request the login request containing the user's email and password
+     * @return a JWT token if authentication is successful
+     * @throws AuthenticationException if authenticationfails
+     */
+    public String authenticateAndGenerateToken(LoginRequest request);
+
 }
