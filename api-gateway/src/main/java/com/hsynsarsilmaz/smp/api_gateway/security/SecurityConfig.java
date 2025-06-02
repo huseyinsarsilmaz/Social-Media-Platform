@@ -14,6 +14,9 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.hsynsarsilmaz.smp.common.model.dto.response.SmpResponse;
+
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -33,7 +36,11 @@ public class SecurityConfig {
 
     private void handleExceptionInFilterChain(HttpServletRequest request, HttpServletResponse response,
             RuntimeException exception, int responseCode) throws IOException {
-        // TODO Complete this methods
+            SmpResponse<String> apiResponse = new SmpResponse<>(false,
+                            "Unauthorized: " + exception.getMessage(), null);
+            response.setStatus(responseCode);
+            response.setContentType("application/json");
+            response.getWriter().write(new ObjectMapper().writeValueAsString(apiResponse));
     }
 
     @Bean
