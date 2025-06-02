@@ -1,4 +1,4 @@
-package com.hsynsarsilmaz.smp.api_gateway.validation;
+package com.hsynsarsilmaz.smp.common.validation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -10,13 +10,13 @@ import jakarta.validation.Payload;
 
 @Target({ ElementType.FIELD })
 @Retention(RetentionPolicy.RUNTIME)
-@Constraint(validatedBy = AlphabeticalValidator.class)
-public @interface Alphabethical {
+@Constraint(validatedBy = RequiredFieldValidator.class)
+public @interface RequiredField {
     String entityName();
 
     String fieldName();
 
-    String message() default "{fail.characters}";
+    String message() default "{fail.required}";
 
     Class<?>[] groups() default {};
 

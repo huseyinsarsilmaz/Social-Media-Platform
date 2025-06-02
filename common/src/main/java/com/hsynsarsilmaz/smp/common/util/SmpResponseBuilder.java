@@ -1,4 +1,4 @@
-package com.hsynsarsilmaz.smp.api_gateway.util;
+package com.hsynsarsilmaz.smp.common.util;
 
 import java.util.Locale;
 
@@ -7,7 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
-import com.hsynsarsilmaz.smp.api_gateway.model.dto.response.SmpResponse;
+import com.hsynsarsilmaz.smp.common.model.dto.response.SmpResponse;
 
 import lombok.RequiredArgsConstructor;
 

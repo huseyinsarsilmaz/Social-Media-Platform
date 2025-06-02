@@ -1,4 +1,4 @@
-package com.hsynsarsilmaz.smp.api_gateway.model.dto.response;
+package com.hsynsarsilmaz.smp.common.model.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

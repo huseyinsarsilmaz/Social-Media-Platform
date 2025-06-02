@@ -1,9 +1,9 @@
 package com.hsynsarsilmaz.smp.api_gateway.model.dto.request;
 
-import com.hsynsarsilmaz.smp.api_gateway.validation.Alphabethical;
-import com.hsynsarsilmaz.smp.api_gateway.validation.PhoneNumber;
-import com.hsynsarsilmaz.smp.api_gateway.validation.RequiredField;
-import com.hsynsarsilmaz.smp.api_gateway.validation.StrSize;
+import com.hsynsarsilmaz.smp.common.validation.Alphabethical;
+import com.hsynsarsilmaz.smp.common.validation.PhoneNumber;
+import com.hsynsarsilmaz.smp.common.validation.RequiredField;
+import com.hsynsarsilmaz.smp.common.validation.StrSize;
 
 import jakarta.validation.constraints.Email;
 import lombok.AllArgsConstructor;

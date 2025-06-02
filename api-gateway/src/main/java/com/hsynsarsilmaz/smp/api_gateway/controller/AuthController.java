@@ -10,12 +10,12 @@ import org.springframework.web.bind.annotation.RestController;
 import com.hsynsarsilmaz.smp.api_gateway.model.dto.request.LoginRequest;
 import com.hsynsarsilmaz.smp.api_gateway.model.dto.request.RegisterRequest;
 import com.hsynsarsilmaz.smp.api_gateway.model.dto.response.LoginResponse;
-import com.hsynsarsilmaz.smp.api_gateway.model.dto.response.SmpResponse;
 import com.hsynsarsilmaz.smp.api_gateway.model.dto.response.UserSimple;
 import com.hsynsarsilmaz.smp.api_gateway.model.entity.User;
 import com.hsynsarsilmaz.smp.api_gateway.model.mapper.UserMapper;
 import com.hsynsarsilmaz.smp.api_gateway.service.AuthService;
-import com.hsynsarsilmaz.smp.api_gateway.util.SmpResponseBuilder;
+import com.hsynsarsilmaz.smp.common.model.dto.response.SmpResponse;
+import com.hsynsarsilmaz.smp.common.util.SmpResponseBuilder;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

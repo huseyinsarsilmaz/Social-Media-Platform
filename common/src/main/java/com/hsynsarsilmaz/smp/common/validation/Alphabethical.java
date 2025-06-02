@@ -1,4 +1,4 @@
-package com.hsynsarsilmaz.smp.api_gateway.validation;
+package com.hsynsarsilmaz.smp.common.validation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -10,17 +10,13 @@ import jakarta.validation.Payload;
 
 @Target({ ElementType.FIELD })
 @Retention(RetentionPolicy.RUNTIME)
-@Constraint(validatedBy = StrSizeValidator.class)
-public @interface StrSize {
+@Constraint(validatedBy = AlphabeticalValidator.class)
+public @interface Alphabethical {
     String entityName();
 
     String fieldName();
 
-    int min();
-
-    int max();
-
-    String message() default "{fail.size}";
+    String message() default "{fail.characters}";
 
     Class<?>[] groups() default {};
 

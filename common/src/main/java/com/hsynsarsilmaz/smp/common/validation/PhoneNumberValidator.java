@@ -1,28 +1,27 @@
-package com.hsynsarsilmaz.smp.api_gateway.validation;
+package com.hsynsarsilmaz.smp.common.validation;
 
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 
-public class StrSizeValidator implements ConstraintValidator<StrSize, String> {
+import java.util.regex.Pattern;
+
+public class PhoneNumberValidator implements ConstraintValidator<PhoneNumber, String> {
 
     private String entityName;
     private String fieldName;
-    private int min;
-    private int max;
 
     @Autowired
     private MessageSource messageSource;
 
+    private static final Pattern PHONE_NUMBER_PATTERN = Pattern.compile("^\\+?[1-9]\\d{9,14}$");
+
     @Override
-    public void initialize(StrSize constraintAnnotation) {
+    public void initialize(PhoneNumber constraintAnnotation) {
         this.entityName = constraintAnnotation.entityName();
         this.fieldName = constraintAnnotation.fieldName();
-        this.min = constraintAnnotation.min();
-        this.max = constraintAnnotation.max();
     }
 
     @Override
@@ -31,13 +30,12 @@ public class StrSizeValidator implements ConstraintValidator<StrSize, String> {
             return true;
         }
 
-        int length = value.length();
-
-        if (length < min || length > max) {
+        if (!PHONE_NUMBER_PATTERN.matcher(value).matches()) {
             context.disableDefaultConstraintViolation();
 
-            String messageTemplate = messageSource.getMessage("fail.size", null, LocaleContextHolder.getLocale());
-            String message = String.format(messageTemplate, entityName, fieldName, min, max);
+            String messageTemplate = messageSource.getMessage("fail.phone.number", null,
+                    LocaleContextHolder.getLocale());
+            String message = String.format(messageTemplate, entityName, fieldName);
 
             context.buildConstraintViolationWithTemplate(message).addConstraintViolation();
             return false;
