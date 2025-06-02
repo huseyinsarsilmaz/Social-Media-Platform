@@ -12,4 +12,13 @@ public interface UserService {
      * @throws RuntimeException if no user is found with the given email
      */
     public User getByEmail(String email);
+
+    /**
+     * Checks if the given email is already associated with an existing user.
+     * 
+     * @param email the email address to check for uniqueness
+     * @throws RuntimeException if the email is already taken by an existing user
+     */
+    public void isEmailTaken(String email);
+
 }

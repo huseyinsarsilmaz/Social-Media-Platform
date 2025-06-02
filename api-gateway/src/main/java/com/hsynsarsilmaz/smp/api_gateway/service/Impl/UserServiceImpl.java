@@ -19,4 +19,11 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new RuntimeException("There is no user with this email"));
     }
 
+    // TODO Add custom exception
+    public void isEmailTaken(String email) {
+        if (userRepository.findByEmail(email).isPresent()) {
+            throw new RuntimeException("There is a user already with this email");
+        }
+    }
+
 }
