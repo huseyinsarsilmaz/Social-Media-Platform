@@ -16,6 +16,7 @@
     <modules>
         <module>common</module>
         <module>api-gateway</module>
+        <module>service_discovery</module>
     </modules>
 
     <properties>
