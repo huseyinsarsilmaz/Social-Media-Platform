@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
-import com.hsynsarsilmaz.smp.common.exception.NotFoundException;
 import com.hsynsarsilmaz.smp.common.exception.SmpException;
 import com.hsynsarsilmaz.smp.common.model.dto.response.SmpResponse;
 import com.hsynsarsilmaz.smp.common.util.SmpResponseBuilder;
