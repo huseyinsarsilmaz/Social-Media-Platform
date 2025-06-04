@@ -1,5 +1,7 @@
 package com.hsynsarsilmaz.smp.user_service.model.entity;
 
+import com.hsynsarsilmaz.smp.common.model.entity.SmpEntity;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;

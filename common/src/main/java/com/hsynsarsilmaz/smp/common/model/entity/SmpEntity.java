@@ -1,4 +1,4 @@
-package com.hsynsarsilmaz.smp.user_service.model.entity;
+package com.hsynsarsilmaz.smp.common.model.entity;
 
 import java.time.LocalDateTime;
 
