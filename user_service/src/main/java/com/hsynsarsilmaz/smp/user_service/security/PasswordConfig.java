@@ -1,4 +1,4 @@
-package com.hsynsarsilmaz.smp.api_gateway.security;
+package com.hsynsarsilmaz.smp.user_service.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

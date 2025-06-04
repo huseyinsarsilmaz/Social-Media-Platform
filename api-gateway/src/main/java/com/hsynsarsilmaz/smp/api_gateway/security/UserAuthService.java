@@ -5,8 +5,8 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import com.hsynsarsilmaz.smp.api_gateway.model.entity.User;
-import com.hsynsarsilmaz.smp.api_gateway.service.UserService;
+import com.hsynsarsilmaz.smp.api_gateway.feign.UserService;
+import com.hsynsarsilmaz.smp.api_gateway.model.dto.response.UserSimple;
 
 import lombok.RequiredArgsConstructor;
 
@@ -18,7 +18,7 @@ public class UserAuthService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        User user = userService.getByEmail(email);
+        UserSimple user = userService.getByEmail(email).getData();
 
         return new CustomUserDetails(user);
     }

@@ -18,11 +18,4 @@
 	<name>common</name>
 	<description>Common module for shared classes</description>
 
-	<dependencies>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-security</artifactId>
-		</dependency>
-	</dependencies>
-
 </project>
