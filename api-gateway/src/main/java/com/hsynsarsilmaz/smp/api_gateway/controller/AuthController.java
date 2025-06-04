@@ -8,7 +8,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.hsynsarsilmaz.smp.api_gateway.model.dto.request.LoginRequest;
+import com.hsynsarsilmaz.smp.api_gateway.model.dto.request.RegisterRequest;
 import com.hsynsarsilmaz.smp.api_gateway.model.dto.response.LoginResponse;
+import com.hsynsarsilmaz.smp.api_gateway.model.dto.response.UserSimple;
 import com.hsynsarsilmaz.smp.api_gateway.service.AuthService;
 import com.hsynsarsilmaz.smp.common.model.dto.response.SmpResponse;
 import com.hsynsarsilmaz.smp.common.util.SmpResponseBuilder;
@@ -24,15 +26,11 @@ public class AuthController {
     private final AuthService authService;
     private final SmpResponseBuilder responseBuilder;
 
-    // @PostMapping("/register")
-    // public ResponseEntity<SmpResponse<UserSimple>> register(@Valid @RequestBody
-    // RegisterRequest request) {
+    @PostMapping("/register")
+    public ResponseEntity<SmpResponse<UserSimple>> register(@Valid @RequestBody RegisterRequest request) {
 
-    // User newUser = authService.register(request);
-
-    // return responseBuilder.success("User", "registered",
-    // userMapper.toDtoSimple(newUser), HttpStatus.CREATED);
-    // }
+        return authService.register(request);
+    }
 
     @PostMapping("/login")
     public ResponseEntity<SmpResponse<LoginResponse>> login(@Valid @RequestBody LoginRequest request) {

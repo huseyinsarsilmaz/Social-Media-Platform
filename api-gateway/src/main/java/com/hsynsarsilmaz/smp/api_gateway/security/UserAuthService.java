@@ -18,7 +18,7 @@ public class UserAuthService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        UserAuth user = userService.getByEmail(email).getData();
+        UserAuth user = userService.getByEmail(email).getBody().getData();
 
         return new CustomUserDetails(user);
     }
