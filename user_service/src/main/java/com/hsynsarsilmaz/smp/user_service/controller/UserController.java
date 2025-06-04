@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.hsynsarsilmaz.smp.common.model.dto.response.SmpResponse;
 import com.hsynsarsilmaz.smp.common.util.SmpResponseBuilder;
 import com.hsynsarsilmaz.smp.user_service.model.dto.request.RegisterRequest;
+import com.hsynsarsilmaz.smp.user_service.model.dto.response.UserAuth;
 import com.hsynsarsilmaz.smp.user_service.model.dto.response.UserSimple;
 import com.hsynsarsilmaz.smp.user_service.model.entity.User;
 import com.hsynsarsilmaz.smp.user_service.model.mapper.UserMapper;
@@ -37,12 +38,12 @@ public class UserController {
         return responseBuilder.success("User", "registered", userMapper.toDtoSimple(newUser), HttpStatus.CREATED);
     }
 
-    @GetMapping("/{email}")
-    public ResponseEntity<SmpResponse<UserSimple>> getUserByEmail(@PathVariable("email") String email) {
+    @GetMapping("/auth/{email}")
+    public ResponseEntity<SmpResponse<UserAuth>> getUserAuth(@PathVariable("email") String email) {
 
         User user = userService.getByEmail(email);
 
-        return responseBuilder.success("User", "fetched", userMapper.toDtoSimple(user), HttpStatus.OK);
+        return responseBuilder.success("User", "fetched", userMapper.toDtoAuth(user), HttpStatus.OK);
     }
 
 }

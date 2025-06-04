@@ -1,17 +1,14 @@
-package com.hsynsarsilmaz.smp.api_gateway.model.dto.response;
+package com.hsynsarsilmaz.smp.user_service.model.dto.response;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
-public class UserSimple {
+public class UserAuth {
 
     private long id;
     private String email;
-    private String name;
-    private String surname;
     private String role;
     private String password;
-
 }
