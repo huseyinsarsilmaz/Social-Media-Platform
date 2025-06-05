@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import com.hsynsarsilmaz.smp.common.exception.AlreadyExistsException;
 import com.hsynsarsilmaz.smp.common.exception.NotFoundException;
+import com.hsynsarsilmaz.smp.user_service.exception.VerificationCodeInvalidException;
 import com.hsynsarsilmaz.smp.user_service.model.dto.request.RegisterRequest;
 import com.hsynsarsilmaz.smp.user_service.model.entity.User;
 import com.hsynsarsilmaz.smp.user_service.model.mapper.UserMapper;
@@ -50,7 +51,19 @@ public class UserServiceImpl implements UserService {
         }
     }
 
+    public void isVerificationValid(String email, String code) {
+        String redisKey = "email-verification:" + email;
+        String cachedCode = redisTemplate.opsForValue().get(redisKey);
+
+        if (cachedCode == null || !cachedCode.equals(code)) {
+            throw new VerificationCodeInvalidException("Email verification", "code");
+        }
+
+        redisTemplate.delete(redisKey);
+    }
+
     public User register(RegisterRequest req) {
+        isVerificationValid(req.getEmail(), req.getEmailVerification());
         isEmailTaken(req.getEmail());
 
         User newUser = userMapper.toEntity(req);

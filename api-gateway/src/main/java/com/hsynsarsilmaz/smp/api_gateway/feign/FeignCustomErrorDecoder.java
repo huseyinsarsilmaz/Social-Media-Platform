@@ -27,7 +27,7 @@ public class FeignCustomErrorDecoder implements ErrorDecoder {
         try {
             InputStream body = response.body().asInputStream();
             SmpResponse<?> smpResponse = objectMapper.readValue(body, SmpResponse.class);
-            System.out.println("Burdayim");
+
 
             return new FeignClientHandledException(HttpStatus.valueOf(response.status()), smpResponse);
         } catch (IOException e) {

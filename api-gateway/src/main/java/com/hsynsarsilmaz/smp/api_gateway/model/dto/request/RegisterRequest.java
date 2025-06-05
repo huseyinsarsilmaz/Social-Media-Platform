@@ -26,7 +26,6 @@ public class RegisterRequest {
     @RequiredField(entityName = "User", fieldName = "name")
     @StrSize(entityName = "User", fieldName = "name", min = 2, max = 32)
     @Alphabethical(entityName = "User", fieldName = "name")
-
     private String name;
 
     @RequiredField(entityName = "User", fieldName = "surname")
@@ -38,6 +37,8 @@ public class RegisterRequest {
     @PhoneNumber(entityName = "User", fieldName = "phone number")
     private String phoneNumber;
 
-    private String secretCode;
+    @RequiredField(entityName = "Email verification", fieldName = "code")
+    @StrSize(entityName = "Email verification", fieldName = "code", min = 6, max = 6)
+    private String emailVerification;
 
 }
