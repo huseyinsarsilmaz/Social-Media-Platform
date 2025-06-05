@@ -36,6 +36,7 @@ public class AuthServiceImpl implements AuthService {
             ResponseEntity<SmpResponse<UserSimple>> response = userService.register(req);
             return response;
         } catch (FeignClientHandledException e) {
+            @SuppressWarnings("unchecked")
             SmpResponse<UserSimple> response = (SmpResponse<UserSimple>) e.getResponse();
             return new ResponseEntity<SmpResponse<UserSimple>>(response, e.getStatus());
 

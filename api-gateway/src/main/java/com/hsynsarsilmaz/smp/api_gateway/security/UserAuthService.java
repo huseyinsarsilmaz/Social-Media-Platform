@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import com.hsynsarsilmaz.smp.api_gateway.feign.UserService;
 import com.hsynsarsilmaz.smp.api_gateway.model.dto.response.UserAuth;
+import com.hsynsarsilmaz.smp.common.model.dto.response.SmpResponse;
 
 import lombok.RequiredArgsConstructor;
 
@@ -18,9 +19,12 @@ public class UserAuthService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        UserAuth user = userService.getByEmail(email).getBody().getData();
+        SmpResponse<UserAuth> user = userService.getByEmail(email).getBody();
+        if (user == null || user.getData() == null) {
+            throw new UsernameNotFoundException(email);
+        }
 
-        return new CustomUserDetails(user);
+        return new CustomUserDetails(user.getData());
     }
 
 }
