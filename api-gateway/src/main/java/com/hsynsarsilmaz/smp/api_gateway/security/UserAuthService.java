@@ -1,5 +1,6 @@
 package com.hsynsarsilmaz.smp.api_gateway.security;
 
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -18,6 +19,7 @@ public class UserAuthService implements UserDetailsService {
     private final UserService userService;
 
     @Override
+    @Cacheable(value = "authUsers", key = "#email")
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         SmpResponse<UserAuth> user = userService.getByEmail(email).getBody();
         if (user == null || user.getData() == null) {
