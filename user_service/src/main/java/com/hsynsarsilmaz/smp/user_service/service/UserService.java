@@ -45,4 +45,11 @@ public interface UserService {
      */
     public User register(RegisterRequest req);
 
+    /**
+     * Sends a 6 digit random code for verification purposes.
+     * 
+     * @param email the email which the code will be sent to
+     */
+    public void sendEmailVerification(String email);
+
 }

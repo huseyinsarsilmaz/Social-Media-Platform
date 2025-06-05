@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.hsynsarsilmaz.smp.common.model.dto.response.SmpResponse;
 import com.hsynsarsilmaz.smp.common.util.SmpResponseBuilder;
+import com.hsynsarsilmaz.smp.user_service.model.dto.request.EmailVerificationRequest;
 import com.hsynsarsilmaz.smp.user_service.model.dto.request.RegisterRequest;
 import com.hsynsarsilmaz.smp.user_service.model.dto.response.UserAuth;
 import com.hsynsarsilmaz.smp.user_service.model.dto.response.UserSimple;
@@ -30,10 +31,18 @@ public class UserController {
     private final UserMapper userMapper;
     private final SmpResponseBuilder responseBuilder;
 
-    @PostMapping("/register")
-    public ResponseEntity<SmpResponse<UserSimple>> register(@Valid @RequestBody RegisterRequest request) {
+    @PostMapping("/verification/email")
+    public ResponseEntity<SmpResponse<UserSimple>> register(@Valid @RequestBody EmailVerificationRequest req) {
 
-        User newUser = userService.register(request);
+        userService.sendEmailVerification(req.getEmail());
+
+        return responseBuilder.success("Verification mail", "sent", null, HttpStatus.OK);
+    }
+
+    @PostMapping("/register")
+    public ResponseEntity<SmpResponse<UserSimple>> register(@Valid @RequestBody RegisterRequest req) {
+
+        User newUser = userService.register(req);
 
         return responseBuilder.success("User", "registered", userMapper.toDtoSimple(newUser), HttpStatus.CREATED);
     }
@@ -52,5 +61,6 @@ public class UserController {
 
         return responseBuilder.success("User", "fetched", userMapper.toDtoAuth(user), HttpStatus.OK);
     }
+
 
 }

@@ -1,5 +1,12 @@
 package com.hsynsarsilmaz.smp.user_service.service.Impl;
 
+import java.util.Random;
+import java.util.concurrent.TimeUnit;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -19,6 +26,13 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
+    private final RedisTemplate<String, String> redisTemplate;
+    private final JavaMailSender mailSender;
+
+    private static final long VERIFICATION_CODE_TTL_MINUTES = 10;
+
+    @Value("${spring.mail.username}")
+    private String fromEmail;
 
     public User getByEmail(String email) {
         return userRepository.findByEmail(email)
@@ -44,6 +58,22 @@ public class UserServiceImpl implements UserService {
         newUser.setPassword(passwordEncoder.encode(req.getPassword()));
 
         return userRepository.save(newUser);
+    }
+
+    public void sendEmailVerification(String email) {
+        String code = String.format("%06d", new Random().nextInt(1_000_000));
+
+        String redisKey = "email-verification:" + email;
+        redisTemplate.opsForValue().set(redisKey, code, VERIFICATION_CODE_TTL_MINUTES, TimeUnit.MINUTES);
+
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setFrom(fromEmail);
+        message.setTo(email);
+        message.setSubject("Your Email Verification Code");
+        message.setText("Your verification code is: " + code + "\n\nIt expires in " + VERIFICATION_CODE_TTL_MINUTES
+                + " minutes.");
+
+        mailSender.send(message);
     }
 
 }
