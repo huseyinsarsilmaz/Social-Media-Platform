@@ -46,4 +46,11 @@ public class UserController {
         return responseBuilder.success("User", "fetched", userMapper.toDtoAuth(user), HttpStatus.OK);
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<SmpResponse<UserAuth>> getUserAuth(@PathVariable("id") Long id) {
+        User user = userService.getById(id);
+
+        return responseBuilder.success("User", "fetched", userMapper.toDtoAuth(user), HttpStatus.OK);
+    }
+
 }

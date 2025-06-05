@@ -25,6 +25,11 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new NotFoundException("User", "email"));
     }
 
+    public User getById(Long id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("User", "id"));
+    }
+
     public void isEmailTaken(String email) {
         if (userRepository.findByEmail(email).isPresent()) {
             throw new AlreadyExistsException("User", "email");

@@ -16,6 +16,15 @@ public interface UserService {
     public User getByEmail(String email);
 
     /**
+     * Retrieves a user by their id.
+     *
+     * @param id the id to search for
+     * @return the {@link User} object if found
+     * @throws NotFoundException if no user is found with the given id
+     */
+    public User getById(Long id);
+
+    /**
      * Checks if the given email is already associated with an existing user.
      * 
      * @param email the email address to check for uniqueness
