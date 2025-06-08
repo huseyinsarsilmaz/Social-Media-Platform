@@ -6,6 +6,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import com.hsynsarsilmaz.smp.api_gateway.exception.FeignClientHandledException;
 import com.hsynsarsilmaz.smp.api_gateway.feign.UserService;
 import com.hsynsarsilmaz.smp.api_gateway.model.dto.response.UserAuth;
 import com.hsynsarsilmaz.smp.common.model.dto.response.SmpResponse;
@@ -21,12 +22,19 @@ public class UserAuthService implements UserDetailsService {
     @Override
     @Cacheable(value = "authUsers", key = "#email")
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        SmpResponse<UserAuth> user = userService.getByEmail(email).getBody();
-        if (user == null || user.getData() == null) {
-            throw new UsernameNotFoundException(email);
-        }
+        try {
+            SmpResponse<UserAuth> user = userService.getByEmail(email).getBody();
+            if (user == null || user.getData() == null) {
+                throw new UsernameNotFoundException("User not found with email: " + email);
+            }
 
-        return new CustomUserDetails(user.getData());
+            return new CustomUserDetails(user.getData());
+
+        } catch (FeignClientHandledException e) {
+            throw new UsernameNotFoundException("User not found: " + email);
+        } catch (Exception e) {
+            throw new RuntimeException("Unexpected error during authentication", e);
+        }
     }
 
 }
