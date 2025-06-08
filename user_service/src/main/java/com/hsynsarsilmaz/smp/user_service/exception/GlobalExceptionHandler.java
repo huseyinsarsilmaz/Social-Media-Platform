@@ -30,7 +30,7 @@ public class GlobalExceptionHandler {
     private final SmpResponseBuilder responseBuilder;
 
     @ExceptionHandler(SmpException.class)
-    public ResponseEntity<SmpResponse<String>> handleLmsException(SmpException ex) {
+    public ResponseEntity<SmpResponse<String>> handleSmpException(SmpException ex) {
         return responseBuilder.fail(ex.getType(), ex.getArgs(), null, ex.getHttpStatus());
     }
 
