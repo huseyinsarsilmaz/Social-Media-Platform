@@ -1,7 +1,7 @@
 $imageName = "user_service:0.0.1-SNAPSHOT"
 $containerName = "user_service"
 
-docker rm -f $containerName -ErrorAction SilentlyContinue
+docker rm -f $containerName 2>$null
 
 $imageId = docker images -q $imageName
 if ($imageId) {

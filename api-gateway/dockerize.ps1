@@ -1,7 +1,7 @@
 $imageName = "api-gateway:0.0.1-SNAPSHOT"
 $containerName = "api-gateway"
 
-docker rm -f $containerName -ErrorAction SilentlyContinue
+docker rm -f $containerName 2>$null
 
 $imageId = docker images -q $imageName
 if ($imageId) {
