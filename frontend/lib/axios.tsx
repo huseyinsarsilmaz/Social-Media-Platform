@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const instance = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_GATEWAY_URL || 'http://localhost:8080/api',
+  baseURL: process.env.NEXT_PUBLIC_API_GATEWAY_URL,
   withCredentials: true,
 });
 
