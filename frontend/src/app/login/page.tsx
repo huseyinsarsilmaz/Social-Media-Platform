@@ -7,7 +7,6 @@ import {
   Container,
   TextField,
   Typography,
-  Alert,
   CircularProgress,
 } from "@mui/material";
 import axios from "../../../lib/axios";
@@ -20,7 +19,9 @@ export default function LoginPage() {
   const [form, setForm] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string> | null>(
+    null
+  );
 
   const handleChange = useCallback(
     (field: "email" | "password", value: string) => {
@@ -33,6 +34,7 @@ export default function LoginPage() {
     async (e: React.FormEvent) => {
       e.preventDefault();
       setError(null);
+      setFieldErrors(null);
       setLoading(true);
 
       try {
@@ -231,4 +233,3 @@ const ErrorMessageBox: React.FC<ErrorMessageBoxProps> = ({
     </Stack>
   );
 };
-

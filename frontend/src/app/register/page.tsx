@@ -12,7 +12,7 @@ import {
 } from "@mui/material";
 import axios from "../../../lib/axios";
 import { useRouter } from "next/navigation";
-import { CheckCircleSharp } from "@mui/icons-material";
+import { CheckCircleSharp, ErrorOutline } from "@mui/icons-material";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -29,6 +29,9 @@ export default function RegisterPage() {
   const [sendingCode, setSendingCode] = useState(false);
   const [codeSent, setCodeSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string> | null>(
+    {}
+  );
 
   const handleChange = useCallback(
     (field: keyof typeof form, value: string) => {
@@ -40,12 +43,20 @@ export default function RegisterPage() {
   const handleSendCode = async () => {
     setSendingCode(true);
     setError(null);
+    setFieldErrors(null);
 
     try {
       await axios.post("/users/verification/email", { email: form.email });
       setCodeSent(true);
     } catch (err: any) {
-      setError(err?.response?.data?.message || "Failed to send code.");
+      const message = err?.response?.data?.message || "Failed to send code.";
+      const fields = err?.response?.data?.data;
+
+      if (message === "Invalid Request format" && fields) {
+        setFieldErrors(fields);
+      }
+
+      setError(message);
     } finally {
       setSendingCode(false);
     }
@@ -54,12 +65,17 @@ export default function RegisterPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setFieldErrors(null);
     setLoading(true);
 
     try {
       await axios.post("/auth/register", form);
       router.push("/home");
     } catch (err: any) {
+      if (err?.response?.data?.message === "Invalid Request format") {
+        setFieldErrors(err?.response?.data?.data);
+      }
+
       setError(err?.response?.data?.message || "Registration failed.");
     } finally {
       setLoading(false);
@@ -80,9 +96,52 @@ export default function RegisterPage() {
         </Typography>
 
         {error && (
-          <Alert severity="error" sx={{ width: "100%" }}>
-            {error}
-          </Alert>
+          <>
+            {fieldErrors ? (
+              <>
+                {Object.entries(fieldErrors).map(([field, message], index) => (
+                  <Stack
+                    key={index}
+                    direction="row"
+                    alignItems="center"
+                    spacing={1}
+                    sx={{
+                      width: "100%",
+                      bgcolor: "#1a1a1a",
+                      border: "1px solid #ff0000",
+                      p: 1,
+                      borderRadius: 1,
+                    }}
+                  >
+                    <ErrorOutline sx={{ color: "red", fontSize: 20 }} />
+                    <Typography sx={{ color: "rgba(255, 255, 255, 0.7)" }}>
+                      {message}
+                    </Typography>
+                  </Stack>
+                ))}
+              </>
+            ) : (
+              <>
+                <Stack
+                  direction="row"
+                  alignItems="center"
+                  spacing={1}
+                  sx={{
+                    width: "100%",
+                    bgcolor: "#1a1a1a",
+                    border: "1px solid #ff0000",
+                    p: 1,
+                    borderRadius: 1,
+                  }}
+                >
+                  <ErrorOutline sx={{ color: "red", fontSize: 20 }} />
+                  <Typography sx={{ color: "rgba(255, 255, 255, 0.7)" }}>
+                    {error}
+                  </Typography>
+                </Stack>
+              </>
+            )}
+          </>
         )}
 
         <FormTextField
