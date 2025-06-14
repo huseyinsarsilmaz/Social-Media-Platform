@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import {
   Stack,
   Button,
@@ -15,7 +15,6 @@ import { ErrorOutline } from "@mui/icons-material";
 
 export default function LoginPage() {
   const router = useRouter();
-
   const [form, setForm] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -24,7 +23,7 @@ export default function LoginPage() {
   );
 
   const handleChange = useCallback(
-    (field: "email" | "password", value: string) => {
+    (field: keyof typeof form, value: string) => {
       setForm((prev) => ({ ...prev, [field]: value }));
     },
     []
@@ -38,11 +37,7 @@ export default function LoginPage() {
       setLoading(true);
 
       try {
-        const res = await axios.post("/auth/login", {
-          email: form.email,
-          password: form.password,
-        });
-
+        const res = await axios.post("/auth/login", form);
         const { status, message } = res.data;
 
         if (status) {
@@ -52,7 +47,7 @@ export default function LoginPage() {
         }
       } catch (err: any) {
         if (err?.response?.data?.message === "Invalid Request format") {
-          setFieldErrors(err?.response?.data?.data);
+          setFieldErrors(err.response.data.data);
         }
         setError(
           err?.response?.data?.message || "Login failed. Please try again."
@@ -63,6 +58,18 @@ export default function LoginPage() {
     },
     [form, router]
   );
+
+  const errorBlock = useMemo(() => {
+    if (!error) return null;
+
+    if (fieldErrors) {
+      return Object.entries(fieldErrors).map(([_, message], index) => (
+        <ErrorAlert key={index} message={message} />
+      ));
+    }
+
+    return <ErrorAlert message={error} />;
+  }, [error, fieldErrors]);
 
   return (
     <Container maxWidth="sm" sx={{ bgcolor: "#0a0a0a" }}>
@@ -77,54 +84,7 @@ export default function LoginPage() {
           Sign in
         </Typography>
 
-        {error && (
-          <>
-            {fieldErrors ? (
-              <>
-                {Object.entries(fieldErrors).map(([field, message], index) => (
-                  <Stack
-                    key={index}
-                    direction="row"
-                    alignItems="center"
-                    spacing={1}
-                    sx={{
-                      width: "100%",
-                      bgcolor: "#1a1a1a",
-                      border: "1px solid #ff0000",
-                      p: 1,
-                      borderRadius: 1,
-                    }}
-                  >
-                    <ErrorOutline sx={{ color: "red", fontSize: 20 }} />
-                    <Typography sx={{ color: "rgba(255, 255, 255, 0.7)" }}>
-                      {message}
-                    </Typography>
-                  </Stack>
-                ))}
-              </>
-            ) : (
-              <>
-                <Stack
-                  direction="row"
-                  alignItems="center"
-                  spacing={1}
-                  sx={{
-                    width: "100%",
-                    bgcolor: "#1a1a1a",
-                    border: "1px solid #ff0000",
-                    p: 1,
-                    borderRadius: 1,
-                  }}
-                >
-                  <ErrorOutline sx={{ color: "red", fontSize: 20 }} />
-                  <Typography sx={{ color: "rgba(255, 255, 255, 0.7)" }}>
-                    {error}
-                  </Typography>
-                </Stack>
-              </>
-            )}
-          </>
-        )}
+        {errorBlock}
 
         <FormTextField
           label="Email"
@@ -169,67 +129,43 @@ const FormTextField: React.FC<FormTextFieldProps> = ({
   value,
   onChange,
   required = true,
-}) => {
-  return (
-    <TextField
-      label={label}
-      type={type}
-      fullWidth
-      required={required}
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      sx={{
-        "& label": { color: "rgba(255, 255, 255, 0.7)" },
-        "& label.Mui-focused": { color: "#fff" },
-        "& .MuiInputBase-input": { color: "#fff" },
-        "& .MuiOutlinedInput-root": {
-          "& fieldset": { borderColor: "rgba(255, 255, 255, 0.4)" },
-          "&:hover fieldset": { borderColor: "#fff" },
-          "&.Mui-focused fieldset": { borderColor: "#fff" },
-        },
-      }}
-    />
-  );
-};
+}) => (
+  <TextField
+    label={label}
+    type={type}
+    fullWidth
+    required={required}
+    value={value}
+    onChange={(e) => onChange(e.target.value)}
+    sx={{
+      "& label": { color: "rgba(255, 255, 255, 0.7)" },
+      "& label.Mui-focused": { color: "#fff" },
+      "& .MuiInputBase-input": { color: "#fff" },
+      "& .MuiOutlinedInput-root": {
+        "& fieldset": { borderColor: "rgba(255, 255, 255, 0.4)" },
+        "&:hover fieldset": { borderColor: "#fff" },
+        "&.Mui-focused fieldset": { borderColor: "#fff" },
+      },
+    }}
+  />
+);
 
-interface ErrorMessageBoxProps {
-  message?: string;
-  fieldErrors?: Record<string, string>;
-}
-
-const ErrorMessageBox: React.FC<ErrorMessageBoxProps> = ({
-  message,
-  fieldErrors,
-}) => {
-  const messages = message
-    ? [message]
-    : fieldErrors
-    ? Object.values(fieldErrors)
-    : [];
-
-  if (messages.length === 0) return null;
-
-  return (
-    <Stack spacing={1} width="100%">
-      {messages.map((msg, index) => (
-        <Stack
-          key={index}
-          direction="row"
-          alignItems="center"
-          spacing={1}
-          sx={{
-            bgcolor: "#1a1a1a",
-            border: "1px solid #ff0000",
-            p: 1,
-            borderRadius: 1,
-          }}
-        >
-          <ErrorOutline sx={{ color: "red", fontSize: 20 }} />
-          <Typography sx={{ color: "rgba(255, 255, 255, 0.7)" }}>
-            {msg}
-          </Typography>
-        </Stack>
-      ))}
-    </Stack>
-  );
-};
+const ErrorAlert: React.FC<{ message: string }> = ({ message }) => (
+  <Stack
+    direction="row"
+    alignItems="center"
+    spacing={1}
+    sx={{
+      width: "100%",
+      bgcolor: "#1a1a1a",
+      border: "1px solid #ff0000",
+      p: 1,
+      borderRadius: 1,
+    }}
+  >
+    <ErrorOutline sx={{ color: "red", fontSize: 20 }} />
+    <Typography sx={{ color: "rgba(255, 255, 255, 0.7)" }}>
+      {message}
+    </Typography>
+  </Stack>
+);

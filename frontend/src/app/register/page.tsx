@@ -1,14 +1,13 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import {
   Container,
   Stack,
-  TextField,
   Typography,
-  Alert,
   Button,
   CircularProgress,
+  TextField,
 } from "@mui/material";
 import axios from "../../../lib/axios";
 import { useRouter } from "next/navigation";
@@ -25,12 +24,13 @@ export default function RegisterPage() {
     phoneNumber: "",
     emailVerification: "",
   });
+
   const [loading, setLoading] = useState(false);
   const [sendingCode, setSendingCode] = useState(false);
   const [codeSent, setCodeSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string> | null>(
-    {}
+    null
   );
 
   const handleChange = useCallback(
@@ -82,6 +82,18 @@ export default function RegisterPage() {
     }
   };
 
+  const renderedErrors = useMemo(() => {
+    if (!error) return null;
+
+    if (fieldErrors) {
+      return Object.entries(fieldErrors).map(([field, message], idx) => (
+        <ErrorAlert key={idx} message={message} />
+      ));
+    }
+
+    return <ErrorAlert message={error} />;
+  }, [error, fieldErrors]);
+
   return (
     <Container maxWidth="sm" sx={{ bgcolor: "#0a0a0a" }}>
       <Stack
@@ -95,54 +107,7 @@ export default function RegisterPage() {
           Register
         </Typography>
 
-        {error && (
-          <>
-            {fieldErrors ? (
-              <>
-                {Object.entries(fieldErrors).map(([field, message], index) => (
-                  <Stack
-                    key={index}
-                    direction="row"
-                    alignItems="center"
-                    spacing={1}
-                    sx={{
-                      width: "100%",
-                      bgcolor: "#1a1a1a",
-                      border: "1px solid #ff0000",
-                      p: 1,
-                      borderRadius: 1,
-                    }}
-                  >
-                    <ErrorOutline sx={{ color: "red", fontSize: 20 }} />
-                    <Typography sx={{ color: "rgba(255, 255, 255, 0.7)" }}>
-                      {message}
-                    </Typography>
-                  </Stack>
-                ))}
-              </>
-            ) : (
-              <>
-                <Stack
-                  direction="row"
-                  alignItems="center"
-                  spacing={1}
-                  sx={{
-                    width: "100%",
-                    bgcolor: "#1a1a1a",
-                    border: "1px solid #ff0000",
-                    p: 1,
-                    borderRadius: 1,
-                  }}
-                >
-                  <ErrorOutline sx={{ color: "red", fontSize: 20 }} />
-                  <Typography sx={{ color: "rgba(255, 255, 255, 0.7)" }}>
-                    {error}
-                  </Typography>
-                </Stack>
-              </>
-            )}
-          </>
-        )}
+        {renderedErrors}
 
         <FormTextField
           label="Email"
@@ -180,28 +145,24 @@ export default function RegisterPage() {
               value={form.emailVerification}
               onChange={(val) => handleChange("emailVerification", val)}
             />
-
             <FormTextField
               label="Name"
               type="text"
               value={form.name}
               onChange={(val) => handleChange("name", val)}
             />
-
             <FormTextField
               label="Surname"
               type="text"
               value={form.surname}
               onChange={(val) => handleChange("surname", val)}
             />
-
             <FormTextField
               label="Phone Number"
               type="tel"
               value={form.phoneNumber}
               onChange={(val) => handleChange("phoneNumber", val)}
             />
-
             <FormTextField
               label="Password"
               type="password"
@@ -237,25 +198,43 @@ const FormTextField: React.FC<FormTextFieldProps> = ({
   value,
   onChange,
   required = true,
-}) => {
-  return (
-    <TextField
-      label={label}
-      type={type}
-      fullWidth
-      required={required}
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      sx={{
-        "& label": { color: "rgba(255, 255, 255, 0.7)" },
-        "& label.Mui-focused": { color: "#fff" },
-        "& .MuiInputBase-input": { color: "#fff" },
-        "& .MuiOutlinedInput-root": {
-          "& fieldset": { borderColor: "rgba(255, 255, 255, 0.4)" },
-          "&:hover fieldset": { borderColor: "#fff" },
-          "&.Mui-focused fieldset": { borderColor: "#fff" },
-        },
-      }}
-    />
-  );
-};
+}) => (
+  <TextField
+    label={label}
+    type={type}
+    fullWidth
+    required={required}
+    value={value}
+    onChange={(e) => onChange(e.target.value)}
+    sx={{
+      "& label": { color: "rgba(255, 255, 255, 0.7)" },
+      "& label.Mui-focused": { color: "#fff" },
+      "& .MuiInputBase-input": { color: "#fff" },
+      "& .MuiOutlinedInput-root": {
+        "& fieldset": { borderColor: "rgba(255, 255, 255, 0.4)" },
+        "&:hover fieldset": { borderColor: "#fff" },
+        "&.Mui-focused fieldset": { borderColor: "#fff" },
+      },
+    }}
+  />
+);
+
+const ErrorAlert: React.FC<{ message: string }> = ({ message }) => (
+  <Stack
+    direction="row"
+    alignItems="center"
+    spacing={1}
+    sx={{
+      width: "100%",
+      bgcolor: "#1a1a1a",
+      border: "1px solid #ff0000",
+      p: 1,
+      borderRadius: 1,
+    }}
+  >
+    <ErrorOutline sx={{ color: "red", fontSize: 20 }} />
+    <Typography sx={{ color: "rgba(255, 255, 255, 0.7)" }}>
+      {message}
+    </Typography>
+  </Stack>
+);
