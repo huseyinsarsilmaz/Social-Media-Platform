@@ -86,7 +86,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<SmpResponse<String>> handleBadCredentialsException(BadCredentialsException ex) {
-        return responseBuilder.fail("failed", new String[] { "User login" }, null, HttpStatus.UNAUTHORIZED);
+        return responseBuilder.fail("user.login", new String[] {}, null, HttpStatus.UNAUTHORIZED);
 
     }
 
