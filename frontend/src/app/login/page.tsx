@@ -9,7 +9,7 @@ import {
   Typography,
   CircularProgress,
 } from "@mui/material";
-import axios from "../../../lib/axios";
+import axios from "../../lib/axios";
 import { useRouter } from "next/navigation";
 import { ErrorOutline } from "@mui/icons-material";
 
@@ -38,10 +38,11 @@ export default function LoginPage() {
 
       try {
         const res = await axios.post("/auth/login", form);
-        const { status, message } = res.data;
+        const { status, message, data } = res.data;
 
         if (status) {
-          router.push("/home");
+          localStorage.setItem("AUTH_TOKEN", data.token);
+          router.push("/profile/me");
         } else {
           setError(message || "Login failed. Please try again.");
         }

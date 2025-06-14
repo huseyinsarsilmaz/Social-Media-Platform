@@ -9,7 +9,7 @@ import {
   CircularProgress,
   TextField,
 } from "@mui/material";
-import axios from "../../../lib/axios";
+import axios from "../../lib/axios";
 import { useRouter } from "next/navigation";
 import { CheckCircleSharp, ErrorOutline } from "@mui/icons-material";
 
