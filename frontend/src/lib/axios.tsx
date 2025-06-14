@@ -5,12 +5,21 @@ const instance = axios.create({
 });
 
 instance.interceptors.request.use((config) => {
-  const token =
-    typeof window !== "undefined" ? localStorage.getItem("AUTH_TOKEN") : null;
+  const skipAuthUrls = ["/auth/login", "/auth/register"];
 
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+  const shouldSkipToken = skipAuthUrls.some((url) =>
+    config.url?.startsWith(url)
+  );
+
+  if (!shouldSkipToken) {
+    const token =
+      typeof window !== "undefined" ? localStorage.getItem("AUTH_TOKEN") : null;
+
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
   }
+
   return config;
 });
 
