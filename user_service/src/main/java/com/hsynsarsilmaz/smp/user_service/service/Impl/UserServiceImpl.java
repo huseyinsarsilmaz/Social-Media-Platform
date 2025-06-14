@@ -62,25 +62,27 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-    public void isVerificationValid(String email, String code) {
-        String redisKey = "email-verification:" + email;
-        String cachedCode = redisTemplate.opsForValue().get(redisKey);
+    public void isVerificationValid(String cachedCode, String code) {
 
         if (cachedCode == null || !cachedCode.equals(code)) {
             throw new VerificationCodeInvalidException("Email verification", "code");
         }
 
-        redisTemplate.delete(redisKey);
     }
 
     public User register(RegisterRequest req) {
-        isVerificationValid(req.getEmail(), req.getEmailVerification());
+        String redisKey = "email-verification:" + req.getEmail();
+        String cachedCode = redisTemplate.opsForValue().get(redisKey);
+
+        isVerificationValid(cachedCode, req.getEmailVerification());
         isEmailTaken(req.getEmail());
         isUsernameTaken(req.getUsername());
 
         User newUser = userMapper.toEntity(req);
         newUser.setRole(User.Role.ROLE_USER);
         newUser.setPassword(passwordEncoder.encode(req.getPassword()));
+
+        redisTemplate.delete(redisKey);
 
         return userRepository.save(newUser);
     }

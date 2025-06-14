@@ -18,10 +18,9 @@ export default function RegisterPage() {
 
   const [form, setForm] = useState({
     email: "",
+    username: "",
     password: "",
     name: "",
-    surname: "",
-    phoneNumber: "",
     emailVerification: "",
   });
 
@@ -146,23 +145,18 @@ export default function RegisterPage() {
               onChange={(val) => handleChange("emailVerification", val)}
             />
             <FormTextField
+              label="Username"
+              type="text"
+              value={form.username}
+              onChange={(val) => handleChange("username", val)}
+            />
+            <FormTextField
               label="Name"
               type="text"
               value={form.name}
               onChange={(val) => handleChange("name", val)}
             />
-            <FormTextField
-              label="Surname"
-              type="text"
-              value={form.surname}
-              onChange={(val) => handleChange("surname", val)}
-            />
-            <FormTextField
-              label="Phone Number"
-              type="tel"
-              value={form.phoneNumber}
-              onChange={(val) => handleChange("phoneNumber", val)}
-            />
+
             <FormTextField
               label="Password"
               type="password"

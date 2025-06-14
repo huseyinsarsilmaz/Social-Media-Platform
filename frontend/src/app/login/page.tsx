@@ -15,7 +15,7 @@ import { ErrorOutline } from "@mui/icons-material";
 
 export default function LoginPage() {
   const router = useRouter();
-  const [form, setForm] = useState({ email: "", password: "" });
+  const [form, setForm] = useState({ username: "", password: "" });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string> | null>(
@@ -88,10 +88,10 @@ export default function LoginPage() {
         {errorBlock}
 
         <FormTextField
-          label="Email"
-          type="email"
-          value={form.email}
-          onChange={(val) => handleChange("email", val)}
+          label="Username"
+          type="text"
+          value={form.username}
+          onChange={(val) => handleChange("username", val)}
         />
 
         <FormTextField
