@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -62,5 +63,12 @@ public class UserController {
         return responseBuilder.success("User", "fetched", userMapper.toDtoAuth(user), HttpStatus.OK);
     }
 
+    @GetMapping("/me")
+    public ResponseEntity<SmpResponse<UserSimple>> getOwnUser(@RequestHeader("X-USER-ID") String userId) {
+        Long id = Long.parseLong(userId);
+        User user = userService.getById(id);
+
+        return responseBuilder.success("User", "fetched", userMapper.toDtoSimple(user), HttpStatus.OK);
+    }
 
 }
