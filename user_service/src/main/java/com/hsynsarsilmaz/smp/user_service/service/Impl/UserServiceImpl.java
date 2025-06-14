@@ -74,6 +74,7 @@ public class UserServiceImpl implements UserService {
     }
 
     public void sendEmailVerification(String email) {
+        isEmailTaken(email);
         String code = String.format("%06d", new Random().nextInt(1_000_000));
 
         String redisKey = "email-verification:" + email;
