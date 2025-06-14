@@ -2,14 +2,29 @@
 
 import { useEffect, useState } from "react";
 import axios from "../../lib/axios";
-import { Container, Stack, Typography, CircularProgress, Button } from "@mui/material";
+import {
+  Container,
+  Stack,
+  Typography,
+  CircularProgress,
+  Button,
+  Avatar,
+  Box,
+  Divider,
+  IconButton,
+} from "@mui/material";
 import { useRouter } from "next/navigation";
+import LinkIcon from "@mui/icons-material/Link";
+import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
+import { parseISO, format } from "date-fns";
 
 interface UserSimple {
   id: number;
   email: string;
+  username: string;
   name: string;
   surname: string;
+  createdAt: string;
 }
 
 interface ApiResponse {
@@ -81,16 +96,101 @@ export default function ProfilePage() {
   }
 
   return (
-    <Container maxWidth="sm" sx={{ mt: 4, color: "#fff" }}>
-      <Stack spacing={2}>
-        <Typography variant="h4">Profile</Typography>
-        <Typography>
-          <strong>Name:</strong> {user.name} {user.surname}
+    <Container
+      maxWidth="sm"
+      sx={{ mt: 2, bgcolor: "#121212", borderRadius: 2 }}
+    >
+      {/* Banner area */}
+      <Box
+        sx={{
+          height: 120,
+          bgcolor: "#1da1f2",
+          borderTopLeftRadius: 8,
+          borderTopRightRadius: 8,
+          position: "relative",
+        }}
+      >
+        {/* Avatar */}
+        <Avatar
+          alt={user.name}
+          src="/favicon.ico" // placeholder image
+          sx={{
+            width: 96,
+            height: 96,
+            border: "4px solid #121212",
+            position: "absolute",
+            bottom: -48,
+            left: 16,
+          }}
+        />
+      </Box>
+
+      {/* Profile Info */}
+      <Box sx={{ mt: 6, px: 2, color: "#fff" }}>
+        <Stack
+          direction="row"
+          justifyContent="space-between"
+          alignItems="center"
+        >
+          <Box>
+            <Typography variant="h5" fontWeight="bold">
+              {user.name} {user.surname}
+            </Typography>
+            <Typography variant="subtitle1" color="gray">
+              @{user.username}
+            </Typography>
+          </Box>
+          <Button
+            variant="outlined"
+            sx={{ borderColor: "#1da1f2", color: "#1da1f2" }}
+          >
+            Edit profile
+          </Button>
+        </Stack>
+
+        {/* Bio placeholder */}
+        <Typography sx={{ mt: 1, color: "#ccc" }}>
+          This is a placeholder bio. You can update your profile to add a
+          personal bio here.
         </Typography>
-        <Typography>
-          <strong>Email:</strong> {user.email}
-        </Typography>
-      </Stack>
+
+        {/* Location & Link & Joined */}
+        <Stack
+          direction="row"
+          spacing={2}
+          sx={{ mt: 1, color: "gray", fontSize: 14 }}
+        >
+          {/* <Stack direction="row" spacing={0.5} alignItems="center">
+            <LinkIcon fontSize="small" />
+            <Typography>https://example.com</Typography>
+          </Stack> */}
+          <Stack direction="row" spacing={0.5} alignItems="center">
+            <CalendarTodayIcon fontSize="small" />
+            <Typography>
+              Joined {format(parseISO(user.createdAt), "MMMM yyyy")}
+            </Typography>
+          </Stack>
+        </Stack>
+
+        {/* Followers / Following placeholders */}
+        <Stack direction="row" spacing={4} sx={{ mt: 2, color: "#ccc" }}>
+          <Box>
+            <Typography component="span" fontWeight="bold" color="#fff">
+              0
+            </Typography>{" "}
+            Followers
+          </Box>
+          <Box>
+            <Typography component="span" fontWeight="bold" color="#fff">
+              0
+            </Typography>{" "}
+            Following
+          </Box>
+        </Stack>
+
+        {/* Divider */}
+        <Divider sx={{ mt: 3, bgcolor: "#2f2f2f" }} />
+      </Box>
     </Container>
   );
 }

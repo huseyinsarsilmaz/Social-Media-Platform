@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.util.*;
 
 @Component
-public class UserIdHeaderGatewayFilter implements Filter {
+public class UsernameHeaderGatewayFilter implements Filter {
 
     @Override
     public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain)
@@ -17,22 +17,22 @@ public class UserIdHeaderGatewayFilter implements Filter {
 
         HttpServletRequest request = (HttpServletRequest) req;
 
-        String userId = (String) request.getAttribute("X-USER-ID");
+        String username = (String) request.getAttribute("X-USERNAME");
 
-        if (userId != null) {
+        if (username != null) {
             HttpServletRequest wrapped = new HttpServletRequestWrapper(request) {
                 @Override
                 public String getHeader(String name) {
-                    if ("X-USER-ID".equalsIgnoreCase(name)) {
-                        return userId;
+                    if ("X-USERNAME".equalsIgnoreCase(name)) {
+                        return username;
                     }
                     return super.getHeader(name);
                 }
 
                 @Override
                 public Enumeration<String> getHeaders(String name) {
-                    if ("X-USER-ID".equalsIgnoreCase(name)) {
-                        return Collections.enumeration(Collections.singletonList(userId));
+                    if ("X-USERNAME".equalsIgnoreCase(name)) {
+                        return Collections.enumeration(Collections.singletonList(username));
                     }
                     return super.getHeaders(name);
                 }
@@ -40,8 +40,8 @@ public class UserIdHeaderGatewayFilter implements Filter {
                 @Override
                 public Enumeration<String> getHeaderNames() {
                     List<String> names = Collections.list(super.getHeaderNames());
-                    if (!names.contains("X-USER-ID")) {
-                        names.add("X-USER-ID");
+                    if (!names.contains("X-USERNAME")) {
+                        names.add("X-USERNAME");
                     }
                     return Collections.enumeration(names);
                 }
