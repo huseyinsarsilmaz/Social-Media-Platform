@@ -9,6 +9,6 @@ public class UserSimple {
 
     private long id;
     private String email;
+    private String username;
     private String name;
-    private String surname;
 }

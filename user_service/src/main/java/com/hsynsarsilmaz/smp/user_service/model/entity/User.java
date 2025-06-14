@@ -26,6 +26,9 @@ public class User extends SmpEntity {
     private String email;
 
     @Column(nullable = false)
+    private String username;
+
+    @Column(nullable = false)
     private String password;
 
     @Enumerated(EnumType.STRING)
@@ -34,12 +37,6 @@ public class User extends SmpEntity {
 
     @Column(nullable = false)
     private String name;
-
-    @Column(nullable = false)
-    private String surname;
-
-    @Column(nullable = false)
-    private String phoneNumber;
 
     public enum Role {
         ROLE_USER,

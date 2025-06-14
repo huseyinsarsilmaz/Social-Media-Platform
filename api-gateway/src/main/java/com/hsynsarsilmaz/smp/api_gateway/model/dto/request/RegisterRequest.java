@@ -1,7 +1,5 @@
 package com.hsynsarsilmaz.smp.api_gateway.model.dto.request;
 
-import com.hsynsarsilmaz.smp.common.validation.Alphabethical;
-import com.hsynsarsilmaz.smp.common.validation.PhoneNumber;
 import com.hsynsarsilmaz.smp.common.validation.RequiredField;
 import com.hsynsarsilmaz.smp.common.validation.StrSize;
 
@@ -19,23 +17,17 @@ public class RegisterRequest {
     @RequiredField(entityName = "User", fieldName = "email")
     private String email;
 
+    @RequiredField(entityName = "User", fieldName = "username")
+    @StrSize(entityName = "User", fieldName = "username", min = 2, max = 16)
+    private String username;
+
     @RequiredField(entityName = "User", fieldName = "password")
     @StrSize(entityName = "User", fieldName = "password", min = 8, max = 32)
     private String password;
 
     @RequiredField(entityName = "User", fieldName = "name")
     @StrSize(entityName = "User", fieldName = "name", min = 2, max = 32)
-    @Alphabethical(entityName = "User", fieldName = "name")
     private String name;
-
-    @RequiredField(entityName = "User", fieldName = "surname")
-    @StrSize(entityName = "User", fieldName = "surname", min = 2, max = 32)
-    @Alphabethical(entityName = "User", fieldName = "surname")
-    private String surname;
-
-    @RequiredField(entityName = "User", fieldName = "phone number")
-    @PhoneNumber(entityName = "User", fieldName = "phone number")
-    private String phoneNumber;
 
     @RequiredField(entityName = "Email verification", fieldName = "code")
     @StrSize(entityName = "Email verification", fieldName = "code", min = 6, max = 6)

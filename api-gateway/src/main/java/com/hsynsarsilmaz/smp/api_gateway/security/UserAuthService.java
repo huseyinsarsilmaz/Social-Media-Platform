@@ -20,18 +20,18 @@ public class UserAuthService implements UserDetailsService {
     private final UserService userService;
 
     @Override
-    @Cacheable(value = "authUsers", key = "#email")
-    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+    @Cacheable(value = "authUsers", key = "#username")
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         try {
-            SmpResponse<UserAuth> user = userService.getByEmail(email).getBody();
+            SmpResponse<UserAuth> user = userService.getByUsername(username).getBody();
             if (user == null || user.getData() == null) {
-                throw new UsernameNotFoundException("User not found with email: " + email);
+                throw new UsernameNotFoundException("User not found with username: " + username);
             }
 
             return new CustomUserDetails(user.getData());
 
         } catch (FeignClientHandledException e) {
-            throw new UsernameNotFoundException("User not found: " + email);
+            throw new UsernameNotFoundException("User not found: " + username);
         } catch (Exception e) {
             throw new RuntimeException("Unexpected error during authentication", e);
         }

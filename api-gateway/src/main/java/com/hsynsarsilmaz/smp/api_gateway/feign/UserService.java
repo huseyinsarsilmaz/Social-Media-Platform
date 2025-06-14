@@ -17,8 +17,8 @@ import jakarta.validation.Valid;
 @FeignClient(name = "USER-SERVICE", configuration = FeignConfig.class)
 public interface UserService {
 
-    @GetMapping("/api/users/auth/{email}")
-    ResponseEntity<SmpResponse<UserAuth>> getByEmail(@PathVariable("email") String email);
+    @GetMapping("/api/users/auth/{username}")
+    ResponseEntity<SmpResponse<UserAuth>> getByUsername(@PathVariable("username") String username);
 
     @PostMapping("/api/users/register")
     ResponseEntity<SmpResponse<UserSimple>> register(@Valid @RequestBody RegisterRequest req);

@@ -11,4 +11,6 @@ import com.hsynsarsilmaz.smp.user_service.model.entity.User;
 public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByEmail(String email);
 
+    Optional<User> findByUsername(String username);
+
 }

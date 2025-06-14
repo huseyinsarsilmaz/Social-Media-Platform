@@ -17,7 +17,7 @@ public class CustomUserDetails implements UserDetails {
     private final List<GrantedAuthority> authorities;
 
     public CustomUserDetails(UserAuth user) {
-        this.username = user.getEmail();
+        this.username = user.getUsername();
         this.password = user.getPassword();
         this.id = user.getId();
         this.authorities = List.of(new SimpleGrantedAuthority(user.getRole()));

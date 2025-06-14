@@ -48,10 +48,10 @@ public class UserController {
         return responseBuilder.success("User", "registered", userMapper.toDtoSimple(newUser), HttpStatus.CREATED);
     }
 
-    @GetMapping("/auth/{email}")
-    public ResponseEntity<SmpResponse<UserAuth>> getUserAuth(@PathVariable("email") String email) {
+    @GetMapping("/auth/{username}")
+    public ResponseEntity<SmpResponse<UserAuth>> getUserAuth(@PathVariable("username") String username) {
 
-        User user = userService.getByEmail(email);
+        User user = userService.getByUsername(username);
 
         return responseBuilder.success("User", "fetched", userMapper.toDtoAuth(user), HttpStatus.OK);
     }

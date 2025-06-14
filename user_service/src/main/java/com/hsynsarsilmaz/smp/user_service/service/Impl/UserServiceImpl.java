@@ -40,6 +40,11 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new NotFoundException("User", "email"));
     }
 
+    public User getByUsername(String username) {
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new NotFoundException("User", "email"));
+    }
+
     public User getById(Long id) {
         return userRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("User", "id"));
@@ -48,6 +53,12 @@ public class UserServiceImpl implements UserService {
     public void isEmailTaken(String email) {
         if (userRepository.findByEmail(email).isPresent()) {
             throw new AlreadyExistsException("User", "email");
+        }
+    }
+
+    public void isUsernameTaken(String username) {
+        if (userRepository.findByUsername(username).isPresent()) {
+            throw new AlreadyExistsException("User", "username");
         }
     }
 
@@ -65,6 +76,7 @@ public class UserServiceImpl implements UserService {
     public User register(RegisterRequest req) {
         isVerificationValid(req.getEmail(), req.getEmailVerification());
         isEmailTaken(req.getEmail());
+        isUsernameTaken(req.getUsername());
 
         User newUser = userMapper.toEntity(req);
         newUser.setRole(User.Role.ROLE_USER);

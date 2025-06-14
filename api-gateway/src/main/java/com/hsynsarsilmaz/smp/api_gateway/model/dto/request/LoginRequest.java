@@ -3,7 +3,6 @@ package com.hsynsarsilmaz.smp.api_gateway.model.dto.request;
 import com.hsynsarsilmaz.smp.common.validation.RequiredField;
 import com.hsynsarsilmaz.smp.common.validation.StrSize;
 
-import jakarta.validation.constraints.Email;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -13,9 +12,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class LoginRequest {
 
-    @RequiredField(entityName = "User", fieldName = "email")
-    @Email(message = "{fail.email.format}")
-    private String email;
+    @RequiredField(entityName = "User", fieldName = "username")
+    @StrSize(entityName = "User", fieldName = "username", min = 2, max = 16)
+    private String username;
 
     @RequiredField(entityName = "User", fieldName = "password")
     @StrSize(entityName = "User", fieldName = "password", min = 8, max = 32)

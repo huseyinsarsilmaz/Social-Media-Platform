@@ -26,9 +26,9 @@ public class AuthServiceImpl implements AuthService {
 
     public String authenticateAndGenerateToken(LoginRequest request) {
         authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
+                new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
 
-        return jwtUtil.generateToken(request.getEmail());
+        return jwtUtil.generateToken(request.getUsername());
     }
 
     public ResponseEntity<SmpResponse<UserSimple>> register(RegisterRequest req) {
