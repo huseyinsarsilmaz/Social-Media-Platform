@@ -16,8 +16,6 @@ import com.hsynsarsilmaz.smp.user_service.model.dto.request.EmailVerificationReq
 import com.hsynsarsilmaz.smp.user_service.model.dto.request.RegisterRequest;
 import com.hsynsarsilmaz.smp.user_service.model.dto.response.UserAuth;
 import com.hsynsarsilmaz.smp.user_service.model.dto.response.UserSimple;
-import com.hsynsarsilmaz.smp.user_service.model.entity.User;
-import com.hsynsarsilmaz.smp.user_service.model.mapper.UserMapper;
 import com.hsynsarsilmaz.smp.user_service.service.UserService;
 
 import jakarta.validation.Valid;
@@ -29,7 +27,6 @@ import lombok.RequiredArgsConstructor;
 public class UserController {
 
     private final UserService userService;
-    private final UserMapper userMapper;
     private final SmpResponseBuilder responseBuilder;
 
     @PostMapping("/verification/email")
@@ -43,31 +40,24 @@ public class UserController {
     @PostMapping("/register")
     public ResponseEntity<SmpResponse<UserSimple>> register(@Valid @RequestBody RegisterRequest req) {
 
-        User newUser = userService.register(req);
+        UserSimple newUser = userService.register(req);
 
-        return responseBuilder.success("User", "registered", userMapper.toDtoSimple(newUser), HttpStatus.CREATED);
+        return responseBuilder.success("User", "registered", newUser, HttpStatus.CREATED);
     }
 
     @GetMapping("/auth/{username}")
     public ResponseEntity<SmpResponse<UserAuth>> getUserAuth(@PathVariable("username") String username) {
 
-        User user = userService.getByUsername(username);
+        UserAuth user = userService.getUserAuth(username);
 
-        return responseBuilder.success("User", "fetched", userMapper.toDtoAuth(user), HttpStatus.OK);
-    }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<SmpResponse<UserAuth>> getUserAuth(@PathVariable("id") Long id) {
-        User user = userService.getById(id);
-
-        return responseBuilder.success("User", "fetched", userMapper.toDtoAuth(user), HttpStatus.OK);
+        return responseBuilder.success("User", "fetched", user, HttpStatus.OK);
     }
 
     @GetMapping("/me")
     public ResponseEntity<SmpResponse<UserSimple>> getOwnUser(@RequestHeader("X-USERNAME") String username) {
-        User user = userService.getByUsername(username);
+        UserSimple user = userService.getUserSimple(username);
 
-        return responseBuilder.success("User", "fetched", userMapper.toDtoSimple(user), HttpStatus.OK);
+        return responseBuilder.success("User", "fetched", user, HttpStatus.OK);
     }
 
 }

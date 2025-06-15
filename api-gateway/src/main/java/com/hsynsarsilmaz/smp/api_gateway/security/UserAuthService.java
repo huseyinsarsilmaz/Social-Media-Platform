@@ -20,7 +20,7 @@ public class UserAuthService implements UserDetailsService {
     private final UserService userService;
 
     @Override
-    @Cacheable(value = "authUsers", key = "#username")
+    @Cacheable(value = "userAuth", key = "#username")
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         try {
             SmpResponse<UserAuth> user = userService.getByUsername(username).getBody();

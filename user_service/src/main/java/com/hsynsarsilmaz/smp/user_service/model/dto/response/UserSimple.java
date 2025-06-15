@@ -1,5 +1,6 @@
 package com.hsynsarsilmaz.smp.user_service.model.dto.response;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 import lombok.Data;
@@ -7,7 +8,7 @@ import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
-public class UserSimple {
+public class UserSimple implements Serializable {
 
     private long id;
     private String username;

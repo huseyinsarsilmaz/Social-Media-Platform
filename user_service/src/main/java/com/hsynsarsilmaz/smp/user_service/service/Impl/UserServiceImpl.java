@@ -4,6 +4,7 @@ import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -14,6 +15,8 @@ import com.hsynsarsilmaz.smp.common.exception.AlreadyExistsException;
 import com.hsynsarsilmaz.smp.common.exception.NotFoundException;
 import com.hsynsarsilmaz.smp.user_service.exception.VerificationCodeInvalidException;
 import com.hsynsarsilmaz.smp.user_service.model.dto.request.RegisterRequest;
+import com.hsynsarsilmaz.smp.user_service.model.dto.response.UserAuth;
+import com.hsynsarsilmaz.smp.user_service.model.dto.response.UserSimple;
 import com.hsynsarsilmaz.smp.user_service.model.entity.User;
 import com.hsynsarsilmaz.smp.user_service.model.mapper.UserMapper;
 import com.hsynsarsilmaz.smp.user_service.repository.UserRepository;
@@ -35,19 +38,21 @@ public class UserServiceImpl implements UserService {
     @Value("${spring.mail.username}")
     private String fromEmail;
 
-    public User getByEmail(String email) {
-        return userRepository.findByEmail(email)
-                .orElseThrow(() -> new NotFoundException("User", "email"));
-    }
-
-    public User getByUsername(String username) {
+    private User getEntity(String username) {
         return userRepository.findByUsername(username)
-                .orElseThrow(() -> new NotFoundException("User", "email"));
+                .orElseThrow(() -> new NotFoundException("User", "username"));
     }
 
-    public User getById(Long id) {
-        return userRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("User", "id"));
+    @Cacheable(value = "userSimple", key = "#username")
+    public UserSimple getUserSimple(String username) {
+        User user = getEntity(username);
+        return userMapper.toDtoSimple(user);
+    }
+
+    @Cacheable(value = "userAuth", key = "#username")
+    public UserAuth getUserAuth(String username) {
+        User user = getEntity(username);
+        return userMapper.toDtoAuth(user);
     }
 
     public void isEmailTaken(String email) {
@@ -70,7 +75,7 @@ public class UserServiceImpl implements UserService {
 
     }
 
-    public User register(RegisterRequest req) {
+    public UserSimple register(RegisterRequest req) {
         String redisKey = "email-verification:" + req.getEmail();
         String cachedCode = redisTemplate.opsForValue().get(redisKey);
 
@@ -84,7 +89,9 @@ public class UserServiceImpl implements UserService {
 
         redisTemplate.delete(redisKey);
 
-        return userRepository.save(newUser);
+        newUser = userRepository.save(newUser);
+
+        return userMapper.toDtoSimple(newUser);
     }
 
     public void sendEmailVerification(String email) {
