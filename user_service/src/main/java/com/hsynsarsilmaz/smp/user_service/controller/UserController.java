@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -14,6 +15,7 @@ import com.hsynsarsilmaz.smp.common.model.dto.response.SmpResponse;
 import com.hsynsarsilmaz.smp.common.util.SmpResponseBuilder;
 import com.hsynsarsilmaz.smp.user_service.model.dto.request.EmailVerificationRequest;
 import com.hsynsarsilmaz.smp.user_service.model.dto.request.RegisterRequest;
+import com.hsynsarsilmaz.smp.user_service.model.dto.request.UserUpdateRequest;
 import com.hsynsarsilmaz.smp.user_service.model.dto.response.UserAuth;
 import com.hsynsarsilmaz.smp.user_service.model.dto.response.UserSimple;
 import com.hsynsarsilmaz.smp.user_service.service.UserService;
@@ -58,6 +60,16 @@ public class UserController {
         UserSimple user = userService.getUserSimple(username);
 
         return responseBuilder.success("User", "fetched", user, HttpStatus.OK);
+    }
+
+    @PutMapping("/me")
+    public ResponseEntity<SmpResponse<UserSimple>> updateOwnUser(
+            @RequestHeader("X-USERNAME") String username,
+            @Valid @RequestBody UserUpdateRequest req) {
+
+        UserSimple newUser = userService.update(req, username);
+
+        return responseBuilder.success("User", "updated", newUser, HttpStatus.OK);
     }
 
 }

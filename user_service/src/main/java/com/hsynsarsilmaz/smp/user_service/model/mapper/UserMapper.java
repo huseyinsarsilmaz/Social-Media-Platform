@@ -3,6 +3,7 @@ package com.hsynsarsilmaz.smp.user_service.model.mapper;
 import org.mapstruct.*;
 
 import com.hsynsarsilmaz.smp.user_service.model.dto.request.RegisterRequest;
+import com.hsynsarsilmaz.smp.user_service.model.dto.request.UserUpdateRequest;
 import com.hsynsarsilmaz.smp.user_service.model.dto.response.UserAuth;
 import com.hsynsarsilmaz.smp.user_service.model.dto.response.UserSimple;
 import com.hsynsarsilmaz.smp.user_service.model.entity.User;
@@ -15,6 +16,17 @@ public interface UserMapper {
             @Mapping(target = "role", ignore = true),
     })
     User toEntity(RegisterRequest req);
+
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    @Mappings({
+            @Mapping(target = "isActive", ignore = true),
+            @Mapping(target = "password", ignore = true),
+            @Mapping(target = "role", ignore = true),
+            @Mapping(target = "id", ignore = true),
+            @Mapping(target = "createdAt", ignore = true),
+            @Mapping(target = "updatedAt", ignore = true),
+    })
+    void updateEntity(@MappingTarget User user, UserUpdateRequest req);
 
     @Named("toDtoSimple")
     UserSimple toDtoSimple(User user);

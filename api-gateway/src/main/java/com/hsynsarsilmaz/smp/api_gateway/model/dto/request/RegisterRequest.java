@@ -29,6 +29,10 @@ public class RegisterRequest {
     @StrSize(entityName = "User", fieldName = "name", min = 2, max = 32)
     private String name;
 
+    @RequiredField(entityName = "User", fieldName = "bio")
+    @StrSize(entityName = "User", fieldName = "bio", min = 8, max = 255)
+    private String bio;
+
     @RequiredField(entityName = "Email verification", fieldName = "code")
     @StrSize(entityName = "Email verification", fieldName = "code", min = 6, max = 6)
     private String emailVerification;

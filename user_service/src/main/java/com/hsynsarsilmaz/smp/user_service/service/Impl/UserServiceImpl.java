@@ -4,17 +4,20 @@ import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.cache.Cache;
 
 import com.hsynsarsilmaz.smp.common.exception.AlreadyExistsException;
 import com.hsynsarsilmaz.smp.common.exception.NotFoundException;
 import com.hsynsarsilmaz.smp.user_service.exception.VerificationCodeInvalidException;
 import com.hsynsarsilmaz.smp.user_service.model.dto.request.RegisterRequest;
+import com.hsynsarsilmaz.smp.user_service.model.dto.request.UserUpdateRequest;
 import com.hsynsarsilmaz.smp.user_service.model.dto.response.UserAuth;
 import com.hsynsarsilmaz.smp.user_service.model.dto.response.UserSimple;
 import com.hsynsarsilmaz.smp.user_service.model.entity.User;
@@ -22,6 +25,7 @@ import com.hsynsarsilmaz.smp.user_service.model.mapper.UserMapper;
 import com.hsynsarsilmaz.smp.user_service.repository.UserRepository;
 import com.hsynsarsilmaz.smp.user_service.service.UserService;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -32,6 +36,7 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
     private final RedisTemplate<String, String> redisTemplate;
     private final JavaMailSender mailSender;
+    private final CacheManager cacheManager;
 
     private static final long VERIFICATION_CODE_TTL_MINUTES = 10;
 
@@ -75,6 +80,7 @@ public class UserServiceImpl implements UserService {
 
     }
 
+    @Transactional
     public UserSimple register(RegisterRequest req) {
         String redisKey = "email-verification:" + req.getEmail();
         String cachedCode = redisTemplate.opsForValue().get(redisKey);
@@ -109,6 +115,45 @@ public class UserServiceImpl implements UserService {
                 + " minutes.");
 
         mailSender.send(message);
+    }
+
+    private void evictCacheOnUpdate(String oldUsername, String newUsername) {
+        evictCache("userSimple", oldUsername);
+
+        if (!oldUsername.equals(newUsername)) {
+            evictCache("userSimple", newUsername);
+            evictCache("userAuth", newUsername);
+
+            evictCache("userAuth", oldUsername);
+        }
+    }
+
+    private void evictCache(String cacheName, String key) {
+        Cache cache = cacheManager.getCache(cacheName);
+        if (cache != null) {
+            cache.evict(key);
+        }
+    }
+
+    @Transactional
+    public UserSimple update(UserUpdateRequest req, String username) {
+        User user = getEntity(username);
+
+        if (!user.getEmail().equals(req.getEmail())) {
+            isEmailTaken(req.getEmail());
+        }
+
+        if (!user.getUsername().equals(req.getUsername())) {
+            isUsernameTaken(req.getUsername());
+        }
+
+        userMapper.updateEntity(user, req);
+
+        user = userRepository.save(user);
+
+        evictCacheOnUpdate(username, req.getUsername());
+
+        return userMapper.toDtoSimple(user);
     }
 
 }

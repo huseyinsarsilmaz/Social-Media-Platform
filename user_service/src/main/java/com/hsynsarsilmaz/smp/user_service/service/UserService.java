@@ -1,6 +1,7 @@
 package com.hsynsarsilmaz.smp.user_service.service;
 
 import com.hsynsarsilmaz.smp.user_service.model.dto.request.RegisterRequest;
+import com.hsynsarsilmaz.smp.user_service.model.dto.request.UserUpdateRequest;
 import com.hsynsarsilmaz.smp.user_service.model.dto.response.UserAuth;
 import com.hsynsarsilmaz.smp.user_service.model.dto.response.UserSimple;
 
@@ -19,5 +20,7 @@ public interface UserService {
     public UserSimple register(RegisterRequest req);
 
     public void sendEmailVerification(String email);
+
+    public UserSimple update(UserUpdateRequest req, String username);
 
 }
