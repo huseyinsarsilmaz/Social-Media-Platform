@@ -25,6 +25,7 @@ interface UserSimple {
   name: string;
   surname: string;
   createdAt: string;
+  bio: string;
 }
 
 interface ApiResponse {
@@ -92,7 +93,7 @@ export default function ProfilePage() {
   }
 
   if (!user) {
-    return null; // or something else if needed
+    return null;
   }
 
   return (
@@ -100,7 +101,6 @@ export default function ProfilePage() {
       maxWidth="sm"
       sx={{ mt: 2, bgcolor: "#121212", borderRadius: 2 }}
     >
-      {/* Banner area */}
       <Box
         sx={{
           height: 120,
@@ -110,7 +110,6 @@ export default function ProfilePage() {
           position: "relative",
         }}
       >
-        {/* Avatar */}
         <Avatar
           alt={user.name}
           src="/favicon.ico" // placeholder image
@@ -125,7 +124,6 @@ export default function ProfilePage() {
         />
       </Box>
 
-      {/* Profile Info */}
       <Box sx={{ mt: 6, px: 2, color: "#fff" }}>
         <Stack
           direction="row"
@@ -148,13 +146,8 @@ export default function ProfilePage() {
           </Button>
         </Stack>
 
-        {/* Bio placeholder */}
-        <Typography sx={{ mt: 1, color: "#ccc" }}>
-          This is a placeholder bio. You can update your profile to add a
-          personal bio here.
-        </Typography>
+        <Typography sx={{ mt: 1, color: "#ccc" }}>{user.bio}</Typography>
 
-        {/* Location & Link & Joined */}
         <Stack
           direction="row"
           spacing={2}
@@ -172,7 +165,6 @@ export default function ProfilePage() {
           </Stack>
         </Stack>
 
-        {/* Followers / Following placeholders */}
         <Stack direction="row" spacing={4} sx={{ mt: 2, color: "#ccc" }}>
           <Box>
             <Typography component="span" fontWeight="bold" color="#fff">
@@ -188,7 +180,6 @@ export default function ProfilePage() {
           </Box>
         </Stack>
 
-        {/* Divider */}
         <Divider sx={{ mt: 3, bgcolor: "#2f2f2f" }} />
       </Box>
     </Container>

@@ -15,4 +15,5 @@ public class UserSimple implements Serializable {
     private String email;
     private String name;
     private LocalDateTime createdAt;
+    private String bio;
 }
