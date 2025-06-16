@@ -4,6 +4,7 @@ import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -11,7 +12,6 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.cache.Cache;
 
 import com.hsynsarsilmaz.smp.common.exception.AlreadyExistsException;
 import com.hsynsarsilmaz.smp.common.exception.NotFoundException;
@@ -43,20 +43,25 @@ public class UserServiceImpl implements UserService {
     @Value("${spring.mail.username}")
     private String fromEmail;
 
-    private User getEntity(String username) {
+    private User getEntityByUsername(String username) {
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> new NotFoundException("User", "username"));
     }
 
-    @Cacheable(value = "userSimple", key = "#username")
-    public UserSimple getUserSimple(String username) {
-        User user = getEntity(username);
+    private User getEntityById(Long id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("User", "id"));
+    }
+
+    @Cacheable(value = "userSimple", key = "#id")
+    public UserSimple getUserSimple(Long id) {
+        User user = getEntityById(id);
         return userMapper.toDtoSimple(user);
     }
 
     @Cacheable(value = "userAuth", key = "#username")
     public UserAuth getUserAuth(String username) {
-        User user = getEntity(username);
+        User user = getEntityByUsername(username);
         return userMapper.toDtoAuth(user);
     }
 
@@ -117,18 +122,7 @@ public class UserServiceImpl implements UserService {
         mailSender.send(message);
     }
 
-    private void evictCacheOnUpdate(String oldUsername, String newUsername) {
-        evictCache("userSimple", oldUsername);
-
-        if (!oldUsername.equals(newUsername)) {
-            evictCache("userSimple", newUsername);
-            evictCache("userAuth", newUsername);
-
-            evictCache("userAuth", oldUsername);
-        }
-    }
-
-    private void evictCache(String cacheName, String key) {
+    private void evictCache(String cacheName, Object key) {
         Cache cache = cacheManager.getCache(cacheName);
         if (cache != null) {
             cache.evict(key);
@@ -136,8 +130,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Transactional
-    public UserSimple update(UserUpdateRequest req, String username) {
-        User user = getEntity(username);
+    public UserSimple update(UserUpdateRequest req, Long id) {
+        User user = getEntityById(id);
 
         if (!user.getEmail().equals(req.getEmail())) {
             isEmailTaken(req.getEmail());
@@ -145,13 +139,14 @@ public class UserServiceImpl implements UserService {
 
         if (!user.getUsername().equals(req.getUsername())) {
             isUsernameTaken(req.getUsername());
+            evictCache("userAuth", user.getUsername());
+
         }
 
+        evictCache("userSimple", user.getId());
+
         userMapper.updateEntity(user, req);
-
         user = userRepository.save(user);
-
-        evictCacheOnUpdate(username, req.getUsername());
 
         return userMapper.toDtoSimple(user);
     }

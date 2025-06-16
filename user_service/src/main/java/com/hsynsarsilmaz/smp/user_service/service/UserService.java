@@ -7,7 +7,7 @@ import com.hsynsarsilmaz.smp.user_service.model.dto.response.UserSimple;
 
 public interface UserService {
 
-    public UserSimple getUserSimple(String username);
+    public UserSimple getUserSimple(Long id);
 
     public UserAuth getUserAuth(String username);
 
@@ -21,6 +21,6 @@ public interface UserService {
 
     public void sendEmailVerification(String email);
 
-    public UserSimple update(UserUpdateRequest req, String username);
+    public UserSimple update(UserUpdateRequest req, Long id);
 
 }

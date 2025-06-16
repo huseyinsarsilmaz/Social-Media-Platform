@@ -56,18 +56,20 @@ public class UserController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<SmpResponse<UserSimple>> getOwnUser(@RequestHeader("X-USERNAME") String username) {
-        UserSimple user = userService.getUserSimple(username);
+    public ResponseEntity<SmpResponse<UserSimple>> getOwnUser(@RequestHeader("X-USER-ID") String userId) {
+        Long id = Long.parseLong(userId);
+        UserSimple user = userService.getUserSimple(id);
 
         return responseBuilder.success("User", "fetched", user, HttpStatus.OK);
     }
 
     @PutMapping("/me")
     public ResponseEntity<SmpResponse<UserSimple>> updateOwnUser(
-            @RequestHeader("X-USERNAME") String username,
+            @RequestHeader("X-USER-ID") String userId,
             @Valid @RequestBody UserUpdateRequest req) {
 
-        UserSimple newUser = userService.update(req, username);
+        Long id = Long.parseLong(userId);
+        UserSimple newUser = userService.update(req, id);
 
         return responseBuilder.success("User", "updated", newUser, HttpStatus.OK);
     }
