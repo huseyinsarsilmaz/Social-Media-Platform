@@ -33,7 +33,7 @@ import lombok.RequiredArgsConstructor;
 public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
-    private final UsernameHeaderGatewayFilter usernameHeaderGatewayFilter;
+    private final UserIdHeaderGatewayFilter userIdHeaderGatewayFilter;
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
@@ -85,7 +85,7 @@ public class SecurityConfig {
                                         response, accessDeniedException,
                                         HttpServletResponse.SC_FORBIDDEN)))
                         .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
-                        .addFilterAfter(usernameHeaderGatewayFilter, JwtAuthFilter.class);
+                        .addFilterAfter(userIdHeaderGatewayFilter, JwtAuthFilter.class);
 
         return http.build();
     }
