@@ -18,6 +18,7 @@
         <module>api-gateway</module>
         <module>service_discovery</module>
         <module>user_service</module>
+        <module>post_service</module>
     </modules>
 
     <dependencyManagement>
