@@ -33,65 +33,66 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final JwtAuthFilter jwtAuthFilter;
-    private final UserIdHeaderGatewayFilter userIdHeaderGatewayFilter;
+        private final JwtAuthFilter jwtAuthFilter;
+        private final UserIdHeaderGatewayFilter userIdHeaderGatewayFilter;
 
-    @Value("${frontend.url}")
-    private String frontendUrl;
+        @Value("#{'${frontend.urls}'.split(',')}")
+        private List<String> allowedOrigins;
 
-    @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
-        return config.getAuthenticationManager();
-    }
+        @Bean
+        public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+                return config.getAuthenticationManager();
+        }
 
-    private void handleExceptionInFilterChain(HttpServletRequest request, HttpServletResponse response,
-            RuntimeException exception, int responseCode) throws IOException {
-            SmpResponse<String> apiResponse = new SmpResponse<>(false,
-                            "Unauthorized: " + exception.getMessage(), null);
-            response.setStatus(responseCode);
-            response.setContentType("application/json");
-            response.getWriter().write(new ObjectMapper().writeValueAsString(apiResponse));
-    }
+        private void handleExceptionInFilterChain(HttpServletRequest request, HttpServletResponse response,
+                        RuntimeException exception, int responseCode) throws IOException {
+                SmpResponse<String> apiResponse = new SmpResponse<>(false,
+                                "Unauthorized: " + exception.getMessage(), null);
+                response.setStatus(responseCode);
+                response.setContentType("application/json");
+                response.getWriter().write(new ObjectMapper().writeValueAsString(apiResponse));
+        }
 
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-            CorsConfiguration configuration = new CorsConfiguration();
-            configuration.setAllowedOrigins(List.of(frontendUrl));
-            configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-            configuration.setAllowedHeaders(List.of("*"));
-            configuration.setAllowCredentials(true);
+        @Bean
+        public CorsConfigurationSource corsConfigurationSource() {
+                CorsConfiguration configuration = new CorsConfiguration();
+                configuration.setAllowedOrigins(allowedOrigins);
+                configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+                configuration.setAllowedHeaders(List.of("*"));
+                configuration.setAllowCredentials(true);
 
-            UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-            source.registerCorsConfiguration("/**", configuration);
-            return source;
-    }
+                UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+                source.registerCorsConfiguration("/**", configuration);
+                return source;
+        }
 
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        @Bean
+        public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
-        http
-                .csrf(AbstractHttpConfigurer::disable)
-                        .cors(Customizer.withDefaults())
-                .authorizeHttpRequests(auth -> auth
-                                        .requestMatchers("/auth/register", "/auth/login", "/users/verification/email")
-                                        .permitAll()
-                        .anyRequest().authenticated())
-                .sessionManagement(sess -> sess
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .exceptionHandling(exceptions -> exceptions
-                        .authenticationEntryPoint((request, response,
-                                authException) -> handleExceptionInFilterChain(request,
-                                        response, authException,
-                                        HttpServletResponse.SC_UNAUTHORIZED))
-                        .accessDeniedHandler((request, response,
-                                accessDeniedException) -> handleExceptionInFilterChain(
-                                        request,
-                                        response, accessDeniedException,
-                                        HttpServletResponse.SC_FORBIDDEN)))
-                        .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
-                        .addFilterAfter(userIdHeaderGatewayFilter, JwtAuthFilter.class);
+                http
+                                .csrf(AbstractHttpConfigurer::disable)
+                                .cors(Customizer.withDefaults())
+                                .authorizeHttpRequests(auth -> auth
+                                                .requestMatchers("/auth/register", "/auth/login",
+                                                                "/users/verification/email")
+                                                .permitAll()
+                                                .anyRequest().authenticated())
+                                .sessionManagement(sess -> sess
+                                                .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                                .exceptionHandling(exceptions -> exceptions
+                                                .authenticationEntryPoint((request, response,
+                                                                authException) -> handleExceptionInFilterChain(request,
+                                                                                response, authException,
+                                                                                HttpServletResponse.SC_UNAUTHORIZED))
+                                                .accessDeniedHandler((request, response,
+                                                                accessDeniedException) -> handleExceptionInFilterChain(
+                                                                                request,
+                                                                                response, accessDeniedException,
+                                                                                HttpServletResponse.SC_FORBIDDEN)))
+                                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+                                .addFilterAfter(userIdHeaderGatewayFilter, JwtAuthFilter.class);
 
-        return http.build();
-    }
+                return http.build();
+        }
 
 }
