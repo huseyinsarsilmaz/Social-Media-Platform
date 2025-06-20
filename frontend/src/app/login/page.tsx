@@ -9,12 +9,13 @@ import {
   Typography,
   CircularProgress,
 } from "@mui/material";
-import axios from "../../lib/axios";
-import { useRouter } from "next/navigation";
 import { ErrorOutline } from "@mui/icons-material";
+import { useRouter } from "next/navigation";
+import axios from "../../lib/axios";
 
 export default function LoginPage() {
   const router = useRouter();
+
   const [form, setForm] = useState({ username: "", password: "" });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -22,12 +23,10 @@ export default function LoginPage() {
     null
   );
 
-  const handleChange = useCallback(
-    (field: keyof typeof form, value: string) => {
-      setForm((prev) => ({ ...prev, [field]: value }));
-    },
-    []
-  );
+  const handleChange =
+    (field: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) => {
+      setForm((prev) => ({ ...prev, [field]: e.target.value }));
+    };
 
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
@@ -47,12 +46,13 @@ export default function LoginPage() {
           setError(message || "Login failed. Please try again.");
         }
       } catch (err: any) {
-        if (err?.response?.data?.message === "Invalid Request format") {
-          setFieldErrors(err.response.data.data);
+        const msg = err?.response?.data?.message;
+        const fields = err?.response?.data?.data;
+
+        if (msg === "Invalid Request format") {
+          setFieldErrors(fields);
         }
-        setError(
-          err?.response?.data?.message || "Login failed. Please try again."
-        );
+        setError(msg || "Login failed. Please try again.");
       } finally {
         setLoading(false);
       }
@@ -64,8 +64,8 @@ export default function LoginPage() {
     if (!error) return null;
 
     if (fieldErrors) {
-      return Object.entries(fieldErrors).map(([_, message], index) => (
-        <ErrorAlert key={index} message={message} />
+      return Object.entries(fieldErrors).map(([_, msg], idx) => (
+        <ErrorAlert key={idx} message={msg} />
       ));
     }
 
@@ -73,39 +73,37 @@ export default function LoginPage() {
   }, [error, fieldErrors]);
 
   return (
-    <Container maxWidth="sm" sx={{ bgcolor: "#0a0a0a" }}>
+    <Container maxWidth="sm" sx={{ bgcolor: "#0a0a0a", py: 6 }}>
       <Stack
         spacing={2}
-        mt={4}
         alignItems="center"
         component="form"
         onSubmit={handleSubmit}
       >
-        <Typography component="h1" variant="h5" mb={1} sx={{ color: "#fff" }}>
-          Sign in
+        <Typography variant="h5" sx={{ color: "#fff" }}>
+          Sign In
         </Typography>
 
         {errorBlock}
 
-        <FormTextField
+        <CustomTextField
           label="Username"
           type="text"
           value={form.username}
-          onChange={(val) => handleChange("username", val)}
+          onChange={handleChange("username")}
         />
 
-        <FormTextField
+        <CustomTextField
           label="Password"
           type="password"
           value={form.password}
-          onChange={(val) => handleChange("password", val)}
+          onChange={handleChange("password")}
         />
 
         <Button
           type="submit"
           fullWidth
           variant="contained"
-          color="primary"
           disabled={loading}
           sx={{ mt: 1 }}
         >
@@ -116,15 +114,15 @@ export default function LoginPage() {
   );
 }
 
-interface FormTextFieldProps {
+interface TextFieldProps {
   label: string;
   type: string;
   value: string;
-  onChange: (value: string) => void;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   required?: boolean;
 }
 
-const FormTextField: React.FC<FormTextFieldProps> = ({
+const CustomTextField: React.FC<TextFieldProps> = ({
   label,
   type,
   value,
@@ -137,7 +135,7 @@ const FormTextField: React.FC<FormTextFieldProps> = ({
     fullWidth
     required={required}
     value={value}
-    onChange={(e) => onChange(e.target.value)}
+    onChange={onChange}
     sx={{
       "& label": { color: "rgba(255, 255, 255, 0.7)" },
       "& label.Mui-focused": { color: "#fff" },

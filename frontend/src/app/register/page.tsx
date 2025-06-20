@@ -9,9 +9,9 @@ import {
   CircularProgress,
   TextField,
 } from "@mui/material";
-import axios from "../../lib/axios";
-import { useRouter } from "next/navigation";
 import { CheckCircleSharp, ErrorOutline } from "@mui/icons-material";
+import { useRouter } from "next/navigation";
+import axios from "../../lib/axios";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -33,12 +33,9 @@ export default function RegisterPage() {
     null
   );
 
-  const handleChange = useCallback(
-    (field: keyof typeof form, value: string) => {
-      setForm((prev) => ({ ...prev, [field]: value }));
-    },
-    []
-  );
+  const handleChange =
+    (field: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) =>
+      setForm((prev) => ({ ...prev, [field]: e.target.value }));
 
   const handleSendCode = async () => {
     setSendingCode(true);
@@ -49,14 +46,14 @@ export default function RegisterPage() {
       await axios.post("/users/verification/email", { email: form.email });
       setCodeSent(true);
     } catch (err: any) {
-      const message = err?.response?.data?.message || "Failed to send code.";
+      const msg = err?.response?.data?.message || "Failed to send code.";
       const fields = err?.response?.data?.data;
 
-      if (message === "Invalid Request format" && fields) {
+      if (msg === "Invalid Request format" && fields) {
         setFieldErrors(fields);
       }
 
-      setError(message);
+      setError(msg);
     } finally {
       setSendingCode(false);
     }
@@ -72,11 +69,14 @@ export default function RegisterPage() {
       await axios.post("/auth/register", form);
       router.push("/home");
     } catch (err: any) {
-      if (err?.response?.data?.message === "Invalid Request format") {
-        setFieldErrors(err?.response?.data?.data);
+      const msg = err?.response?.data?.message || "Registration failed.";
+      const fields = err?.response?.data?.data;
+
+      if (msg === "Invalid Request format" && fields) {
+        setFieldErrors(fields);
       }
 
-      setError(err?.response?.data?.message || "Registration failed.");
+      setError(msg);
     } finally {
       setLoading(false);
     }
@@ -86,8 +86,8 @@ export default function RegisterPage() {
     if (!error) return null;
 
     if (fieldErrors) {
-      return Object.entries(fieldErrors).map(([field, message], idx) => (
-        <ErrorAlert key={idx} message={message} />
+      return Object.entries(fieldErrors).map(([_, msg], idx) => (
+        <ErrorAlert key={idx} message={msg} />
       ));
     }
 
@@ -95,15 +95,14 @@ export default function RegisterPage() {
   }, [error, fieldErrors]);
 
   return (
-    <Container maxWidth="sm" sx={{ bgcolor: "#0a0a0a" }}>
+    <Container maxWidth="sm" sx={{ bgcolor: "#0a0a0a", py: 6 }}>
       <Stack
         spacing={2}
-        mt={8}
         alignItems="center"
         component="form"
         onSubmit={handleSubmit}
       >
-        <Typography component="h1" variant="h5" sx={{ color: "#fff" }}>
+        <Typography variant="h5" sx={{ color: "#fff" }}>
           Register
         </Typography>
 
@@ -113,7 +112,7 @@ export default function RegisterPage() {
           label="Email"
           type="email"
           value={form.email}
-          onChange={(val) => handleChange("email", val)}
+          onChange={handleChange("email")}
         />
 
         <Button
@@ -143,35 +142,39 @@ export default function RegisterPage() {
               label="Verification Code"
               type="text"
               value={form.emailVerification}
-              onChange={(val) => handleChange("emailVerification", val)}
+              onChange={handleChange("emailVerification")}
             />
             <FormTextField
               label="Username"
               type="text"
               value={form.username}
-              onChange={(val) => handleChange("username", val)}
+              onChange={handleChange("username")}
             />
             <FormTextField
               label="Name"
               type="text"
               value={form.name}
-              onChange={(val) => handleChange("name", val)}
+              onChange={handleChange("name")}
             />
             <FormTextField
               label="Bio"
               type="text"
               value={form.bio}
-              onChange={(val) => handleChange("bio", val)}
+              onChange={handleChange("bio")}
             />
-
             <FormTextField
               label="Password"
               type="password"
               value={form.password}
-              onChange={(val) => handleChange("password", val)}
+              onChange={handleChange("password")}
             />
 
-            <Button type="submit" fullWidth variant="contained" color="primary">
+            <Button
+              type="submit"
+              fullWidth
+              variant="contained"
+              disabled={loading}
+            >
               {loading ? (
                 <CircularProgress size={24} color="inherit" />
               ) : (
@@ -185,28 +188,20 @@ export default function RegisterPage() {
   );
 }
 
-type FormTextFieldProps = {
+const FormTextField: React.FC<{
   label: string;
   type: string;
   value: string;
-  onChange: (value: string) => void;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   required?: boolean;
-};
-
-const FormTextField: React.FC<FormTextFieldProps> = ({
-  label,
-  type,
-  value,
-  onChange,
-  required = true,
-}) => (
+}> = ({ label, type, value, onChange, required = true }) => (
   <TextField
     label={label}
     type={type}
     fullWidth
     required={required}
     value={value}
-    onChange={(e) => onChange(e.target.value)}
+    onChange={onChange}
     sx={{
       "& label": { color: "rgba(255, 255, 255, 0.7)" },
       "& label.Mui-focused": { color: "#fff" },

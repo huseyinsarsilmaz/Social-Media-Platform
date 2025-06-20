@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import axios from "../../lib/axios";
 import {
   Container,
@@ -16,12 +16,11 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  IconButton,
   Alert,
 } from "@mui/material";
-import { useRouter } from "next/navigation";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import { parseISO, format } from "date-fns";
+import { useRouter } from "next/navigation";
 
 interface UserSimple {
   id: number;
@@ -39,34 +38,49 @@ interface ApiResponse {
   data: UserSimple | null;
 }
 
+interface Post {
+  id: number;
+  text: string;
+  image: string | null;
+  userId: number;
+}
+
 export default function ProfilePage() {
   const router = useRouter();
+
   const [user, setUser] = useState<UserSimple | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [editOpen, setEditOpen] = useState(false);
-  const [formData, setFormData] = useState({
+  const [isEditing, setIsEditing] = useState(false);
+  const [form, setForm] = useState({
     email: "",
     username: "",
     name: "",
     bio: "",
   });
-  const [editLoading, setEditLoading] = useState(false);
-  const [editError, setEditError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+
+  const [postOpen, setPostOpen] = useState(false);
+  const [postText, setPostText] = useState("");
+  const [posting, setPosting] = useState(false);
+  const [postError, setPostError] = useState<string | null>(null);
+
+  const getTokenOrRedirect = () => {
+    const token = localStorage.getItem("AUTH_TOKEN");
+    if (!token) {
+      router.push("/login");
+    }
+    return token;
+  };
 
   useEffect(() => {
-    async function fetchUser() {
-      setLoading(true);
-      setError(null);
+    const fetchUser = async () => {
+      const token = getTokenOrRedirect();
+      if (!token) return;
 
       try {
-        const token = localStorage.getItem("AUTH_TOKEN");
-        if (!token) {
-          router.push("/login");
-          return;
-        }
-
         const res = await axios.get<ApiResponse>("/users/me", {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -74,64 +88,56 @@ export default function ProfilePage() {
         if (res.data.status && res.data.data) {
           setUser(res.data.data);
         } else {
-          setError(res.data.message || "Failed to fetch user data");
+          setError(res.data.message || "Failed to fetch user data.");
         }
       } catch (err: any) {
-        setError(err?.response?.data?.message || "Failed to fetch user data");
+        setError(err?.response?.data?.message || "Failed to fetch user data.");
       } finally {
         setLoading(false);
       }
-    }
+    };
 
     fetchUser();
   }, [router]);
 
   const handleEditOpen = () => {
     if (!user) return;
-    setFormData({
+    setForm({
       email: user.email,
       username: user.username,
       name: user.name,
       bio: user.bio || "",
     });
-    setEditError(null);
-    setEditOpen(true);
-  };
-
-  const handleEditClose = () => {
-    if (editLoading) return;
-    setEditOpen(false);
+    setSaveError(null);
+    setIsEditing(true);
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  const handleSubmit = async () => {
-    setEditLoading(true);
-    setEditError(null);
+  const handleSave = async () => {
+    const token = getTokenOrRedirect();
+    if (!token) return;
+
+    setSaving(true);
+    setSaveError(null);
 
     try {
-      const token = localStorage.getItem("AUTH_TOKEN");
-      if (!token) {
-        router.push("/login");
-        return;
-      }
-
-      const res = await axios.put<ApiResponse>("/users/me", formData, {
+      const res = await axios.put<ApiResponse>("/users/me", form, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
       if (res.data.status && res.data.data) {
         setUser(res.data.data);
-        setEditOpen(false);
+        setIsEditing(false);
       } else {
-        setEditError(res.data.message || "Failed to update profile");
+        setSaveError(res.data.message || "Failed to update profile.");
       }
     } catch (err: any) {
-      setEditError(err?.response?.data?.message || "Failed to update profile");
+      setSaveError(err?.response?.data?.message || "Failed to update profile.");
     } finally {
-      setEditLoading(false);
+      setSaving(false);
     }
   };
 
@@ -156,9 +162,20 @@ export default function ProfilePage() {
     );
   }
 
-  if (!user) {
-    return null;
-  }
+  if (!user) return null;
+
+  const textFieldStyles = {
+    bgcolor: "#1e1e1e",
+    borderRadius: 1,
+    "& label": { color: "rgba(255, 255, 255, 0.7)" },
+    "& label.Mui-focused": { color: "#fff" },
+    "& .MuiInputBase-input": { color: "#fff" },
+    "& .MuiOutlinedInput-root": {
+      "& fieldset": { borderColor: "rgba(255, 255, 255, 0.4)" },
+      "&:hover fieldset": { borderColor: "#fff" },
+      "&.Mui-focused fieldset": { borderColor: "#fff" },
+    },
+  };
 
   return (
     <>
@@ -176,8 +193,8 @@ export default function ProfilePage() {
           }}
         >
           <Avatar
-            alt={user.name}
-            src="/favicon.ico" // placeholder image
+            alt={user.name || user.username}
+            src="/favicon.ico"
             sx={{
               width: 96,
               height: 96,
@@ -203,12 +220,13 @@ export default function ProfilePage() {
                 @{user.username}
               </Typography>
             </Box>
+
             <Button
               variant="outlined"
               sx={{ borderColor: "#1da1f2", color: "#1da1f2" }}
               onClick={handleEditOpen}
             >
-              Edit profile
+              Edit Profile
             </Button>
           </Stack>
 
@@ -247,68 +265,50 @@ export default function ProfilePage() {
       </Container>
 
       <Dialog
-        open={editOpen}
-        onClose={handleEditClose}
+        open={isEditing}
+        onClose={() => !saving && setIsEditing(false)}
         fullWidth
         maxWidth="sm"
         PaperProps={{
-          sx: {
-            bgcolor: "#121212",
-            color: "#fff",
-            borderRadius: 2,
-          },
+          sx: { bgcolor: "#121212", color: "#fff", borderRadius: 2 },
         }}
       >
-        <DialogTitle sx={{ color: "#fff" }}>Edit Profile</DialogTitle>
+        <DialogTitle>Edit Profile</DialogTitle>
 
         <DialogContent dividers sx={{ borderColor: "#2f2f2f" }}>
-          {editError && (
+          {saveError && (
             <Alert severity="error" sx={{ mb: 2 }}>
-              {editError}
+              {saveError}
             </Alert>
           )}
+
           <Stack spacing={2}>
             {(["email", "username", "name", "bio"] as const).map((field) => (
               <TextField
                 key={field}
-                label={field.charAt(0).toUpperCase() + field.slice(1)}
                 name={field}
+                label={field.charAt(0).toUpperCase() + field.slice(1)}
                 type={field === "email" ? "email" : "text"}
                 fullWidth
                 multiline={field === "bio"}
                 minRows={field === "bio" ? 3 : undefined}
                 maxRows={field === "bio" ? 5 : undefined}
-                value={formData[field]}
+                value={form[field]}
                 onChange={handleChange}
-                disabled={editLoading}
+                disabled={saving}
                 variant="outlined"
-                sx={{
-                  bgcolor: "#1e1e1e",
-                  borderRadius: 1,
-                  "& label": { color: "rgba(255, 255, 255, 0.7)" },
-                  "& label.Mui-focused": { color: "#fff" },
-                  "& .MuiInputBase-input": { color: "#fff" },
-                  "& .MuiOutlinedInput-root": {
-                    "& fieldset": { borderColor: "rgba(255, 255, 255, 0.4)" },
-                    "&:hover fieldset": { borderColor: "#fff" },
-                    "&.Mui-focused fieldset": { borderColor: "#fff" },
-                  },
-                }}
+                sx={textFieldStyles}
               />
             ))}
           </Stack>
         </DialogContent>
 
         <DialogActions>
-          <Button onClick={handleEditClose} disabled={editLoading}>
+          <Button onClick={() => setIsEditing(false)} disabled={saving}>
             Cancel
           </Button>
-          <Button
-            variant="contained"
-            onClick={handleSubmit}
-            disabled={editLoading}
-          >
-            {editLoading ? <CircularProgress size={24} /> : "Save"}
+          <Button variant="contained" onClick={handleSave} disabled={saving}>
+            {saving ? <CircularProgress size={24} /> : "Save"}
           </Button>
         </DialogActions>
       </Dialog>
