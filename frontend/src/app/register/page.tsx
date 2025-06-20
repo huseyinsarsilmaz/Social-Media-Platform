@@ -21,6 +21,7 @@ export default function RegisterPage() {
     username: "",
     password: "",
     name: "",
+    bio: "",
     emailVerification: "",
   });
 
@@ -155,6 +156,12 @@ export default function RegisterPage() {
               type="text"
               value={form.name}
               onChange={(val) => handleChange("name", val)}
+            />
+            <FormTextField
+              label="Bio"
+              type="text"
+              value={form.bio}
+              onChange={(val) => handleChange("bio", val)}
             />
 
             <FormTextField
