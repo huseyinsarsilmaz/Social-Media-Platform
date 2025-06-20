@@ -21,6 +21,13 @@ import {
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import { parseISO, format } from "date-fns";
 import { useRouter } from "next/navigation";
+import {
+  ChatBubbleOutline,
+  FavoriteBorder,
+  ImageSharp,
+  Repeat,
+  Share,
+} from "@mui/icons-material";
 
 interface UserSimple {
   id: number;
@@ -66,6 +73,9 @@ export default function ProfilePage() {
   const [postText, setPostText] = useState("");
   const [posting, setPosting] = useState(false);
   const [postError, setPostError] = useState<string | null>(null);
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [postsLoading, setPostsLoading] = useState(false);
+  const [postsError, setPostsError] = useState<string | null>(null);
 
   const getTokenOrRedirect = () => {
     const token = localStorage.getItem("AUTH_TOKEN");
@@ -73,6 +83,34 @@ export default function ProfilePage() {
       router.push("/login");
     }
     return token;
+  };
+
+  const fetchPosts = async () => {
+    setPostsLoading(true);
+    setPostsError(null);
+    const token = localStorage.getItem("AUTH_TOKEN");
+    if (!token) {
+      router.push("/login");
+      return;
+    }
+    try {
+      const res = await axios.get<{
+        status: boolean;
+        message: string;
+        data: Post[];
+      }>("/posts/my", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.data.status) {
+        setPosts(res.data.data);
+      } else {
+        setPostsError(res.data.message || "Failed to fetch posts.");
+      }
+    } catch (err: any) {
+      setPostsError(err?.response?.data?.message || "Failed to fetch posts.");
+    } finally {
+      setPostsLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -98,6 +136,7 @@ export default function ProfilePage() {
     };
 
     fetchUser();
+    fetchPosts();
   }, [router]);
 
   const handleEditOpen = () => {
@@ -312,6 +351,171 @@ export default function ProfilePage() {
           </Button>
         </DialogActions>
       </Dialog>
+      <Dialog
+        open={postOpen}
+        onClose={() => !posting && setPostOpen(false)}
+        fullWidth
+        maxWidth="sm"
+        PaperProps={{
+          sx: { bgcolor: "#121212", color: "#fff", borderRadius: 2 },
+        }}
+      >
+        <DialogTitle>New Post</DialogTitle>
+        <DialogContent dividers sx={{ borderColor: "#2f2f2f" }}>
+          {postError && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {postError}
+            </Alert>
+          )}
+          <TextField
+            label="What's happening?"
+            multiline
+            minRows={3}
+            fullWidth
+            value={postText}
+            onChange={(e) => setPostText(e.target.value)}
+            variant="outlined"
+            sx={{
+              bgcolor: "#1e1e1e",
+              borderRadius: 1,
+              "& label": { color: "rgba(255, 255, 255, 0.7)" },
+              "& label.Mui-focused": { color: "#fff" },
+              "& .MuiInputBase-input": { color: "#fff" },
+              "& .MuiOutlinedInput-root": {
+                "& fieldset": { borderColor: "rgba(255, 255, 255, 0.4)" },
+                "&:hover fieldset": { borderColor: "#fff" },
+                "&.Mui-focused fieldset": { borderColor: "#fff" },
+              },
+            }}
+          />
+          <Box mt={2} textAlign="right">
+            <ImageSharp />
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setPostOpen(false)} disabled={posting}>
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            onClick={async () => {
+              setPosting(true);
+              setPostError(null);
+              const token = localStorage.getItem("AUTH_TOKEN");
+              if (!token) {
+                router.push("/login");
+                return;
+              }
+              try {
+                await axios.post(
+                  "/posts",
+                  { text: postText },
+                  { headers: { Authorization: `Bearer ${token}` } }
+                );
+                setPostText("");
+                setPostOpen(false);
+              } catch (err: any) {
+                setPostError(err?.response?.data?.message || "Failed to post.");
+              } finally {
+                setPosting(false);
+                fetchPosts();
+              }
+            }}
+            disabled={posting || !postText.trim()}
+          >
+            {posting ? <CircularProgress size={24} /> : "Post"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+      <Container maxWidth="sm" sx={{ mt: 3, mb: 4 }}>
+        <Button
+          variant="contained"
+          sx={{ bgcolor: "#1da1f2" }}
+          onClick={() => setPostOpen(true)}
+        >
+          Post
+        </Button>
+        <Typography variant="h6" sx={{ mb: 2, color: "#fff" }}>
+          Your Posts
+        </Typography>
+
+        {postsLoading && (
+          <Box sx={{ textAlign: "center", py: 3 }}>
+            <CircularProgress />
+          </Box>
+        )}
+
+        {postsError && (
+          <Typography color="error" sx={{ mb: 2 }}>
+            {postsError}
+          </Typography>
+        )}
+
+        {!postsLoading && posts.length === 0 && (
+          <Typography sx={{ color: "gray" }}>
+            You have not posted anything yet.
+          </Typography>
+        )}
+
+        {posts.map((post) => (
+          <PostCard key={post.id} post={post} />
+        ))}
+      </Container>
     </>
   );
 }
+
+const PostCard: React.FC<{ post: Post }> = ({ post }) => (
+  <Box
+    sx={{
+      bgcolor: "#1e1e1e",
+      p: 2,
+      borderRadius: 2,
+      mb: 2,
+      color: "#fff",
+    }}
+  >
+    <Typography sx={{ mb: 1 }}>{post.text}</Typography>
+
+    <Stack direction="row" spacing={4} sx={{ color: "gray" }}>
+      <Stack
+        direction="row"
+        spacing={0.5}
+        alignItems="center"
+        sx={{ cursor: "pointer" }}
+      >
+        <ChatBubbleOutline fontSize="small" />
+        <Typography variant="caption">0</Typography>
+      </Stack>
+
+      <Stack
+        direction="row"
+        spacing={0.5}
+        alignItems="center"
+        sx={{ cursor: "pointer" }}
+      >
+        <Repeat fontSize="small" />
+        <Typography variant="caption">0</Typography>
+      </Stack>
+
+      <Stack
+        direction="row"
+        spacing={0.5}
+        alignItems="center"
+        sx={{ cursor: "pointer" }}
+      >
+        <FavoriteBorder fontSize="small" />
+        <Typography variant="caption">0</Typography>
+      </Stack>
+
+      <Stack
+        direction="row"
+        spacing={0.5}
+        alignItems="center"
+        sx={{ cursor: "pointer" }}
+      >
+        <Share fontSize="small" />
+      </Stack>
+    </Stack>
+  </Box>
+);
