@@ -9,6 +9,7 @@ import com.hsynsarsilmaz.smp.post_service.model.entity.Post;
 @Mapper(componentModel = "spring")
 public interface PostMapper {
 
+    @Mapping(target = "userId", ignore = true)
     Post toEntity(AddPostRequest req);
 
     @Named("toDtoSimple")

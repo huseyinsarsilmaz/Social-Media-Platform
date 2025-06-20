@@ -1,7 +1,10 @@
 package com.hsynsarsilmaz.smp.post_service.controller;
 
+import java.util.List;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -34,6 +37,15 @@ public class PostController {
         PostSimple newPost = postService.addPost(req, id);
 
         return responseBuilder.success("Post", "added", newPost, HttpStatus.CREATED);
+    }
+
+    @GetMapping("/my")
+    public ResponseEntity<SmpResponse<List<PostSimple>>> getMyPosts(@RequestHeader("X-USER-ID") String userId) {
+
+        Long id = Long.parseLong(userId);
+        List<PostSimple> posts = postService.getByUserId(id);
+
+        return responseBuilder.success("My Posts", "fetched", posts, HttpStatus.OK);
     }
 
 }

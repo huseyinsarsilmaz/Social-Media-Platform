@@ -1,5 +1,10 @@
 package com.hsynsarsilmaz.smp.post_service.service.impl;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import com.hsynsarsilmaz.smp.post_service.model.dto.request.AddPostRequest;
@@ -18,6 +23,7 @@ public class PostServiceImpl implements PostService {
     private final PostRepository postRepository;
     private final PostMapper postMapper;
 
+    @CacheEvict(value = "postsByUser", key = "#userId")
     @Transactional
     public PostSimple addPost(AddPostRequest req, Long userId) {
         Post newPost = postMapper.toEntity(req);
@@ -27,4 +33,13 @@ public class PostServiceImpl implements PostService {
 
         return postMapper.toDtoSimple(newPost);
     }
+
+    @Cacheable(value = "postsByUser", key = "#userId")
+    public List<PostSimple> getByUserId(Long userId) {
+        List<PostSimple> posts = postRepository.findByUserId(userId).stream()
+                .map(postMapper::toDtoSimple)
+                .collect(Collectors.toList());
+        return posts;
+    }
+
 }
