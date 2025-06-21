@@ -17,12 +17,15 @@ import {
   DialogContent,
   DialogActions,
   Alert,
+  IconButton,
 } from "@mui/material";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import { parseISO, format } from "date-fns";
 import { useRouter } from "next/navigation";
 import {
   ChatBubbleOutline,
+  Delete,
+  Edit,
   FavoriteBorder,
   ImageSharp,
   Repeat,
@@ -181,6 +184,25 @@ export default function ProfilePage() {
       setSaveError(err?.response?.data?.message || "Failed to update profile.");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleDeletePost = async (id: number) => {
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this post?"
+    );
+    if (!confirmed) return;
+
+    const token = getTokenOrRedirect();
+    if (!token) return;
+
+    try {
+      await axios.delete(`/posts/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      fetchPosts();
+    } catch (err: any) {
+      alert(err?.response?.data?.message || "Failed to delete post.");
     }
   };
 
@@ -545,6 +567,7 @@ export default function ProfilePage() {
               setEditPostId(p.id);
               setEditText(p.text);
             }}
+            onDelete={handleDeletePost}
           />
         ))}
       </Container>
@@ -555,7 +578,8 @@ export default function ProfilePage() {
 const PostCard: React.FC<{
   post: Post;
   onEdit: (post: Post) => void;
-}> = ({ post, onEdit }) => (
+  onDelete: (id: number) => void;
+}> = ({ post, onEdit, onDelete }) => (
   <Box
     sx={{
       bgcolor: "#1e1e1e",
@@ -563,20 +587,40 @@ const PostCard: React.FC<{
       borderRadius: 2,
       mb: 2,
       color: "#fff",
+      display: "flex",
+      flexDirection: "column",
+      gap: 1,
     }}
   >
-    <Stack direction="row" justifyContent="space-between">
-      <Typography sx={{ mb: 1 }}>{post.text}</Typography>
-      <Button
-        size="small"
-        onClick={() => onEdit(post)}
-        sx={{ color: "#1da1f2" }}
-      >
-        Edit
-      </Button>
-    </Stack>
+    <Typography>{post.text}</Typography>
 
-    <Stack direction="row" spacing={4} sx={{ color: "gray" }}>
+    <Box display="flex" justifyContent="flex-end">
+      <Stack direction="row" spacing={1}>
+        <IconButton
+          size="small"
+          onClick={() => onEdit(post)}
+          sx={{ color: "#1da1f2" }}
+        >
+          <Edit fontSize="small" />
+        </IconButton>
+        <IconButton
+          size="small"
+          onClick={() => onDelete(post.id)}
+          sx={{ color: "red" }}
+        >
+          <Delete fontSize="small" />
+        </IconButton>
+      </Stack>
+    </Box>
+
+    <Divider sx={{ bgcolor: "#2f2f2f", my: 1 }} />
+
+    <Stack
+      direction="row"
+      justifyContent="space-between"
+      alignItems="center"
+      sx={{ color: "gray" }}
+    >
       <Stack
         direction="row"
         spacing={0.5}
