@@ -13,6 +13,8 @@ public interface PostService {
 
     public PostSimple updatePost(UpdatePostRequest req, Long postId, Long userId);
 
+    public PostSimple deletePost(Long postId, Long userId);
+
     public void isPostOwned(Post post, Long userId);
 
     public List<PostSimple> getByUserId(Long userId);

@@ -69,4 +69,15 @@ public class PostServiceImpl implements PostService {
         return postMapper.toDtoSimple(post);
     }
 
+    @CacheEvict(value = "postsByUser", key = "#userId")
+    @Transactional
+    public PostSimple deletePost(Long postId, Long userId) {
+        Post post = getEntityById(postId);
+        isPostOwned(post, userId);
+
+        postRepository.delete(post);
+
+        return postMapper.toDtoSimple(post);
+    }
+
 }
