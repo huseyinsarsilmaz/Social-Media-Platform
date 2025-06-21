@@ -16,4 +16,6 @@ public class UserSimple implements Serializable {
     private String name;
     private LocalDateTime createdAt;
     private String bio;
+    private String profilePicture;
+    private String coverPicture;
 }

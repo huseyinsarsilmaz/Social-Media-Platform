@@ -1,5 +1,7 @@
 package com.hsynsarsilmaz.smp.user_service.service.Impl;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
@@ -12,6 +14,7 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.hsynsarsilmaz.smp.common.exception.AlreadyExistsException;
 import com.hsynsarsilmaz.smp.common.exception.NotFoundException;
@@ -42,6 +45,9 @@ public class UserServiceImpl implements UserService {
 
     @Value("${spring.mail.username}")
     private String fromEmail;
+
+    @Value("${user.images.upload.path}")
+    private String uploadPath;
 
     private User getEntityByUsername(String username) {
         return userRepository.findByUsername(username)
@@ -146,6 +152,51 @@ public class UserServiceImpl implements UserService {
         evictCache("userSimple", user.getId());
 
         userMapper.updateEntity(user, req);
+        user = userRepository.save(user);
+
+        return userMapper.toDtoSimple(user);
+    }
+
+    private String uploadImage(MultipartFile image, String path, String fileName) throws IOException {
+
+        String folder = uploadPath + "/" + path;
+        String filePath = null;
+        new File(folder).mkdirs();
+
+        if (image != null && !image.isEmpty()) {
+            filePath = folder + "/" + fileName;
+            image.transferTo(new File(filePath));
+        }
+
+        return filePath;
+    }
+
+    public UserSimple updateProfilePicture(MultipartFile image, Long userId) {
+        User user = getEntityById(userId);
+        String imageUrl = null;
+        try {
+            imageUrl = uploadImage(image, userId.toString(), "profilePicture.jpg");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+
+        user.setProfilePicture(imageUrl);
+        user = userRepository.save(user);
+
+        return userMapper.toDtoSimple(user);
+    }
+
+    public UserSimple updateCoverPicture(MultipartFile image, Long userId) {
+        User user = getEntityById(userId);
+        String imageUrl = null;
+        try {
+            imageUrl = uploadImage(image, userId.toString(), "coverPicture.jpg");
+        } catch (Exception e) {
+            return null;
+        }
+
+        user.setCoverPicture(imageUrl);
         user = userRepository.save(user);
 
         return userMapper.toDtoSimple(user);

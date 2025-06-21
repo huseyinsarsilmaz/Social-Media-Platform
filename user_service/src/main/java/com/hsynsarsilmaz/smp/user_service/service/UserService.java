@@ -1,5 +1,7 @@
 package com.hsynsarsilmaz.smp.user_service.service;
 
+import org.springframework.web.multipart.MultipartFile;
+
 import com.hsynsarsilmaz.smp.user_service.model.dto.request.RegisterRequest;
 import com.hsynsarsilmaz.smp.user_service.model.dto.request.UserUpdateRequest;
 import com.hsynsarsilmaz.smp.user_service.model.dto.response.UserAuth;
@@ -22,5 +24,9 @@ public interface UserService {
     public void sendEmailVerification(String email);
 
     public UserSimple update(UserUpdateRequest req, Long id);
+
+    public UserSimple updateProfilePicture(MultipartFile image, Long userId);
+
+    public UserSimple updateCoverPicture(MultipartFile image, Long userId);
 
 }

@@ -9,7 +9,9 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.hsynsarsilmaz.smp.common.model.dto.response.SmpResponse;
 import com.hsynsarsilmaz.smp.common.util.SmpResponseBuilder;
@@ -72,6 +74,32 @@ public class UserController {
         UserSimple newUser = userService.update(req, id);
 
         return responseBuilder.success("User", "updated", newUser, HttpStatus.OK);
+    }
+
+    @PostMapping("/{userId}/profilePicture")
+    public ResponseEntity<?> updateProfilePicture(
+            @RequestHeader("X-USER-ID") String userId,
+            @RequestParam MultipartFile profilePicture) {
+
+        Long id = Long.parseLong(userId);
+        UserSimple user = userService.updateProfilePicture(profilePicture, id);
+        if (user == null) {
+            return responseBuilder.fail("file.upload.failed", null, null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        return responseBuilder.success("User profile picture", "updated", user, HttpStatus.OK);
+    }
+
+    @PostMapping("/{userId}/coverPicture")
+    public ResponseEntity<?> updateCoverPicture(
+            @RequestHeader("X-USER-ID") String userId,
+            @RequestParam MultipartFile coverPicture) {
+
+        Long id = Long.parseLong(userId);
+        UserSimple user = userService.updateCoverPicture(coverPicture, id);
+        if (user == null) {
+            return responseBuilder.fail("file.upload.failed", null, null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        return responseBuilder.success("User cover picture", "updated", user, HttpStatus.OK);
     }
 
 }

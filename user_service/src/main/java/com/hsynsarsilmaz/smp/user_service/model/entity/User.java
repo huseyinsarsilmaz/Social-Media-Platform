@@ -50,4 +50,12 @@ public class User extends SmpEntity {
     @Column(nullable = false)
     private Boolean isActive = true;
 
+    @Column(nullable = true)
+    @Builder.Default
+    private String profilePicture = null;
+
+    @Column(nullable = true)
+    @Builder.Default
+    private String coverPicture = null;
+
 }
