@@ -76,6 +76,10 @@ export default function ProfilePage() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [postsLoading, setPostsLoading] = useState(false);
   const [postsError, setPostsError] = useState<string | null>(null);
+  const [editPostId, setEditPostId] = useState<number | null>(null);
+  const [editText, setEditText] = useState("");
+  const [editingPost, setEditingPost] = useState(false);
+  const [editError, setEditError] = useState<string | null>(null);
 
   const getTokenOrRedirect = () => {
     const token = localStorage.getItem("AUTH_TOKEN");
@@ -352,6 +356,82 @@ export default function ProfilePage() {
         </DialogActions>
       </Dialog>
       <Dialog
+        open={editPostId !== null}
+        onClose={() => !editingPost && setEditPostId(null)}
+        fullWidth
+        maxWidth="sm"
+        PaperProps={{
+          sx: { bgcolor: "#121212", color: "#fff", borderRadius: 2 },
+        }}
+      >
+        <DialogTitle>Edit Post</DialogTitle>
+        <DialogContent dividers sx={{ borderColor: "#2f2f2f" }}>
+          {editError && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {editError}
+            </Alert>
+          )}
+          <TextField
+            label="Update your post"
+            multiline
+            minRows={3}
+            fullWidth
+            value={editText}
+            onChange={(e) => setEditText(e.target.value)}
+            variant="outlined"
+            sx={{
+              bgcolor: "#1e1e1e",
+              borderRadius: 1,
+              "& label": { color: "rgba(255, 255, 255, 0.7)" },
+              "& label.Mui-focused": { color: "#fff" },
+              "& .MuiInputBase-input": { color: "#fff" },
+              "& .MuiOutlinedInput-root": {
+                "& fieldset": { borderColor: "rgba(255, 255, 255, 0.4)" },
+                "&:hover fieldset": { borderColor: "#fff" },
+                "&.Mui-focused fieldset": { borderColor: "#fff" },
+              },
+            }}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setEditPostId(null)} disabled={editingPost}>
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            onClick={async () => {
+              setEditingPost(true);
+              setEditError(null);
+              const token = localStorage.getItem("AUTH_TOKEN");
+              if (!token) {
+                router.push("/login");
+                return;
+              }
+              try {
+                await axios.put(
+                  `/posts/${editPostId}`,
+                  { text: editText },
+                  { headers: { Authorization: `Bearer ${token}` } }
+                );
+                setEditPostId(null);
+                setEditText("");
+                fetchPosts();
+              } catch (err: any) {
+                setEditError(
+                  err?.response?.data?.message || "Failed to update post."
+                );
+              } finally {
+                setEditingPost(false);
+              }
+            }}
+            disabled={editingPost || !editText.trim()}
+          >
+            {editingPost ? <CircularProgress size={24} /> : "Save"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
         open={postOpen}
         onClose={() => !posting && setPostOpen(false)}
         fullWidth
@@ -458,14 +538,24 @@ export default function ProfilePage() {
         )}
 
         {posts.map((post) => (
-          <PostCard key={post.id} post={post} />
+          <PostCard
+            key={post.id}
+            post={post}
+            onEdit={(p) => {
+              setEditPostId(p.id);
+              setEditText(p.text);
+            }}
+          />
         ))}
       </Container>
     </>
   );
 }
 
-const PostCard: React.FC<{ post: Post }> = ({ post }) => (
+const PostCard: React.FC<{
+  post: Post;
+  onEdit: (post: Post) => void;
+}> = ({ post, onEdit }) => (
   <Box
     sx={{
       bgcolor: "#1e1e1e",
@@ -475,7 +565,16 @@ const PostCard: React.FC<{ post: Post }> = ({ post }) => (
       color: "#fff",
     }}
   >
-    <Typography sx={{ mb: 1 }}>{post.text}</Typography>
+    <Stack direction="row" justifyContent="space-between">
+      <Typography sx={{ mb: 1 }}>{post.text}</Typography>
+      <Button
+        size="small"
+        onClick={() => onEdit(post)}
+        sx={{ color: "#1da1f2" }}
+      >
+        Edit
+      </Button>
+    </Stack>
 
     <Stack direction="row" spacing={4} sx={{ color: "gray" }}>
       <Stack
