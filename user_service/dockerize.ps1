@@ -10,5 +10,5 @@ if ($imageId) {
 
 .\mvnw spring-boot:build-image
 
-docker run --name $containerName -p 8081:8081 -d $imageName
+docker run --name $containerName -p 8081:8081 -v C:/Users/Huseyin/Desktop/Social-Media-Platform/uploads/images:/app/uploads/images -d $imageName
 
