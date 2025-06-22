@@ -158,30 +158,29 @@ public class UserServiceImpl implements UserService {
     }
 
     private String uploadImage(MultipartFile image, String path, String fileName) throws IOException {
-
         String folder = uploadPath + "/" + path;
-        String filePath = null;
         new File(folder).mkdirs();
 
         if (image != null && !image.isEmpty()) {
-            filePath = folder + "/" + fileName;
+            String filePath = folder + "/" + fileName;
             image.transferTo(new File(filePath));
+            return path + "/" + fileName;
         }
 
-        return filePath;
+        return null;
     }
 
     public UserSimple updateProfilePicture(MultipartFile image, Long userId) {
         User user = getEntityById(userId);
-        String imageUrl = null;
+        String relativeImagePath = null;
         try {
-            imageUrl = uploadImage(image, userId.toString(), "profilePicture.jpg");
+            relativeImagePath = uploadImage(image, userId.toString(), "profilePicture.jpg");
         } catch (Exception e) {
             e.printStackTrace();
             return null;
         }
 
-        user.setProfilePicture(imageUrl);
+        user.setProfilePicture(relativeImagePath);
         user = userRepository.save(user);
 
         return userMapper.toDtoSimple(user);
@@ -189,14 +188,15 @@ public class UserServiceImpl implements UserService {
 
     public UserSimple updateCoverPicture(MultipartFile image, Long userId) {
         User user = getEntityById(userId);
-        String imageUrl = null;
+        String relativeImagePath = null;
         try {
-            imageUrl = uploadImage(image, userId.toString(), "coverPicture.jpg");
+            relativeImagePath = uploadImage(image, userId.toString(), "coverPicture.jpg");
         } catch (Exception e) {
+            e.printStackTrace();
             return null;
         }
 
-        user.setCoverPicture(imageUrl);
+        user.setCoverPicture(relativeImagePath);
         user = userRepository.save(user);
 
         return userMapper.toDtoSimple(user);

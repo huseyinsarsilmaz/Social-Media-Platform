@@ -40,6 +40,8 @@ interface UserSimple {
   surname: string;
   createdAt: string;
   bio: string;
+  profilePicture: string | null;
+  coverPicture: string | null;
 }
 
 interface ApiResponse {
@@ -251,15 +253,24 @@ export default function ProfilePage() {
         <Box
           sx={{
             height: 120,
-            bgcolor: "#1da1f2",
             borderTopLeftRadius: 8,
             borderTopRightRadius: 8,
             position: "relative",
+            backgroundColor: "#1da1f2",
+            backgroundImage: user.coverPicture
+              ? `url(http://localhost:8080/api/users/images/${user.coverPicture})`
+              : undefined,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
           }}
         >
           <Avatar
             alt={user.name || user.username}
-            src="/favicon.ico"
+            src={
+              user.profilePicture
+                ? `http://localhost:8080/api/users/images/${user.profilePicture}`
+                : "/favicon.ico"
+            }
             sx={{
               width: 96,
               height: 96,
@@ -279,7 +290,7 @@ export default function ProfilePage() {
           >
             <Box>
               <Typography variant="h5" fontWeight="bold">
-                {user.name} {user.surname}
+                {user.name}{" "}
               </Typography>
               <Typography variant="subtitle1" color="gray">
                 @{user.username}

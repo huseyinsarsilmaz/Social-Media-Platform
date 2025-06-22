@@ -74,7 +74,7 @@ public class SecurityConfig {
                                 .cors(Customizer.withDefaults())
                                 .authorizeHttpRequests(auth -> auth
                                                 .requestMatchers("/auth/register", "/auth/login",
-                                                                "/users/verification/email")
+                                                                "/users/verification/email", "/users/images/**")
                                                 .permitAll()
                                                 .anyRequest().authenticated())
                                 .sessionManagement(sess -> sess

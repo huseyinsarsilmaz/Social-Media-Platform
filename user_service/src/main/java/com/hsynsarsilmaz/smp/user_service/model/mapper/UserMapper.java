@@ -11,26 +11,31 @@ import com.hsynsarsilmaz.smp.user_service.model.entity.User;
 @Mapper(componentModel = "spring")
 public interface UserMapper {
 
-    @Mappings({
-            @Mapping(target = "isActive", ignore = true),
-            @Mapping(target = "role", ignore = true),
-    })
-    User toEntity(RegisterRequest req);
+        @Mappings({
+                        @Mapping(target = "isActive", ignore = true),
+                        @Mapping(target = "role", ignore = true),
+                        @Mapping(target = "profilePicture", ignore = true),
+                        @Mapping(target = "coverPicture", ignore = true)
+        })
+        User toEntity(RegisterRequest req);
 
-    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    @Mappings({
-            @Mapping(target = "isActive", ignore = true),
-            @Mapping(target = "password", ignore = true),
-            @Mapping(target = "role", ignore = true),
-            @Mapping(target = "id", ignore = true),
-            @Mapping(target = "createdAt", ignore = true),
-            @Mapping(target = "updatedAt", ignore = true),
-    })
-    void updateEntity(@MappingTarget User user, UserUpdateRequest req);
+        @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+        @Mappings({
+                        @Mapping(target = "isActive", ignore = true),
+                        @Mapping(target = "password", ignore = true),
+                        @Mapping(target = "role", ignore = true),
+                        @Mapping(target = "id", ignore = true),
+                        @Mapping(target = "createdAt", ignore = true),
+                        @Mapping(target = "updatedAt", ignore = true),
+                        @Mapping(target = "profilePicture", ignore = true),
+                        @Mapping(target = "coverPicture", ignore = true)
 
-    @Named("toDtoSimple")
-    UserSimple toDtoSimple(User user);
+        })
+        void updateEntity(@MappingTarget User user, UserUpdateRequest req);
 
-    @Named("toDtoAuth")
-    UserAuth toDtoAuth(User user);
+        @Named("toDtoSimple")
+        UserSimple toDtoSimple(User user);
+
+        @Named("toDtoAuth")
+        UserAuth toDtoAuth(User user);
 }
