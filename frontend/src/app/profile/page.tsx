@@ -85,6 +85,8 @@ export default function ProfilePage() {
   const [editText, setEditText] = useState("");
   const [editingPost, setEditingPost] = useState(false);
   const [editError, setEditError] = useState<string | null>(null);
+  const [profileUploading, setProfileUploading] = useState(false);
+  const [coverUploading, setCoverUploading] = useState(false);
 
   const getTokenOrRedirect = () => {
     const token = localStorage.getItem("AUTH_TOKEN");
@@ -229,6 +231,43 @@ export default function ProfilePage() {
     );
   }
 
+  const handleImageUpload = async (file: File, type: "profile" | "cover") => {
+    const token = localStorage.getItem("AUTH_TOKEN");
+    if (!token || !user) return;
+
+    const formData = new FormData();
+    formData.append(
+      type === "profile" ? "profilePicture" : "coverPicture",
+      file
+    );
+
+    const endpoint =
+      type === "profile" ? `/users/profilePicture` : `/users/coverPicture`;
+
+    type === "profile" ? setProfileUploading(true) : setCoverUploading(true);
+
+    try {
+      const res = await axios.post<ApiResponse>(endpoint, formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      if (res.data.status && res.data.data) {
+        setUser(res.data.data);
+      } else {
+        alert(res.data.message || "Upload failed.");
+      }
+    } catch (err: any) {
+      alert(err?.response?.data?.message || "Upload failed.");
+    } finally {
+      type === "profile"
+        ? setProfileUploading(false)
+        : setCoverUploading(false);
+    }
+  };
+
   if (!user) return null;
 
   const textFieldStyles = {
@@ -357,6 +396,97 @@ export default function ProfilePage() {
               {saveError}
             </Alert>
           )}
+          <Box
+            sx={{
+              position: "relative",
+              mb: 6,
+              pb: 4,
+              borderRadius: 2,
+              overflow: "visible",
+              backgroundColor: "#1da1f2",
+              height: 120,
+              backgroundImage: user?.coverPicture
+                ? `url(http://localhost:8080/api/users/images/${user.coverPicture})`
+                : undefined,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+            }}
+          >
+            <label htmlFor="upload-cover-picture">
+              <input
+                type="file"
+                id="upload-cover-picture"
+                hidden
+                accept="image/*"
+                onChange={(e) =>
+                  e.target.files?.[0] &&
+                  handleImageUpload(e.target.files[0], "cover")
+                }
+              />
+              <IconButton
+                sx={{
+                  position: "absolute",
+                  top: 8,
+                  right: 8,
+                  bgcolor: "#1da1f2",
+                  color: "#fff",
+                  "&:hover": { bgcolor: "#1a8cd8" },
+                }}
+                component="span"
+                disabled={coverUploading}
+              >
+                <ImageSharp fontSize="small" />
+              </IconButton>
+            </label>
+
+            <Box
+              sx={{
+                position: "absolute",
+                bottom: -40,
+                left: 16,
+              }}
+            >
+              <Avatar
+                src={
+                  user?.profilePicture
+                    ? `http://localhost:8080/api/users/images/${user.profilePicture}`
+                    : "/favicon.ico"
+                }
+                sx={{
+                  width: 80,
+                  height: 80,
+                  border: "3px solid #121212",
+                }}
+              />
+              <label htmlFor="upload-profile-picture">
+                <input
+                  type="file"
+                  id="upload-profile-picture"
+                  hidden
+                  accept="image/*"
+                  onChange={(e) =>
+                    e.target.files?.[0] &&
+                    handleImageUpload(e.target.files[0], "profile")
+                  }
+                />
+                <IconButton
+                  size="small"
+                  sx={{
+                    position: "absolute",
+                    bottom: 40,
+                    right: 0,
+                    bgcolor: "#1da1f2",
+                    color: "#fff",
+                    "&:hover": { bgcolor: "#1a8cd8" },
+                  }}
+                  component="span"
+                  disabled={profileUploading}
+                >
+                  <ImageSharp fontSize="small" />
+                </IconButton>
+              </label>
+            </Box>
+          </Box>
 
           <Stack spacing={2}>
             {(["email", "username", "name", "bio"] as const).map((field) => (
