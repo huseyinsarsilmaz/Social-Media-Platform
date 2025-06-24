@@ -76,7 +76,7 @@ public class UserController {
         return responseBuilder.success("User", "updated", newUser, HttpStatus.OK);
     }
 
-    @PostMapping("/{userId}/profilePicture")
+    @PostMapping("/profilePicture")
     public ResponseEntity<?> updateProfilePicture(
             @RequestHeader("X-USER-ID") String userId,
             @RequestParam MultipartFile profilePicture) {
@@ -89,7 +89,7 @@ public class UserController {
         return responseBuilder.success("User profile picture", "updated", user, HttpStatus.OK);
     }
 
-    @PostMapping("/{userId}/coverPicture")
+    @PostMapping("/coverPicture")
     public ResponseEntity<?> updateCoverPicture(
             @RequestHeader("X-USER-ID") String userId,
             @RequestParam MultipartFile coverPicture) {
