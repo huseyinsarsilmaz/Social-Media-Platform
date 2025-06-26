@@ -1,6 +1,6 @@
 package com.hsynsarsilmaz.smp.post_service.service;
 
-import java.util.List;
+import org.springframework.data.domain.Page;
 
 import com.hsynsarsilmaz.smp.post_service.model.dto.request.AddPostRequest;
 import com.hsynsarsilmaz.smp.post_service.model.dto.request.UpdatePostRequest;
@@ -17,6 +17,6 @@ public interface PostService {
 
     public void isPostOwned(Post post, Long userId);
 
-    public List<PostSimple> getByUserId(Long userId);
+    public Page<PostSimple> getByUserId(Long userId, int page);
 
 }

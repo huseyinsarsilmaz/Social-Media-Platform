@@ -1,10 +1,13 @@
 package com.hsynsarsilmaz.smp.post_service.service.impl;
 
-import java.util.List;
-import java.util.stream.Collectors;
+
 
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Page;
+
 import org.springframework.stereotype.Service;
 
 import com.hsynsarsilmaz.smp.common.exception.NotFoundException;
@@ -42,13 +45,13 @@ public class PostServiceImpl implements PostService {
         return postMapper.toDtoSimple(newPost);
     }
 
-    @Cacheable(value = "postsByUser", key = "#userId")
-    public List<PostSimple> getByUserId(Long userId) {
-        List<PostSimple> posts = postRepository.findByUserId(userId).stream()
-                .map(postMapper::toDtoSimple)
-                .collect(Collectors.toList());
-        return posts;
+    @Cacheable(value = "postsByUser", key = "'user:' + #userId + ':page:' + #page")
+    public Page<PostSimple> getByUserId(Long userId, int page) {
+        Pageable pageable = PageRequest.of(page, 10);
+        Page<Post> postPage = postRepository.findByUserIdOrderByCreatedAtDesc(userId, pageable);
+        return postPage.map(postMapper::toDtoSimple);
     }
+
 
     public void isPostOwned(Post post, Long userId) {
         if (post.getUserId() != userId) {

@@ -1,7 +1,7 @@
 package com.hsynsarsilmaz.smp.post_service.controller;
 
-import java.util.List;
 
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -12,8 +12,10 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.hsynsarsilmaz.smp.common.model.dto.response.PaginatedResponse;
 import com.hsynsarsilmaz.smp.common.model.dto.response.SmpResponse;
 import com.hsynsarsilmaz.smp.common.util.SmpResponseBuilder;
 import com.hsynsarsilmaz.smp.post_service.model.dto.request.AddPostRequest;
@@ -44,12 +46,14 @@ public class PostController {
     }
 
     @GetMapping("/my")
-    public ResponseEntity<SmpResponse<List<PostSimple>>> getMyPosts(@RequestHeader("X-USER-ID") String userId) {
+    public ResponseEntity<SmpResponse<PaginatedResponse<PostSimple>>> getMyPosts(
+            @RequestHeader("X-USER-ID") String userId,
+            @RequestParam(defaultValue = "0") int page) {
 
         Long id = Long.parseLong(userId);
-        List<PostSimple> posts = postService.getByUserId(id);
+        Page<PostSimple> posts = postService.getByUserId(id, page);
 
-        return responseBuilder.success("My Posts", "fetched", posts, HttpStatus.OK);
+        return responseBuilder.success("My Posts", "fetched", new PaginatedResponse<PostSimple>(posts), HttpStatus.OK);
     }
 
     @PutMapping("/{id}")
