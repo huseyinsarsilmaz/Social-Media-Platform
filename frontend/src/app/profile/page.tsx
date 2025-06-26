@@ -71,7 +71,7 @@ export default function ProfilePage() {
     setPostsError(null);
     try {
       const res = await fetchUserPosts(token);
-      const data = (res.data as ApiResponse).data;
+      const data = (res.data as ApiResponse).data.content;
       setPosts(data || []);
     } catch (err: any) {
       setPostsError(err?.response?.data?.message || "Failed to fetch posts");
