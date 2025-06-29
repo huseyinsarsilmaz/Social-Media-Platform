@@ -1,5 +1,7 @@
 package com.hsynsarsilmaz.smp.user_service.service;
 
+import java.util.List;
+
 import org.springframework.web.multipart.MultipartFile;
 
 import com.hsynsarsilmaz.smp.user_service.model.dto.request.RegisterRequest;
@@ -28,5 +30,7 @@ public interface UserService {
     public UserSimple updateProfilePicture(MultipartFile image, Long userId);
 
     public UserSimple updateCoverPicture(MultipartFile image, Long userId);
+
+    public List<UserSimple> getUsersByIds(List<Long> ids, int page);
 
 }

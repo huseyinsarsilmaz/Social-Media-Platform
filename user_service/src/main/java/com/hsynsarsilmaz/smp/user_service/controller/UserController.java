@@ -1,5 +1,7 @@
 package com.hsynsarsilmaz.smp.user_service.controller;
 
+import java.util.List;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -100,6 +102,14 @@ public class UserController {
             return responseBuilder.fail("file.upload.failed", null, null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
         return responseBuilder.success("User cover picture", "updated", user, HttpStatus.OK);
+    }
+
+    @GetMapping("/batch")
+    public ResponseEntity<SmpResponse<List<UserSimple>>> getUsersByIds(
+            @RequestParam("ids") List<Long> ids,
+            @RequestParam("page") int page) {
+        List<UserSimple> users = userService.getUsersByIds(ids, page);
+        return responseBuilder.success("Users", "fetched", users, HttpStatus.OK);
     }
 
 }

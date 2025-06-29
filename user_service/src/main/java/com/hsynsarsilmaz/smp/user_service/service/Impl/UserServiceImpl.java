@@ -2,6 +2,7 @@ package com.hsynsarsilmaz.smp.user_service.service.Impl;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
@@ -200,6 +201,14 @@ public class UserServiceImpl implements UserService {
         user = userRepository.save(user);
 
         return userMapper.toDtoSimple(user);
+    }
+
+    @Cacheable(value = "feedUsers", key = "':page:' + #page")
+    public List<UserSimple> getUsersByIds(List<Long> ids, int page) {
+        List<User> users = userRepository.findAllById(ids);
+        return users.stream()
+                .map(userMapper::toDtoSimple)
+                .toList();
     }
 
 }
