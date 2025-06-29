@@ -2,7 +2,8 @@ package com.hsynsarsilmaz.smp.post_service.service.impl;
 
 
 
-import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.PageRequest;
@@ -28,13 +29,25 @@ import lombok.RequiredArgsConstructor;
 public class PostServiceImpl implements PostService {
     private final PostRepository postRepository;
     private final PostMapper postMapper;
+    private final CacheManager cacheManager;
 
     private Post getEntityById(Long postId) {
         return postRepository.findById(postId)
                 .orElseThrow(() -> new NotFoundException("Post", "id"));
     }
 
-    @CacheEvict(value = "postsByUser", key = "#userId")
+    private void evictUserPostsCache(Long userId) {
+        Cache cache = cacheManager.getCache("postsByUser");
+        String key = "user:" + userId + ":page:";
+        if (cache != null) {
+            for (int page = 0;; page++) {
+                if (!cache.evictIfPresent(key + page)) {
+                    break;
+                }
+            }
+        }
+    }
+
     @Transactional
     public PostSimple addPost(AddPostRequest req, Long userId) {
         Post newPost = postMapper.toEntity(req);
@@ -42,6 +55,7 @@ public class PostServiceImpl implements PostService {
 
         newPost = postRepository.save(newPost);
 
+        evictUserPostsCache(userId);
         return postMapper.toDtoSimple(newPost);
     }
 
@@ -60,7 +74,6 @@ public class PostServiceImpl implements PostService {
 
     }
 
-    @CacheEvict(value = "postsByUser", key = "#userId")
     @Transactional
     public PostSimple updatePost(UpdatePostRequest req, Long postId, Long userId) {
         Post post = getEntityById(postId);
@@ -69,10 +82,10 @@ public class PostServiceImpl implements PostService {
         postMapper.updateEntity(post, req);
         post = postRepository.save(post);
 
+        evictUserPostsCache(userId);
         return postMapper.toDtoSimple(post);
     }
 
-    @CacheEvict(value = "postsByUser", key = "#userId")
     @Transactional
     public PostSimple deletePost(Long postId, Long userId) {
         Post post = getEntityById(postId);
@@ -80,6 +93,7 @@ public class PostServiceImpl implements PostService {
 
         postRepository.delete(post);
 
+        evictUserPostsCache(userId);
         return postMapper.toDtoSimple(post);
     }
 
