@@ -79,4 +79,13 @@ public class PostController {
         return responseBuilder.success("Post", "deleted", post, HttpStatus.OK);
     }
 
+    @GetMapping("/all")
+    public ResponseEntity<SmpResponse<PaginatedResponse<PostSimple>>> getAllPosts(
+            @RequestParam(defaultValue = "0") int page) {
+
+        Page<PostSimple> posts = postService.getAll(page);
+
+        return responseBuilder.success("All Posts", "fetched", new PaginatedResponse<PostSimple>(posts), HttpStatus.OK);
+    }
+
 }
