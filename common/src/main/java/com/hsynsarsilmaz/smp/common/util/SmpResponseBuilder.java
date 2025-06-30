@@ -31,4 +31,9 @@ public class SmpResponseBuilder {
         return new ResponseEntity<>(response, status);
     }
 
+    public <T> ResponseEntity<SmpResponse<T>> failStaticMessage(String message, HttpStatus status) {
+        SmpResponse<T> response = new SmpResponse<>(false, message, null);
+        return new ResponseEntity<>(response, status);
+    }
+
 }
