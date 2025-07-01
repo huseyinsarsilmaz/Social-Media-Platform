@@ -31,7 +31,9 @@ public class FeedController {
             return responseBuilder.failStaticMessage(feed.getMessage(), feed.getErrorCode());
         }
 
-        return responseBuilder.success("Feed", "fetched", (FeedSimple) feed, HttpStatus.OK);
+        FeedSimple response = new FeedSimple(feed.getContent(), feed.getPage(), feed.isLast());
+
+        return responseBuilder.success("Feed", "fetched", response, HttpStatus.OK);
     }
 
 }

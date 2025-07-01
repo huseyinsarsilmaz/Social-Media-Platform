@@ -22,3 +22,14 @@ export interface Post {
   image: string | null;
   userId: number;
 }
+
+export interface PostWithUser {
+  user: UserSimple;
+  post: Post;
+}
+
+export interface Feed {
+  Content: PostWithUser[];
+  page: number;
+  last: boolean;
+}
