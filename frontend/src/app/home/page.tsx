@@ -23,7 +23,6 @@ export default function HomePage() {
   const [posts, setPosts] = useState<PostWithUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [postOpen, setPostOpen] = useState(false);
 
   useEffect(() => {
     const authToken = localStorage.getItem("AUTH_TOKEN");

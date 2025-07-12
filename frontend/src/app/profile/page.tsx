@@ -219,6 +219,7 @@ export default function ProfilePage() {
 
         <NewPostDialog
           open={postOpen}
+          profilePicture={user.profilePicture}
           onClose={() => setPostOpen(false)}
           onPostSuccess={() => token && loadPosts(token)}
         />

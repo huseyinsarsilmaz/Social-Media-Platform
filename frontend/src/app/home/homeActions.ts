@@ -5,6 +5,7 @@ export const fetchFeed = (token: string, page: number) => {
     headers: { Authorization: `Bearer ${token}` },
   });
 };
+
 export const createPost = (token: string, text: string) =>
   axios.post(
     "/posts",

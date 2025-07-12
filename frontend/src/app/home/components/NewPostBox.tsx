@@ -2,6 +2,7 @@
 
 import {
   Alert,
+  Avatar,
   Button,
   CircularProgress,
   TextField,
@@ -13,22 +14,26 @@ import ImageSharp from "@mui/icons-material/ImageSharp";
 import { createPost } from "../homeActions";
 
 const textFieldStyles = {
-  bgcolor: "#1e1e1e",
+  bgcolor: "#121212",
   borderRadius: 1,
-  "& label": { color: "rgba(255, 255, 255, 0.7)" },
-  "& label.Mui-focused": { color: "#fff" },
   "& .MuiInputBase-input": { color: "#fff" },
   "& .MuiOutlinedInput-root": {
-    "& fieldset": { borderColor: "rgba(255, 255, 255, 0.4)" },
-    "&:hover fieldset": { borderColor: "#fff" },
-    "&.Mui-focused fieldset": { borderColor: "#fff" },
+    border: "none",
+    "&:hover fieldset": { borderColor: "transparent" },
+    "& fieldset": { borderColor: "transparent" },
+    "&.Mui-focused fieldset": { borderColor: "transparent" },
+  },
+  "& .MuiInputLabel-root": {
+    display: "none",
   },
 };
 
 export default function NewPostBox({
   onPostSuccess,
+  profilePicture,
 }: {
   onPostSuccess: () => void;
+  profilePicture: string | null;
 }) {
   const [postText, setPostText] = useState("");
   const [posting, setPosting] = useState(false);
@@ -53,35 +58,68 @@ export default function NewPostBox({
     }
   };
 
+  const avatarUrl = profilePicture
+    ? `http://localhost:8080/api/users/images/${profilePicture}`
+    : undefined;
+
   return (
-    <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
+    <Paper
+      variant="outlined"
+      sx={{
+        p: 2,
+        mb: 2,
+        bgcolor: "#121212",
+        color: "#fff",
+        borderRadius: 2,
+      }}
+    >
       {postError && (
         <Alert severity="error" sx={{ mb: 2 }}>
           {postError}
         </Alert>
       )}
-      <TextField
-        label="What's happening?"
-        multiline
-        minRows={3}
-        fullWidth
-        value={postText}
-        onChange={(e) => setPostText(e.target.value)}
-        variant="outlined"
-        sx={textFieldStyles}
-        disabled={posting}
-      />
+
+      <Box sx={{ display: "flex", gap: 2, alignItems: "flex-start" }}>
+        <Avatar
+          src={avatarUrl}
+          alt="User Avatar"
+          sx={{ width: 40, height: 40, mt: "6px" }}
+        />
+        <TextField
+          placeholder="What's happening?"
+          multiline
+          minRows={3}
+          fullWidth
+          value={postText}
+          onChange={(e) => setPostText(e.target.value)}
+          variant="outlined"
+          sx={textFieldStyles}
+          disabled={posting}
+          InputLabelProps={{ shrink: false }}
+        />
+      </Box>
+
       <Box
         mt={2}
         display="flex"
         justifyContent="space-between"
         alignItems="center"
       >
-        <ImageSharp />
+        <Box textAlign="left">
+          <ImageSharp />
+        </Box>
+
         <Button
           variant="contained"
-          onClick={handlePost}
-          disabled={posting || !postText.trim()}
+          onClick={() => {
+            if (posting || !postText.trim()) return;
+            handlePost();
+          }}
+          sx={{
+            opacity: posting || !postText.trim() ? 0.6 : 1,
+            pointerEvents: posting || !postText.trim() ? "none" : "auto",
+            transition: "opacity 0.3s ease",
+          }}
         >
           {posting ? <CircularProgress size={24} /> : "Post"}
         </Button>
