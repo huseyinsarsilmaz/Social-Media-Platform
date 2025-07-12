@@ -14,7 +14,6 @@ interface Props {
   error: string | null;
   onEdit: (post: PostWithUser["post"]) => void;
   onDelete: (id: number) => void;
-  onPostOpen: () => void;
 }
 
 export default function PostList({
@@ -23,11 +22,10 @@ export default function PostList({
   error,
   onEdit,
   onDelete,
-  onPostOpen,
 }: Props) {
   return (
     <Container maxWidth="sm" sx={{ mt: 3, mb: 4 }}>
-      <PostListHeader onPostOpen={onPostOpen} />
+      <PostListHeader />
       <PostListContent
         posts={posts}
         loading={loading}
@@ -39,20 +37,11 @@ export default function PostList({
   );
 }
 
-function PostListHeader({ onPostOpen }: { onPostOpen: () => void }) {
+function PostListHeader() {
   return (
-    <>
-      <Button
-        variant="contained"
-        sx={{ bgcolor: "#1da1f2", mb: 2 }}
-        onClick={onPostOpen}
-      >
-        Post
-      </Button>
-      <Typography variant="h6" sx={{ mb: 2, color: "#fff" }}>
-        Your Posts
-      </Typography>
-    </>
+    <Typography variant="h6" sx={{ mb: 2, color: "#fff" }}>
+      Your Posts
+    </Typography>
   );
 }
 
