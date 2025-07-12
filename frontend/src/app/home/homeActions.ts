@@ -17,3 +17,8 @@ export const createPost = (token: string, text: string) =>
       },
     }
   );
+
+export const fetchUser = (token: string) =>
+  axios.get("/users/me", {
+    headers: { Authorization: `Bearer ${token}` },
+  });

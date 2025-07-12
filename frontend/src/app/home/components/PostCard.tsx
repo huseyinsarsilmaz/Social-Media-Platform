@@ -18,6 +18,7 @@ interface Props {
 export default function PostCard({ postWithUser, onEdit, onDelete }: Props) {
   const { user, post } = postWithUser;
 
+
   return (
     <Box
       sx={{
@@ -41,21 +42,26 @@ export default function PostCard({ postWithUser, onEdit, onDelete }: Props) {
 }
 
 function PostHeader({ user }: { user: PostWithUser["user"] }) {
-  return (
-    <Stack direction="row" spacing={2} alignItems="center">
-      <Avatar
-        src={user.profilePicture || undefined}
-        alt={user.name}
-        sx={{ width: 40, height: 40 }}
-      />
-      <Box>
-        <Typography fontWeight={600}>{user.name}</Typography>
-        <Typography variant="caption" color="gray">
-          @{user.username}
-        </Typography>
-      </Box>
-    </Stack>
-  );
+
+    const avatarUrl = user.profilePicture
+      ? `http://localhost:8080/api/users/images/${user.profilePicture}`
+      : undefined;
+
+    return (
+      <Stack direction="row" spacing={2} alignItems="center">
+        <Avatar
+          src={avatarUrl}
+          alt={user.name}
+          sx={{ width: 40, height: 40 }}
+        />
+        <Box>
+          <Typography fontWeight={600}>{user.name}</Typography>
+          <Typography variant="caption" color="gray">
+            @{user.username}
+          </Typography>
+        </Box>
+      </Stack>
+    );
 }
 
 function PostContent({ text }: { text: string }) {

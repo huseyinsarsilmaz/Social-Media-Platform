@@ -12,8 +12,8 @@ import {
 } from "@mui/material";
 
 import PostList from "./components/PostList";
-import { fetchFeed } from "./homeActions";
-import { ApiResponse, PostWithUser } from "@/interface/interfaces";
+import { fetchFeed, fetchUser } from "./homeActions";
+import { ApiResponse, PostWithUser, UserSimple } from "@/interface/interfaces";
 import NewPostBox from "./components/NewPostBox";
 
 export default function HomePage() {
@@ -21,6 +21,7 @@ export default function HomePage() {
 
   const [token, setToken] = useState<string | null>(null);
   const [posts, setPosts] = useState<PostWithUser[]>([]);
+  const [user, setUser] = useState<UserSimple | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -30,6 +31,16 @@ export default function HomePage() {
       router.push("/login");
     } else {
       setToken(authToken);
+    }
+  }, []);
+
+  const loadUser = useCallback(async (token: string) => {
+    try {
+      const res = await fetchUser(token);
+      const data = (res.data as ApiResponse).data;
+      setUser(data);
+    } catch (err: any) {
+      setError(err?.response?.data?.message || "Failed to fetch user");
     }
   }, []);
 
@@ -49,9 +60,10 @@ export default function HomePage() {
 
   useEffect(() => {
     if (token) {
+      loadUser(token);
       loadFeed(token);
     }
-  }, [token, loadFeed]);
+  }, [token, loadUser, loadFeed]);
 
   const renderContent = () => {
     if (loading) {
@@ -87,7 +99,10 @@ export default function HomePage() {
         }}
       >
         <Box sx={{ flex: 1, maxWidth: "600px" }}>
-          <NewPostBox onPostSuccess={() => token && loadFeed(token)} />
+          <NewPostBox
+            profilePicture={user?.profilePicture || null}
+            onPostSuccess={() => token && loadFeed(token)}
+          />
           <PostList
             posts={posts}
             loading={false}
