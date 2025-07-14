@@ -1,4 +1,4 @@
-import { Post } from "@/interface/interfaces";
+import { Post, UserSimple } from "@/interface/interfaces";
 import {
   ChatBubbleOutline,
   Delete,
@@ -7,15 +7,23 @@ import {
   Repeat,
   Share,
 } from "@mui/icons-material";
-import { Box, Divider, IconButton, Stack, Typography } from "@mui/material";
+import {
+  Avatar,
+  Box,
+  Divider,
+  IconButton,
+  Stack,
+  Typography,
+} from "@mui/material";
 
 interface Props {
   post: Post;
+  user: UserSimple;
   onEdit: (post: Post) => void;
   onDelete: (id: number) => void;
 }
 
-export default function PostCard({ post, onEdit, onDelete }: Props) {
+export default function PostCard({ post, user, onEdit, onDelete }: Props) {
   return (
     <Box
       sx={{
@@ -29,11 +37,30 @@ export default function PostCard({ post, onEdit, onDelete }: Props) {
         gap: 1,
       }}
     >
+      <PostHeader user={user} />
       <PostContent text={post.text} />
       <PostActions post={post} onEdit={onEdit} onDelete={onDelete} />
       <Divider sx={{ bgcolor: "#2f2f2f", my: 1 }} />
       <PostStats />
     </Box>
+  );
+}
+
+function PostHeader({ user }: { user: UserSimple }) {
+  const avatarUrl = user.profilePicture
+    ? `http://localhost:8080/api/users/images/${user.profilePicture}`
+    : undefined;
+
+  return (
+    <Stack direction="row" spacing={2} alignItems="center">
+      <Avatar src={avatarUrl} alt={user.name} sx={{ width: 40, height: 40 }} />
+      <Box>
+        <Typography fontWeight={600}>{user.name}</Typography>
+        <Typography variant="caption" color="gray">
+          @{user.username}
+        </Typography>
+      </Box>
+    </Stack>
   );
 }
 

@@ -20,6 +20,9 @@ import EditProfileDialog from "./components/EditProfileDialog";
 import EditPostDialog from "./components/EditPostDialog";
 import NewPostDialog from "./components/NewPostDialog";
 import PostList from "./components/PostList";
+import ThreeColumnLayout from "../layouts/ThreeColumnLayout";
+import Sidebar from "./components/Sidebar";
+import Trending from "./components/Trending";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -27,7 +30,12 @@ export default function ProfilePage() {
   const [token, setToken] = useState<string | null>(null);
   const [user, setUser] = useState<UserSimple | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
-  const [form, setForm] = useState({ email: "", username: "", name: "", bio: "" });
+  const [form, setForm] = useState({
+    email: "",
+    username: "",
+    name: "",
+    bio: "",
+  });
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -151,7 +159,10 @@ export default function ProfilePage() {
   const handleImageUpload = async (file: File, type: "profile" | "cover") => {
     if (!token) return;
     const formData = new FormData();
-    formData.append(type === "profile" ? "profilePicture" : "coverPicture", file);
+    formData.append(
+      type === "profile" ? "profilePicture" : "coverPicture",
+      file
+    );
     setUploading((prev) => ({ ...prev, [type]: true }));
     try {
       const res = await uploadImage(token, formData, type);
@@ -179,7 +190,9 @@ export default function ProfilePage() {
     if (error) {
       return (
         <Container maxWidth="sm" sx={{ mt: 4, textAlign: "center" }}>
-          <Typography color="error" mb={2}>{error}</Typography>
+          <Typography color="error" mb={2}>
+            {error}
+          </Typography>
           <Button variant="contained" onClick={() => router.push("/login")}>
             Go to Login
           </Button>
@@ -190,52 +203,59 @@ export default function ProfilePage() {
     if (!user) return null;
 
     return (
-      <>
-        <ProfileHeader user={user} onEditClick={handleEditOpen} />
+      <ThreeColumnLayout
+        left={<Sidebar />}
+        center={
+          <>
+            <ProfileHeader user={user} onEditClick={handleEditOpen} />
 
-        <EditProfileDialog
-          open={isEditing}
-          onClose={() => setIsEditing(false)}
-          user={user}
-          form={form}
-          onFormChange={handleFormChange}
-          onSave={handleProfileSave}
-          saving={saving}
-          saveError={saveError}
-          handleImageUpload={handleImageUpload}
-          profileUploading={uploading.profile}
-          coverUploading={uploading.cover}
-        />
+            <EditProfileDialog
+              open={isEditing}
+              onClose={() => setIsEditing(false)}
+              user={user}
+              form={form}
+              onFormChange={handleFormChange}
+              onSave={handleProfileSave}
+              saving={saving}
+              saveError={saveError}
+              handleImageUpload={handleImageUpload}
+              profileUploading={uploading.profile}
+              coverUploading={uploading.cover}
+            />
 
-        <EditPostDialog
-          open={editPostId !== null}
-          onClose={() => setEditPostId(null)}
-          editText={editText}
-          setEditText={setEditText}
-          editingPost={editingPost}
-          editError={editError}
-          onSave={handleEditPost}
-        />
+            <EditPostDialog
+              open={editPostId !== null}
+              onClose={() => setEditPostId(null)}
+              editText={editText}
+              setEditText={setEditText}
+              editingPost={editingPost}
+              editError={editError}
+              onSave={handleEditPost}
+            />
 
-        <NewPostDialog
-          open={postOpen}
-          profilePicture={user.profilePicture}
-          onClose={() => setPostOpen(false)}
-          onPostSuccess={() => token && loadPosts(token)}
-        />
+            <NewPostDialog
+              open={postOpen}
+              profilePicture={user.profilePicture}
+              onClose={() => setPostOpen(false)}
+              onPostSuccess={() => token && loadPosts(token)}
+            />
 
-        <PostList
-          posts={posts}
-          loading={postsLoading}
-          error={postsError}
-          onEdit={(post) => {
-            setEditPostId(post.id);
-            setEditText(post.text);
-          }}
-          onDelete={handleDeletePost}
-          onPostOpen={() => setPostOpen(true)}
-        />
-      </>
+            <PostList
+              posts={posts}
+              user={user}
+              loading={postsLoading}
+              error={postsError}
+              onEdit={(post) => {
+                setEditPostId(post.id);
+                setEditText(post.text);
+              }}
+              onDelete={handleDeletePost}
+              onPostOpen={() => setPostOpen(true)}
+            />
+          </>
+        }
+        right={<Trending />}
+      />
     );
   };
 

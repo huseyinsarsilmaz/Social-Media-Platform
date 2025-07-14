@@ -1,4 +1,4 @@
-import { Post } from "@/interface/interfaces";
+import { Post, UserSimple } from "@/interface/interfaces";
 import {
   Box,
   Button,
@@ -10,6 +10,7 @@ import PostCard from "./PostCard";
 
 interface Props {
   posts: Post[];
+  user: UserSimple;
   loading: boolean;
   error: string | null;
   onEdit: (post: Post) => void;
@@ -21,6 +22,7 @@ export default function PostList({
   posts,
   loading,
   error,
+  user,
   onEdit,
   onDelete,
   onPostOpen,
@@ -30,6 +32,7 @@ export default function PostList({
       <PostListHeader onPostOpen={onPostOpen} />
       <PostListContent
         posts={posts}
+        user={user}
         loading={loading}
         error={error}
         onEdit={onEdit}
@@ -60,12 +63,14 @@ function PostListContent({
   posts,
   loading,
   error,
+  user,
   onEdit,
   onDelete,
 }: {
   posts: Post[];
   loading: boolean;
   error: string | null;
+  user: UserSimple;
   onEdit: (post: Post) => void;
   onDelete: (id: number) => void;
 }) {
@@ -98,6 +103,7 @@ function PostListContent({
       {posts.map((post) => (
         <PostCard
           key={post.id}
+          user={user}
           post={post}
           onEdit={() => onEdit(post)}
           onDelete={onDelete}

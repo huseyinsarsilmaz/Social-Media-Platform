@@ -7,8 +7,8 @@ import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Microblog App',
-  description: 'Twitter clone with microservices',
+  title: "Social Media Platform",
+  description: "A twitter like social media platform",
 };
 
 
