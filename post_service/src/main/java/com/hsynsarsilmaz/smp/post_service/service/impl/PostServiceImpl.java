@@ -1,7 +1,5 @@
 package com.hsynsarsilmaz.smp.post_service.service.impl;
 
-
-
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.Cacheable;
@@ -48,6 +46,18 @@ public class PostServiceImpl implements PostService {
         }
     }
 
+    private void evictFeedPostsCache() {
+        Cache cache = cacheManager.getCache("feedPosts");
+        String key = "page:";
+        if (cache != null) {
+            for (int page = 0;; page++) {
+                if (!cache.evictIfPresent(key + page)) {
+                    break;
+                }
+            }
+        }
+    }
+
     @Transactional
     public PostSimple addPost(AddPostRequest req, Long userId) {
         Post newPost = postMapper.toEntity(req);
@@ -56,6 +66,7 @@ public class PostServiceImpl implements PostService {
         newPost = postRepository.save(newPost);
 
         evictUserPostsCache(userId);
+        evictFeedPostsCache();
         return postMapper.toDtoSimple(newPost);
     }
 
@@ -65,7 +76,6 @@ public class PostServiceImpl implements PostService {
         Page<Post> postPage = postRepository.findByUserIdOrderByCreatedAtDesc(userId, pageable);
         return postPage.map(postMapper::toDtoSimple);
     }
-
 
     public void isPostOwned(Post post, Long userId) {
         if (post.getUserId() != userId) {
@@ -83,6 +93,7 @@ public class PostServiceImpl implements PostService {
         post = postRepository.save(post);
 
         evictUserPostsCache(userId);
+        evictFeedPostsCache();
         return postMapper.toDtoSimple(post);
     }
 
@@ -94,6 +105,7 @@ public class PostServiceImpl implements PostService {
         postRepository.delete(post);
 
         evictUserPostsCache(userId);
+        evictFeedPostsCache();
         return postMapper.toDtoSimple(post);
     }
 
