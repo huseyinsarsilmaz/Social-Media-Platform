@@ -1,3 +1,5 @@
+"use client";
+
 import {
   AcUnit,
   Home,
@@ -18,8 +20,11 @@ import {
   Typography,
   Button,
 } from "@mui/material";
+import { useRouter } from "next/navigation";
 
 export default function Sidebar({ onPostOpen }: { onPostOpen: () => void }) {
+  const router = useRouter();
+
   return (
     <Box
       display="flex"
@@ -28,14 +33,11 @@ export default function Sidebar({ onPostOpen }: { onPostOpen: () => void }) {
       height="100%"
     >
       <Box>
+        {/* Logo clickable to /home */}
         <ListItem
-          sx={{
-            justifyContent: "flex-start",
-            px: 2,
-            mb: 2,
-            pointerEvents: "none",
-          }}
+          sx={{ justifyContent: "flex-start", px: 2, mb: 2, cursor: "pointer" }}
           disableGutters
+          onClick={() => router.push("/home")}
         >
           <ListItemIcon sx={{ minWidth: 36 }}>
             <AcUnit sx={{ fontSize: 32, color: "#1da1f2" }} />
@@ -43,32 +45,43 @@ export default function Sidebar({ onPostOpen }: { onPostOpen: () => void }) {
         </ListItem>
 
         <List>
-          <SidebarItem icon={<Home />} label="Home" />
+          <SidebarItem
+            icon={<Home />}
+            label="Home"
+            onClick={() => router.push("/home")}
+          />
           <SidebarItem icon={<TravelExplore />} label="Explore" />
           <SidebarItem icon={<Notifications />} label="Notifications" />
           <SidebarItem icon={<MailOutline />} label="Messages" />
           <SidebarItem icon={<BookmarkBorder />} label="Bookmarks" />
-          <SidebarItem icon={<Person />} label="Profile" />
+          <SidebarItem
+            icon={<Person />}
+            label="Profile"
+            onClick={() => router.push("/profile")}
+          />
           <SidebarItem icon={<Settings />} label="Settings" />
-          <Button
-            fullWidth
-            variant="contained"
-            onClick={onPostOpen}
-            sx={{
-              bgcolor: "#fff",
-              color: "#000",
-              fontWeight: "bold",
-              borderRadius: 9999,
-              textTransform: "none",
-              fontSize: 16,
-              py: 1.2,
-              "&:hover": {
-                bgcolor: "#e6e6e6",
-              },
-            }}
-          >
-            Post
-          </Button>
+
+          <Box px={2} pt={1} pb={3}>
+            <Button
+              fullWidth
+              variant="contained"
+              onClick={onPostOpen}
+              sx={{
+                bgcolor: "#fff",
+                color: "#000",
+                fontWeight: "bold",
+                borderRadius: 9999,
+                textTransform: "none",
+                fontSize: 16,
+                py: 1.2,
+                "&:hover": {
+                  bgcolor: "#e6e6e6",
+                },
+              }}
+            >
+              Post
+            </Button>
+          </Box>
         </List>
       </Box>
     </Box>
@@ -78,12 +91,17 @@ export default function Sidebar({ onPostOpen }: { onPostOpen: () => void }) {
 function SidebarItem({
   icon,
   label,
+  onClick,
 }: {
   icon: React.ReactNode;
   label: string;
+  onClick?: () => void;
 }) {
   return (
-    <ListItemButton sx={{ borderRadius: 3, px: 2, py: 1, mb: 1 }}>
+    <ListItemButton
+      onClick={onClick}
+      sx={{ borderRadius: 3, px: 2, py: 1, mb: 1 }}
+    >
       <ListItemIcon sx={{ color: "#fff", minWidth: 36 }}>{icon}</ListItemIcon>
       <ListItemText
         primary={
