@@ -19,9 +19,9 @@ import ProfileHeader from "./components/ProfileHeader";
 import EditProfileDialog from "./components/EditProfileDialog";
 import EditPostDialog from "./components/EditPostDialog";
 import NewPostDialog from "./components/NewPostDialog";
-import PostList from "./components/PostList";
+import PostList from "../components/PostList";
 import ThreeColumnLayout from "../layouts/ThreeColumnLayout";
-import Sidebar from "./components/Sidebar";
+import Sidebar from "../components/Sidebar";
 import Trending from "./components/Trending";
 
 export default function ProfilePage() {
@@ -204,7 +204,7 @@ export default function ProfilePage() {
 
     return (
       <ThreeColumnLayout
-        left={<Sidebar />}
+        left={<Sidebar onPostOpen={() => setPostOpen(true)} />}
         center={
           <>
             <ProfileHeader user={user} onEditClick={handleEditOpen} />
@@ -250,7 +250,6 @@ export default function ProfilePage() {
                 setEditText(post.text);
               }}
               onDelete={handleDeletePost}
-              onPostOpen={() => setPostOpen(true)}
             />
           </>
         }

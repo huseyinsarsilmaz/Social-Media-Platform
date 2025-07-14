@@ -15,6 +15,10 @@ import PostList from "./components/PostList";
 import { fetchFeed, fetchUser } from "./homeActions";
 import { ApiResponse, PostWithUser, UserSimple } from "@/interface/interfaces";
 import NewPostBox from "./components/NewPostBox";
+import ThreeColumnLayout from "../layouts/ThreeColumnLayout";
+import Sidebar from "../components/Sidebar";
+import Trending from "../profile/components/Trending";
+import NewPostDialog from "./components/NewPostDialog";
 
 export default function HomePage() {
   const router = useRouter();
@@ -24,6 +28,7 @@ export default function HomePage() {
   const [user, setUser] = useState<UserSimple | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [postOpen, setPostOpen] = useState(false);
 
   useEffect(() => {
     const authToken = localStorage.getItem("AUTH_TOKEN");
@@ -88,46 +93,31 @@ export default function HomePage() {
     }
 
     return (
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "center",
-          gap: 4,
-          mt: 4,
-          flexDirection: { xs: "column", md: "row" },
-          alignItems: "flex-start",
-        }}
-      >
-        <Box sx={{ flex: 1, maxWidth: "600px" }}>
-          <NewPostBox
-            profilePicture={user?.profilePicture || null}
-            onPostSuccess={() => token && loadFeed(token)}
-          />
-          <PostList
-            posts={posts}
-            loading={false}
-            error={null}
-            onEdit={() => {}}
-            onDelete={() => {}}
-          />
-        </Box>
-
-        <Box
-          sx={{
-            display: { xs: "none", md: "block" },
-            width: "300px",
-          }}
-        >
-          <Paper variant="outlined" sx={{ p: 2 }}>
-            <Typography variant="h6" gutterBottom>
-              Trends for you
-            </Typography>
-            <Typography color="text.secondary">#Placeholder</Typography>
-            <Typography color="text.secondary">#TrendingTopic</Typography>
-            <Typography color="text.secondary">#ComingSoon</Typography>
-          </Paper>
-        </Box>
-      </Box>
+      <ThreeColumnLayout
+        left={<Sidebar onPostOpen={() => setPostOpen(true)} />}
+        center={
+          <>
+            <NewPostBox
+              profilePicture={user?.profilePicture || null}
+              onPostSuccess={() => token && loadFeed(token)}
+            />
+            <PostList
+              posts={posts}
+              loading={false}
+              error={null}
+              onEdit={() => {}}
+              onDelete={() => {}}
+            />
+            <NewPostDialog
+              open={postOpen}
+              profilePicture={user?.profilePicture}
+              onClose={() => setPostOpen(false)}
+              onPostSuccess={() => token && loadFeed(token)}
+            />
+          </>
+        }
+        right={<Trending />}
+      />
     );
   };
 
