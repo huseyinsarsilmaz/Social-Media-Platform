@@ -1,9 +1,8 @@
 import { Post, UserSimple } from "@/interface/interfaces";
 import {
   ChatBubbleOutline,
-  Delete,
-  Edit,
   FavoriteBorder,
+  MoreHoriz,
   Repeat,
   Share,
 } from "@mui/icons-material";
@@ -12,9 +11,12 @@ import {
   Box,
   Divider,
   IconButton,
+  Menu,
+  MenuItem,
   Stack,
   Typography,
 } from "@mui/material";
+import { useState } from "react";
 
 interface Props {
   post: Post;
@@ -29,89 +31,124 @@ export default function PostCard({ post, user, onEdit, onDelete }: Props) {
       sx={{
         bgcolor: "#1e1e1e",
         p: 2,
+        pt: 1,
         borderRadius: 2,
         mb: 2,
         color: "#fff",
-        display: "flex",
-        flexDirection: "column",
-        gap: 1,
       }}
     >
-      <PostHeader user={user} />
-      <PostContent text={post.text} />
-      <PostActions post={post} onEdit={onEdit} onDelete={onDelete} />
-      <Divider sx={{ bgcolor: "#2f2f2f", my: 1 }} />
-      <PostStats />
-    </Box>
-  );
-}
-
-function PostHeader({ user }: { user: UserSimple }) {
-  const avatarUrl = user.profilePicture
-    ? `http://localhost:8080/api/users/images/${user.profilePicture}`
-    : undefined;
-
-  return (
-    <Stack direction="row" spacing={2} alignItems="center">
-      <Avatar src={avatarUrl} alt={user.name} sx={{ width: 40, height: 40 }} />
-      <Box>
-        <Typography fontWeight={600}>{user.name}</Typography>
-        <Typography variant="caption" color="gray">
-          @{user.username}
-        </Typography>
-      </Box>
-    </Stack>
-  );
-}
-
-function PostContent({ text }: { text: string }) {
-  return <Typography>{text}</Typography>;
-}
-
-function PostActions({
-  post,
-  onEdit,
-  onDelete,
-}: {
-  post: Post;
-  onEdit: (post: Post) => void;
-  onDelete: (id: number) => void;
-}) {
-  return (
-    <Box display="flex" justifyContent="flex-end">
-      <Stack direction="row" spacing={1}>
-        <IconButton
-          size="small"
-          onClick={() => onEdit(post)}
-          sx={{ color: "#1da1f2" }}
-        >
-          <Edit fontSize="small" />
-        </IconButton>
-        <IconButton
-          size="small"
-          onClick={() => onDelete(post.id)}
-          sx={{ color: "red" }}
-        >
-          <Delete fontSize="small" />
-        </IconButton>
+      <Stack direction="row" spacing={2}>
+        <Avatar
+          src={
+            user.profilePicture
+              ? `http://localhost:8080/api/users/images/${user.profilePicture}`
+              : undefined
+          }
+          alt={user.name}
+          sx={{ width: 40, height: 40 }}
+        />
+        <Stack flex={1}>
+          <PostHeader
+            user={user}
+            post={post}
+            onEdit={onEdit}
+            onDelete={onDelete}
+          />
+          <PostContent text={post.text} />
+          <PostStats />
+        </Stack>
       </Stack>
     </Box>
   );
 }
 
+function PostHeader({
+  user,
+  post,
+  onEdit,
+  onDelete,
+}: {
+  user: UserSimple;
+  post: Post;
+  onEdit: (post: Post) => void;
+  onDelete: (id: number) => void;
+}) {
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+
+  const handleOpen = (e: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(e.currentTarget);
+  };
+
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+
+  return (
+    <Stack direction="row" justifyContent="space-between" alignItems="center">
+      <Box display="flex" alignItems="center" flexWrap="wrap">
+        <Typography fontWeight={600} sx={{ fontSize: "0.95rem" }}>
+          {user.name}
+        </Typography>
+        <Typography
+          variant="body2"
+          color="gray"
+          sx={{ ml: 1, fontSize: "0.9rem" }}
+          component="span"
+        >
+          @{user.username} • {formatTimestamp(post.createdAt)}
+        </Typography>
+      </Box>
+
+      <IconButton onClick={handleOpen} sx={{ color: "#fff", p: 0 }}>
+        <MoreHoriz />
+      </IconButton>
+      <Menu
+        anchorEl={anchorEl}
+        open={Boolean(anchorEl)}
+        onClose={handleClose}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        transformOrigin={{ vertical: "top", horizontal: "right" }}
+      >
+        <MenuItem
+          onClick={() => {
+            handleClose();
+            onEdit(post);
+          }}
+        >
+          Edit
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
+            handleClose();
+            onDelete(post.id);
+          }}
+        >
+          Delete
+        </MenuItem>
+      </Menu>
+    </Stack>
+  );
+}
+
+function PostContent({ text }: { text: string }) {
+  return <Typography sx={{ fontSize: "0.95rem" }}>{text}</Typography>;
+}
+
 function PostStats() {
   return (
-    <Stack
-      direction="row"
-      justifyContent="space-between"
-      alignItems="center"
-      sx={{ color: "gray" }}
-    >
-      <Stat icon={<ChatBubbleOutline fontSize="small" />} count={0} />
-      <Stat icon={<Repeat fontSize="small" />} count={0} />
-      <Stat icon={<FavoriteBorder fontSize="small" />} count={0} />
-      <Stat icon={<Share fontSize="small" />} />
-    </Stack>
+    <>
+      <Divider sx={{ bgcolor: "#2f2f2f", my: 1 }} />
+      <Stack
+        direction="row"
+        justifyContent="space-between"
+        sx={{ color: "gray" }}
+      >
+        <Stat icon={<ChatBubbleOutline fontSize="small" />} count={0} />
+        <Stat icon={<Repeat fontSize="small" />} count={0} />
+        <Stat icon={<FavoriteBorder fontSize="small" />} count={0} />
+        <Stat icon={<Share fontSize="small" />} />
+      </Stack>
+    </>
   );
 }
 
@@ -129,4 +166,23 @@ function Stat({ icon, count }: { icon: React.ReactNode; count?: number }) {
       )}
     </Stack>
   );
+}
+
+function formatTimestamp(createdAt: string): string {
+  const date = new Date(createdAt);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffHours = diffMs / (1000 * 60 * 60);
+
+  if (diffHours < 24) {
+    const rtf = new Intl.RelativeTimeFormat("en", { numeric: "auto" });
+    const diffMinutes = Math.floor(diffMs / (1000 * 60));
+    if (diffMinutes < 60) return rtf.format(-diffMinutes, "minute");
+    return rtf.format(-Math.floor(diffHours), "hour");
+  } else {
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+    });
+  }
 }

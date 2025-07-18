@@ -21,6 +21,7 @@ export interface Post {
   text: string;
   image: string | null;
   userId: number;
+  createdAt: string;
 }
 
 export interface PostWithUser {
