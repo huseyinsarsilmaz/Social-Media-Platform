@@ -2,6 +2,8 @@ services:
   redis:
     image: redis:latest
     container_name: redis
+    ports:
+      - "6379:6379"
     networks:
       - backend
 
@@ -14,6 +16,8 @@ services:
       POSTGRES_PASSWORD: 12345678
     ports:
       - "5432:5432"
+    volumes:
+      - ./databases/userdb:/var/lib/postgresql/data
     networks:
       - backend
 
@@ -26,6 +30,8 @@ services:
       POSTGRES_PASSWORD: 12345678
     ports:
       - "5433:5432"
+    volumes:
+      - ./databases/postdb:/var/lib/postgresql/data
     networks:
       - backend
 
@@ -62,6 +68,8 @@ services:
       - userdb
       - redis
       - service-discovery
+    volumes:
+      - ./uploads/images:/app/uploads/images
 
   post-service:
     build:
