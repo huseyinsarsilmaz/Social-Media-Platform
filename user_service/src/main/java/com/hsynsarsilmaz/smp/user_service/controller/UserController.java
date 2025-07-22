@@ -20,8 +20,10 @@ import com.hsynsarsilmaz.smp.common.util.SmpResponseBuilder;
 import com.hsynsarsilmaz.smp.user_service.model.dto.request.EmailVerificationRequest;
 import com.hsynsarsilmaz.smp.user_service.model.dto.request.RegisterRequest;
 import com.hsynsarsilmaz.smp.user_service.model.dto.request.UserUpdateRequest;
+import com.hsynsarsilmaz.smp.user_service.model.dto.response.FollowingSimple;
 import com.hsynsarsilmaz.smp.user_service.model.dto.response.UserAuth;
 import com.hsynsarsilmaz.smp.user_service.model.dto.response.UserSimple;
+import com.hsynsarsilmaz.smp.user_service.service.FollowingService;
 import com.hsynsarsilmaz.smp.user_service.service.UserService;
 
 import jakarta.validation.Valid;
@@ -33,6 +35,7 @@ import lombok.RequiredArgsConstructor;
 public class UserController {
 
     private final UserService userService;
+    private final FollowingService followingService;
     private final SmpResponseBuilder responseBuilder;
 
     @PostMapping("/verification/email")
@@ -110,6 +113,18 @@ public class UserController {
             @RequestParam("page") int page) {
         List<UserSimple> users = userService.getUsersByIds(ids, page);
         return responseBuilder.success("Users", "fetched", users, HttpStatus.OK);
+    }
+
+    @PostMapping("/follow/{followingId}")
+    public ResponseEntity<SmpResponse<FollowingSimple>> follow(
+            @PathVariable Long followingId,
+            @RequestHeader("X-USER-ID") String myIdS) {
+
+        Long myId = Long.parseLong(myIdS);
+
+        FollowingSimple response = followingService.follow(myId, followingId);
+
+        return responseBuilder.success("Following", "created", response, HttpStatus.CREATED);
     }
 
 }

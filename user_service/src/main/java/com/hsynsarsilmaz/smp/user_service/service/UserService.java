@@ -8,6 +8,7 @@ import com.hsynsarsilmaz.smp.user_service.model.dto.request.RegisterRequest;
 import com.hsynsarsilmaz.smp.user_service.model.dto.request.UserUpdateRequest;
 import com.hsynsarsilmaz.smp.user_service.model.dto.response.UserAuth;
 import com.hsynsarsilmaz.smp.user_service.model.dto.response.UserSimple;
+import com.hsynsarsilmaz.smp.user_service.model.entity.User;
 
 public interface UserService {
 
@@ -32,5 +33,7 @@ public interface UserService {
     public UserSimple updateCoverPicture(MultipartFile image, Long userId);
 
     public List<UserSimple> getUsersByIds(List<Long> ids, int page);
+
+    public User getEntityById(Long id);
 
 }
