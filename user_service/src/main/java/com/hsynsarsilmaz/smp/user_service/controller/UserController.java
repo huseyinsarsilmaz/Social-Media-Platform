@@ -2,6 +2,7 @@ package com.hsynsarsilmaz.smp.user_service.controller;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.hsynsarsilmaz.smp.common.model.dto.response.PaginatedResponse;
 import com.hsynsarsilmaz.smp.common.model.dto.response.SmpResponse;
 import com.hsynsarsilmaz.smp.common.util.SmpResponseBuilder;
 import com.hsynsarsilmaz.smp.user_service.model.dto.request.EmailVerificationRequest;
@@ -125,6 +127,17 @@ public class UserController {
         FollowingSimple response = followingService.follow(myId, followingId);
 
         return responseBuilder.success("Following", "created", response, HttpStatus.CREATED);
+    }
+
+    @GetMapping("/followers")
+    public ResponseEntity<SmpResponse<PaginatedResponse<UserSimple>>> getFollowers(
+            @RequestParam("id") Long userId,
+            @RequestParam(defaultValue = "0") int page) {
+
+        Page<UserSimple> followers = followingService.getFollowersOfUser(userId, page);
+
+        return responseBuilder.success("Followers", "fetched", new PaginatedResponse<UserSimple>(followers),
+                HttpStatus.OK);
     }
 
 }

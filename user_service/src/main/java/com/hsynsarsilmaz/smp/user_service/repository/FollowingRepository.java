@@ -1,8 +1,10 @@
 package com.hsynsarsilmaz.smp.user_service.repository;
 
-
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Page;
 
 import com.hsynsarsilmaz.smp.user_service.model.entity.Following;
 
@@ -10,4 +12,6 @@ import com.hsynsarsilmaz.smp.user_service.model.entity.Following;
 public interface FollowingRepository extends JpaRepository<Following, Long> {
     boolean existsByFollowerIdAndFollowingId(Long followerId, Long followingId);
 
+    @EntityGraph(attributePaths = "following")
+    Page<Following> findByFollowerId(Long followerId, Pageable pageable);
 }
