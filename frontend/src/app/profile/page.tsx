@@ -23,6 +23,7 @@ import PostList from "../components/PostList";
 import ThreeColumnLayout from "../layouts/ThreeColumnLayout";
 import Sidebar from "../components/Sidebar";
 import Trending from "./components/Trending";
+import { fetchUserFollowings } from "./profileActions";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -30,6 +31,8 @@ export default function ProfilePage() {
   const [token, setToken] = useState<string | null>(null);
   const [user, setUser] = useState<UserSimple | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
+  const [followings, setFollowings] = useState<UserSimple[]>([]);
+
   const [form, setForm] = useState({
     email: "",
     username: "",
@@ -67,6 +70,11 @@ export default function ProfilePage() {
       const res = await fetchUser(token);
       const data = (res.data as ApiResponse).data;
       setUser(data);
+
+      const followingRes = await fetchUserFollowings(token, data.id, 0);
+      const followingData =
+        (followingRes.data as ApiResponse).data.content || [];
+      setFollowings(followingData);
     } catch (err: any) {
       setError(err?.response?.data?.message || "Failed to fetch user");
     } finally {
@@ -207,7 +215,11 @@ export default function ProfilePage() {
         left={<Sidebar onPostOpen={() => setPostOpen(true)} />}
         center={
           <>
-            <ProfileHeader user={user} onEditClick={handleEditOpen} />
+            <ProfileHeader
+              user={user}
+              followings={followings}
+              onEditClick={handleEditOpen}
+            />
 
             <EditProfileDialog
               open={isEditing}

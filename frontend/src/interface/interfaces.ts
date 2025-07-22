@@ -34,3 +34,10 @@ export interface Feed {
   page: number;
   last: boolean;
 }
+
+export interface PaginatedResponse<T> {
+  content: T[];
+  page: number;
+  last: boolean;
+  totalElements: number;
+}

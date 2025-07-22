@@ -8,5 +8,5 @@ import com.hsynsarsilmaz.smp.user_service.model.dto.response.UserSimple;
 public interface FollowingService {
     public FollowingSimple follow(Long myId, Long followingId);
 
-    public Page<UserSimple> getFollowersOfUser(Long userId, int page);
+    public Page<UserSimple> getFollowingsOfUser(Long userId, int page);
 }

@@ -10,16 +10,23 @@ import {
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import { format, parseISO } from "date-fns";
 import { UserSimple } from "@/interface/interfaces";
+import FollowingPreview from "./FollowingPreview";
 
+// New prop: followings
 interface Props {
   user: UserSimple;
+  followings: UserSimple[];
   onEditClick: () => void;
 }
 
 const getImageUrl = (imageName: string | null) =>
   imageName ? `http://localhost:8080/api/users/images/${imageName}` : undefined;
 
-export default function ProfileHeader({ user, onEditClick }: Props) {
+export default function ProfileHeader({
+  user,
+  followings,
+  onEditClick,
+}: Props) {
   return (
     <Container
       maxWidth="sm"
@@ -30,7 +37,7 @@ export default function ProfileHeader({ user, onEditClick }: Props) {
         <NameAndEdit user={user} onEditClick={onEditClick} />
         <Bio user={user} />
         <JoinDate user={user} />
-        <FollowStats />
+        <FollowingPreview followings={followings} />
         <Divider sx={{ mt: 3, bgcolor: "#2f2f2f" }} />
       </Box>
     </Container>
@@ -140,29 +147,6 @@ function JoinDate({ user }: { user: UserSimple }) {
             : "unknown"}
         </Typography>
       </Stack>
-    </Stack>
-  );
-}
-
-function FollowStats() {
-  return (
-    <Stack
-      direction="row"
-      spacing={4}
-      sx={{ mt: 2, color: "rgba(255, 255, 255, 0.6)" }}
-    >
-      <Box>
-        <Typography component="span" fontWeight="bold" sx={{ color: "#fff" }}>
-          0
-        </Typography>{" "}
-        Followers
-      </Box>
-      <Box>
-        <Typography component="span" fontWeight="bold" sx={{ color: "#fff" }}>
-          0
-        </Typography>{" "}
-        Following
-      </Box>
     </Stack>
   );
 }

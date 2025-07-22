@@ -1,5 +1,7 @@
 package com.hsynsarsilmaz.smp.user_service.service.Impl;
 
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.Cache;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -26,6 +28,19 @@ public class FollowingServiceImpl implements FollowingService {
     private final FollowingMapper followingMapper;
     private final UserService userService;
     private final UserMapper userMapper;
+    private final CacheManager cacheManager;
+
+    private void evictFollowingsCache(Long userId) {
+        Cache cache = cacheManager.getCache("userFollowers");
+        String key = ":user:" + userId + ":page:";
+        if (cache != null) {
+            for (int page = 0;; page++) {
+                if (!cache.evictIfPresent(key + page)) {
+                    break;
+                }
+            }
+        }
+    }
 
     public FollowingSimple follow(Long myId, Long followingId) {
         if (myId == followingId) {
@@ -42,12 +57,13 @@ public class FollowingServiceImpl implements FollowingService {
 
         following = followingRepository.save(following);
 
+        evictFollowingsCache(myId);
         return followingMapper.toDto(following);
 
     }
 
     @Cacheable(value = "userFollowers", key = "':user:' + #userId + ':page:' + #page")
-    public Page<UserSimple> getFollowersOfUser(Long userId, int page) {
+    public Page<UserSimple> getFollowingsOfUser(Long userId, int page) {
         Pageable pageable = PageRequest.of(page, 10);
         Page<Following> followings = followingRepository.findByFollowerId(userId, pageable);
 
