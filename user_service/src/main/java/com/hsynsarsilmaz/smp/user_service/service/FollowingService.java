@@ -9,4 +9,6 @@ public interface FollowingService {
     public FollowingSimple follow(Long myId, Long followingId);
 
     public Page<UserSimple> getFollowingsOfUser(Long userId, int page);
+
+    public Page<UserSimple> getFollowersOfUser(Long userId, int page);
 }

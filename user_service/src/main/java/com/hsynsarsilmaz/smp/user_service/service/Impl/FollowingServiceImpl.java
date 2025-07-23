@@ -30,8 +30,8 @@ public class FollowingServiceImpl implements FollowingService {
     private final UserMapper userMapper;
     private final CacheManager cacheManager;
 
-    private void evictFollowingsCache(Long userId) {
-        Cache cache = cacheManager.getCache("userFollowers");
+    private void evictFollowCache(Long userId, String cacheValue) {
+        Cache cache = cacheManager.getCache(cacheValue);
         String key = ":user:" + userId + ":page:";
         if (cache != null) {
             for (int page = 0;; page++) {
@@ -57,18 +57,29 @@ public class FollowingServiceImpl implements FollowingService {
 
         following = followingRepository.save(following);
 
-        evictFollowingsCache(myId);
+        evictFollowCache(followingId, "userFollowers");
+        evictFollowCache(myId, "userFollowings");
         return followingMapper.toDto(following);
 
     }
 
-    @Cacheable(value = "userFollowers", key = "':user:' + #userId + ':page:' + #page")
+    @Cacheable(value = "userFollowings", key = "':user:' + #userId + ':page:' + #page")
     public Page<UserSimple> getFollowingsOfUser(Long userId, int page) {
         Pageable pageable = PageRequest.of(page, 10);
         Page<Following> followings = followingRepository.findByFollowerId(userId, pageable);
 
         return followings.map(f -> {
             return userMapper.toDtoSimple(f.getFollowing());
+        });
+    }
+
+    @Cacheable(value = "userFollowers", key = "':user:' + #userId + ':page:' + #page")
+    public Page<UserSimple> getFollowersOfUser(Long userId, int page) {
+        Pageable pageable = PageRequest.of(page, 10);
+        Page<Following> followers = followingRepository.findByFollowingId(userId, pageable);
+
+        return followers.map(f -> {
+            return userMapper.toDtoSimple(f.getFollower());
         });
     }
 

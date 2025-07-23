@@ -14,4 +14,7 @@ public interface FollowingRepository extends JpaRepository<Following, Long> {
 
     @EntityGraph(attributePaths = "following")
     Page<Following> findByFollowerId(Long followerId, Pageable pageable);
+
+    @EntityGraph(attributePaths = "follower")
+    Page<Following> findByFollowingId(Long followingId, Pageable pageable);
 }

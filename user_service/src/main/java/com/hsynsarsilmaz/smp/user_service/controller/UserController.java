@@ -130,13 +130,24 @@ public class UserController {
     }
 
     @GetMapping("/followings")
-    public ResponseEntity<SmpResponse<PaginatedResponse<UserSimple>>> getFollowings(
+    public ResponseEntity<SmpResponse<PaginatedResponse<UserSimple>>> getUserFollowings(
             @RequestParam("id") Long userId,
             @RequestParam(defaultValue = "0") int page) {
 
-        Page<UserSimple> followers = followingService.getFollowingsOfUser(userId, page);
+        Page<UserSimple> followings = followingService.getFollowingsOfUser(userId, page);
 
-        return responseBuilder.success("Followings", "fetched", new PaginatedResponse<UserSimple>(followers),
+        return responseBuilder.success("Followings", "fetched", new PaginatedResponse<UserSimple>(followings),
+                HttpStatus.OK);
+    }
+
+    @GetMapping("/followers")
+    public ResponseEntity<SmpResponse<PaginatedResponse<UserSimple>>> getUserFollowers(
+            @RequestParam("id") Long userId,
+            @RequestParam(defaultValue = "0") int page) {
+
+        Page<UserSimple> followers = followingService.getFollowersOfUser(userId, page);
+
+        return responseBuilder.success("Followers", "fetched", new PaginatedResponse<UserSimple>(followers),
                 HttpStatus.OK);
     }
 
