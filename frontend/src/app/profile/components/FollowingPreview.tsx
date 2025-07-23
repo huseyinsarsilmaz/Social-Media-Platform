@@ -11,6 +11,7 @@ import {
   ListItem,
   ListItemAvatar,
   ListItemText,
+  Stack,
   Typography,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
@@ -22,69 +23,139 @@ const getImageUrl = (imageName: string | null) =>
 
 export default function FollowingPreview({
   followings,
+  followers,
 }: {
   followings: UserSimple[];
+  followers: UserSimple[];
 }) {
-  const [open, setOpen] = useState(false);
+  const [followingsOpen, setFollowingsOpen] = useState(false);
+  const [followersOpen, setFollowersOpen] = useState(false);
 
   return (
-    <Box sx={{ mt: 2 }}>
-      <Typography
-        fontWeight="bold"
-        sx={{
-          color: "#fff",
-          cursor: "pointer",
-          "&:hover": { textDecoration: "underline" },
-        }}
-        onClick={() => setOpen(true)}
+    <>
+      <Stack
+        direction="row"
+        spacing={4}
+        sx={{ mt: 2, color: "rgba(255, 255, 255, 0.6)" }}
       >
-        Following: {followings.length}
-      </Typography>
-
-      <Dialog
-        open={open}
-        onClose={() => setOpen(false)}
-        fullWidth
-        maxWidth="xs"
-      >
-        <DialogTitle sx={{ m: 0, p: 2 }}>
+        <Box
+          onClick={() => setFollowersOpen(true)}
+          sx={{
+            cursor: "pointer",
+            "&:hover span": { textDecoration: "underline" },
+          }}
+        >
+          <Typography component="span" fontWeight="bold" sx={{ color: "#fff" }}>
+            {followers.length}
+          </Typography>{" "}
+          Followers
+        </Box>
+        <Box
+          onClick={() => setFollowingsOpen(true)}
+          sx={{
+            cursor: "pointer",
+            "&:hover span": { textDecoration: "underline" },
+          }}
+        >
+          <Typography component="span" fontWeight="bold" sx={{ color: "#fff" }}>
+            {followings.length}
+          </Typography>{" "}
           Following
-          <IconButton
-            aria-label="close"
-            onClick={() => setOpen(false)}
-            sx={{
-              position: "absolute",
-              right: 8,
-              top: 8,
-              color: (theme) => theme.palette.grey[500],
-            }}
-          >
-            <CloseIcon />
-          </IconButton>
-        </DialogTitle>
+        </Box>
+      </Stack>
 
-        <DialogContent dividers sx={{ maxHeight: 400, p: 0 }}>
-          <List dense>
-            {followings.map((user) => (
-              <ListItem key={user.id} sx={{ px: 2 }}>
-                <ListItemAvatar>
-                  <Avatar
-                    src={getImageUrl(user.profilePicture) || "/favicon.ico"}
-                  />
-                </ListItemAvatar>
-                <ListItemText
-                  primary={
-                    <Typography fontWeight="bold">
-                      {user.name || user.username}
-                    </Typography>
-                  }
-                  secondary={`@${user.username}`}
+      <CustomDialog
+        open={followingsOpen}
+        onClose={() => setFollowingsOpen(false)}
+        title="Following"
+        users={followings}
+      />
+      <CustomDialog
+        open={followersOpen}
+        onClose={() => setFollowersOpen(false)}
+        title="Followers"
+        users={followers}
+      />
+    </>
+  );
+}
+
+function CustomDialog({
+  open,
+  onClose,
+  title,
+  users,
+}: {
+  open: boolean;
+  onClose: () => void;
+  title: string;
+  users: UserSimple[];
+}) {
+  return (
+    <Dialog
+      open={open}
+      onClose={onClose}
+      fullWidth
+      maxWidth="xs"
+      PaperProps={{
+        sx: {
+          bgcolor: "#121212",
+          color: "#fff",
+        },
+      }}
+    >
+      <DialogTitle
+        sx={{
+          m: 0,
+          p: 2,
+          borderBottom: "1px solid #2f2f2f",
+          fontWeight: "bold",
+        }}
+      >
+        {title}
+        <IconButton
+          aria-label="close"
+          onClick={onClose}
+          sx={{
+            position: "absolute",
+            right: 8,
+            top: 8,
+            color: "rgba(255, 255, 255, 0.6)",
+          }}
+        >
+          <CloseIcon />
+        </IconButton>
+      </DialogTitle>
+
+      <DialogContent dividers sx={{ maxHeight: 400, p: 0 }}>
+        <List dense>
+          {users.map((user) => (
+            <ListItem key={user.id} sx={{ px: 2 }}>
+              <ListItemAvatar>
+                <Avatar
+                  src={getImageUrl(user.profilePicture) || "/favicon.ico"}
+                  sx={{ border: "1px solid #2f2f2f" }}
                 />
-              </ListItem>
-            ))}
-          </List>
-        </DialogContent>
-      </Dialog>
-    </Box>
+              </ListItemAvatar>
+              <ListItemText
+                primary={
+                  <Typography fontWeight="bold" sx={{ color: "#fff" }}>
+                    {user.name || user.username}
+                  </Typography>
+                }
+                secondary={
+                  <Typography
+                    variant="body2"
+                    sx={{ color: "rgba(255, 255, 255, 0.6)" }}
+                  >
+                    @{user.username}
+                  </Typography>
+                }
+              />
+            </ListItem>
+          ))}
+        </List>
+      </DialogContent>
+    </Dialog>
   );
 }

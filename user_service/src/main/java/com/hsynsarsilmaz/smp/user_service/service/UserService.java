@@ -12,7 +12,7 @@ import com.hsynsarsilmaz.smp.user_service.model.entity.User;
 
 public interface UserService {
 
-    public UserSimple getUserSimple(Long id);
+    public UserSimple getUserSimpleByUsername(String username);
 
     public UserAuth getUserAuth(String username);
 

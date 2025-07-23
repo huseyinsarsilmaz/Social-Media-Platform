@@ -11,6 +11,7 @@ import {
   updatePost,
   deletePost,
   uploadImage,
+  fetchUserFollowers,
 } from "./profileActions";
 
 import { ApiResponse, Post, UserSimple } from "@/interface/interfaces";
@@ -32,6 +33,7 @@ export default function ProfilePage() {
   const [user, setUser] = useState<UserSimple | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
   const [followings, setFollowings] = useState<UserSimple[]>([]);
+  const [followers, setFollowers] = useState<UserSimple[]>([]);
 
   const [form, setForm] = useState({
     email: "",
@@ -74,7 +76,11 @@ export default function ProfilePage() {
       const followingRes = await fetchUserFollowings(token, data.id, 0);
       const followingData =
         (followingRes.data as ApiResponse).data.content || [];
+      const followersRes = await fetchUserFollowers(token, data.id, 0);
+      const followersData =
+        (followersRes.data as ApiResponse).data.content || [];
       setFollowings(followingData);
+      setFollowers(followersData);
     } catch (err: any) {
       setError(err?.response?.data?.message || "Failed to fetch user");
     } finally {
@@ -218,6 +224,7 @@ export default function ProfilePage() {
             <ProfileHeader
               user={user}
               followings={followings}
+              followers={followers}
               onEditClick={handleEditOpen}
             />
 

@@ -60,9 +60,9 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new NotFoundException("User", "id"));
     }
 
-    @Cacheable(value = "userSimple", key = "#id")
-    public UserSimple getUserSimple(Long id) {
-        User user = getEntityById(id);
+    @Cacheable(value = "userSimple", key = "#username")
+    public UserSimple getUserSimpleByUsername(String username) {
+        User user = getEntityByUsername(username);
         return userMapper.toDtoSimple(user);
     }
 

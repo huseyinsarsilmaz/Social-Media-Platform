@@ -71,3 +71,17 @@ export const fetchUserFollowings = (
     params: { id: userId, page },
     headers: { Authorization: `Bearer ${token}` },
   });
+
+  export const fetchUserFollowers = (
+    token: string,
+    userId: number,
+    page: number = 0
+  ) =>
+    axios.get<{
+      status: boolean;
+      message: string;
+      data: PaginatedResponse<UserSimple>;
+    }>(`/users/followers`, {
+      params: { id: userId, page },
+      headers: { Authorization: `Bearer ${token}` },
+    });

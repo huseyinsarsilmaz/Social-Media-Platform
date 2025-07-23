@@ -16,6 +16,7 @@ import FollowingPreview from "./FollowingPreview";
 interface Props {
   user: UserSimple;
   followings: UserSimple[];
+  followers: UserSimple[];
   onEditClick: () => void;
 }
 
@@ -25,6 +26,7 @@ const getImageUrl = (imageName: string | null) =>
 export default function ProfileHeader({
   user,
   followings,
+  followers,
   onEditClick,
 }: Props) {
   return (
@@ -37,7 +39,7 @@ export default function ProfileHeader({
         <NameAndEdit user={user} onEditClick={onEditClick} />
         <Bio user={user} />
         <JoinDate user={user} />
-        <FollowingPreview followings={followings} />
+        <FollowingPreview followings={followings} followers={followers} />
         <Divider sx={{ mt: 3, bgcolor: "#2f2f2f" }} />
       </Box>
     </Container>

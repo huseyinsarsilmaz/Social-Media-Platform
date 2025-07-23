@@ -64,10 +64,9 @@ public class UserController {
         return responseBuilder.success("User", "fetched", user, HttpStatus.OK);
     }
 
-    @GetMapping("/me")
-    public ResponseEntity<SmpResponse<UserSimple>> getOwnUser(@RequestHeader("X-USER-ID") String userId) {
-        Long id = Long.parseLong(userId);
-        UserSimple user = userService.getUserSimple(id);
+    @GetMapping("/{username}")
+    public ResponseEntity<SmpResponse<UserSimple>> getUserByUsername(@PathVariable("username") String username) {
+        UserSimple user = userService.getUserSimpleByUsername(username);
 
         return responseBuilder.success("User", "fetched", user, HttpStatus.OK);
     }
