@@ -6,7 +6,8 @@ import {
   Container,
   Typography,
 } from "@mui/material";
-import PostCard from "../profile/components/PostCard";
+import PostCard from "../[username]/components/PostCard";
+
 
 interface Props {
   posts: Post[];

@@ -1,15 +1,18 @@
 import axios from "@/lib/axios";
 import { PaginatedResponse, Post, UserSimple } from "@/interface/interfaces";
 
-export const fetchUser = (token: string) =>
-  axios.get("/users/me", {
+export const fetchUser = (token: string, username: string) =>
+  axios.get(`/users/${username}`, {
     headers: { Authorization: `Bearer ${token}` },
   });
 
-export const fetchUserPosts = (token: string) =>
-  axios.get<{ status: boolean; message: string; data: Post[] }>("/posts/my", {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+export const fetchUserPosts = (token: string, userId: number) =>
+  axios.get<{ status: boolean; message: string; data: Post[] }>(
+    `/posts/user/${userId}`,
+    {
+      headers: { Authorization: `Bearer ${token}` },
+    }
+  );
 
 export const updateProfile = (token: string, form: any) =>
   axios.put("/users/me", form, {
@@ -72,16 +75,16 @@ export const fetchUserFollowings = (
     headers: { Authorization: `Bearer ${token}` },
   });
 
-  export const fetchUserFollowers = (
-    token: string,
-    userId: number,
-    page: number = 0
-  ) =>
-    axios.get<{
-      status: boolean;
-      message: string;
-      data: PaginatedResponse<UserSimple>;
-    }>(`/users/followers`, {
-      params: { id: userId, page },
-      headers: { Authorization: `Bearer ${token}` },
-    });
+export const fetchUserFollowers = (
+  token: string,
+  userId: number,
+  page: number = 0
+) =>
+  axios.get<{
+    status: boolean;
+    message: string;
+    data: PaginatedResponse<UserSimple>;
+  }>(`/users/followers`, {
+    params: { id: userId, page },
+    headers: { Authorization: `Bearer ${token}` },
+  });

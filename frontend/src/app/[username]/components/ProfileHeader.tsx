@@ -18,6 +18,7 @@ interface Props {
   followings: UserSimple[];
   followers: UserSimple[];
   onEditClick: () => void;
+  isOwnUser: boolean;
 }
 
 const getImageUrl = (imageName: string | null) =>
@@ -28,6 +29,7 @@ export default function ProfileHeader({
   followings,
   followers,
   onEditClick,
+  isOwnUser,
 }: Props) {
   return (
     <Container
@@ -36,7 +38,11 @@ export default function ProfileHeader({
     >
       <Box sx={{ mt: 6, px: 2 }}>
         <CoverAndAvatar user={user} />
-        <NameAndEdit user={user} onEditClick={onEditClick} />
+        <NameAndEdit
+          user={user}
+          onEditClick={onEditClick}
+          isOwnUser={isOwnUser}
+        />
         <Bio user={user} />
         <JoinDate user={user} />
         <FollowingPreview followings={followings} followers={followers} />
@@ -82,9 +88,11 @@ function CoverAndAvatar({ user }: { user: UserSimple }) {
 function NameAndEdit({
   user,
   onEditClick,
+  isOwnUser,
 }: {
   user: UserSimple;
   onEditClick: () => void;
+  isOwnUser: boolean;
 }) {
   return (
     <Stack
@@ -106,21 +114,23 @@ function NameAndEdit({
         </Typography>
       </Box>
 
-      <Button
-        variant="outlined"
-        sx={{
-          borderColor: "#1da1f2",
-          color: "#1da1f2",
-          "&:hover": {
-            borderColor: "#1a8cd8",
-            backgroundColor: "rgba(29,161,242,0.1)",
-          },
-        }}
-        onClick={onEditClick}
-        aria-label="Edit profile"
-      >
-        Edit Profile
-      </Button>
+      {isOwnUser && (
+        <Button
+          variant="outlined"
+          sx={{
+            borderColor: "#1da1f2",
+            color: "#1da1f2",
+            "&:hover": {
+              borderColor: "#1a8cd8",
+              backgroundColor: "rgba(29,161,242,0.1)",
+            },
+          }}
+          onClick={onEditClick}
+          aria-label="Edit profile"
+        >
+          Edit Profile
+        </Button>
+      )}
     </Stack>
   );
 }

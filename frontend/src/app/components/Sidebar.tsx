@@ -22,7 +22,13 @@ import {
 } from "@mui/material";
 import { useRouter } from "next/navigation";
 
-export default function Sidebar({ onPostOpen }: { onPostOpen: () => void }) {
+export default function Sidebar({
+  onPostOpen,
+  username,
+}: {
+  onPostOpen: () => void;
+  username: string | null;
+}) {
   const router = useRouter();
 
   return (
@@ -57,7 +63,7 @@ export default function Sidebar({ onPostOpen }: { onPostOpen: () => void }) {
           <SidebarItem
             icon={<Person />}
             label="Profile"
-            onClick={() => router.push("/profile")}
+            onClick={() => router.push(username ? username : "")}
           />
           <SidebarItem icon={<Settings />} label="Settings" />
 

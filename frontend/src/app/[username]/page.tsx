@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { Container, Typography, CircularProgress, Button } from "@mui/material";
+import { jwtDecode } from "jwt-decode";
 
 import {
   fetchUser,
@@ -11,6 +12,7 @@ import {
   updatePost,
   deletePost,
   uploadImage,
+  fetchUserFollowings,
   fetchUserFollowers,
 } from "./profileActions";
 
@@ -24,12 +26,19 @@ import PostList from "../components/PostList";
 import ThreeColumnLayout from "../layouts/ThreeColumnLayout";
 import Sidebar from "../components/Sidebar";
 import Trending from "./components/Trending";
-import { fetchUserFollowings } from "./profileActions";
+
+interface DecodedToken {
+  sub: string;
+  [key: string]: any;
+}
 
 export default function ProfilePage() {
   const router = useRouter();
+  const params = useParams();
+  const usernameParam = params?.username as string;
 
   const [token, setToken] = useState<string | null>(null);
+  const [ownUsername, setOwnUsername] = useState<string | null>(null);
   const [user, setUser] = useState<UserSimple | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
   const [followings, setFollowings] = useState<UserSimple[]>([]);
@@ -64,35 +73,16 @@ export default function ProfilePage() {
       router.push("/login");
     } else {
       setToken(authToken);
+      const decoded = jwtDecode<DecodedToken>(authToken);
+      setOwnUsername(decoded.sub);
     }
   }, []);
 
-  const loadUser = useCallback(async (token: string) => {
-    try {
-      const res = await fetchUser(token);
-      const data = (res.data as ApiResponse).data;
-      setUser(data);
-
-      const followingRes = await fetchUserFollowings(token, data.id, 0);
-      const followingData =
-        (followingRes.data as ApiResponse).data.content || [];
-      const followersRes = await fetchUserFollowers(token, data.id, 0);
-      const followersData =
-        (followersRes.data as ApiResponse).data.content || [];
-      setFollowings(followingData);
-      setFollowers(followersData);
-    } catch (err: any) {
-      setError(err?.response?.data?.message || "Failed to fetch user");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  const loadPosts = useCallback(async (token: string) => {
+  const loadPosts = useCallback(async (token: string, userId: number) => {
     setPostsLoading(true);
     setPostsError(null);
     try {
-      const res = await fetchUserPosts(token);
+      const res = await fetchUserPosts(token, userId);
       const data = (res.data as ApiResponse).data.content;
       setPosts(data || []);
     } catch (err: any) {
@@ -102,12 +92,37 @@ export default function ProfilePage() {
     }
   }, []);
 
+  const loadUser = useCallback(
+    async (token: string, username: string) => {
+      try {
+        const res = await fetchUser(token, username);
+        const data = (res.data as ApiResponse).data;
+        setUser(data);
+
+        const followingRes = await fetchUserFollowings(token, data.id, 0);
+        const followingData =
+          (followingRes.data as ApiResponse).data.content || [];
+        const followersRes = await fetchUserFollowers(token, data.id, 0);
+        const followersData =
+          (followersRes.data as ApiResponse).data.content || [];
+        setFollowings(followingData);
+        setFollowers(followersData);
+
+        await loadPosts(token, data.id);
+      } catch (err: any) {
+        setError(err?.response?.data?.message || "Failed to fetch user");
+      } finally {
+        setLoading(false);
+      }
+    },
+    [loadPosts]
+  );
+
   useEffect(() => {
-    if (token) {
-      loadUser(token);
-      loadPosts(token);
+    if (token && usernameParam) {
+      loadUser(token, usernameParam);
     }
-  }, [token, loadUser, loadPosts]);
+  }, [token, usernameParam, loadUser]);
 
   const handleEditOpen = () => {
     if (!user) return;
@@ -148,21 +163,21 @@ export default function ProfilePage() {
     if (!token || !confirm("Delete this post?")) return;
     try {
       await deletePost(token, id);
-      loadPosts(token);
+      if (user) await loadPosts(token, user.id);
     } catch (err: any) {
       alert(err?.response?.data?.message || "Failed to delete post");
     }
   };
 
   const handleEditPost = async () => {
-    if (!token || !editPostId) return;
+    if (!token || !editPostId || !user) return;
     setEditingPost(true);
     setEditError(null);
     try {
       await updatePost(token, editPostId, editText);
       setEditPostId(null);
       setEditText("");
-      loadPosts(token);
+      await loadPosts(token, user.id);
     } catch (err: any) {
       setEditError(err?.response?.data?.message || "Update failed");
     } finally {
@@ -218,7 +233,12 @@ export default function ProfilePage() {
 
     return (
       <ThreeColumnLayout
-        left={<Sidebar onPostOpen={() => setPostOpen(true)} />}
+        left={
+          <Sidebar
+            onPostOpen={() => setPostOpen(true)}
+            username={ownUsername}
+          />
+        }
         center={
           <>
             <ProfileHeader
@@ -226,6 +246,7 @@ export default function ProfilePage() {
               followings={followings}
               followers={followers}
               onEditClick={handleEditOpen}
+              isOwnUser={ownUsername === usernameParam}
             />
 
             <EditProfileDialog
@@ -252,12 +273,14 @@ export default function ProfilePage() {
               onSave={handleEditPost}
             />
 
-            <NewPostDialog
-              open={postOpen}
-              profilePicture={user.profilePicture}
-              onClose={() => setPostOpen(false)}
-              onPostSuccess={() => token && loadPosts(token)}
-            />
+            {ownUsername === usernameParam && (
+              <NewPostDialog
+                open={postOpen}
+                profilePicture={user.profilePicture}
+                onClose={() => setPostOpen(false)}
+                onPostSuccess={() => token && loadPosts(token, user.id)}
+              />
+            )}
 
             <PostList
               posts={posts}

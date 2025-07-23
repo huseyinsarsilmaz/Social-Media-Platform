@@ -45,13 +45,12 @@ public class PostController {
         return responseBuilder.success("Post", "added", newPost, HttpStatus.CREATED);
     }
 
-    @GetMapping("/my")
+    @GetMapping("/user/{userId}")
     public ResponseEntity<SmpResponse<PaginatedResponse<PostSimple>>> getMyPosts(
-            @RequestHeader("X-USER-ID") String userId,
+            @PathVariable("userId") Long userId,
             @RequestParam(defaultValue = "0") int page) {
 
-        Long id = Long.parseLong(userId);
-        Page<PostSimple> posts = postService.getByUserId(id, page);
+        Page<PostSimple> posts = postService.getByUserId(userId, page);
 
         return responseBuilder.success("My Posts", "fetched", new PaginatedResponse<PostSimple>(posts), HttpStatus.OK);
     }
