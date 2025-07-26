@@ -292,6 +292,7 @@ export default function ProfilePage() {
                 setEditText(post.text);
               }}
               onDelete={handleDeletePost}
+              isOwnUser={ownUsername === usernameParam}
             />
           </>
         }

@@ -23,9 +23,16 @@ interface Props {
   user: UserSimple;
   onEdit: (post: Post) => void;
   onDelete: (id: number) => void;
+  isOwnUser: boolean;
 }
 
-export default function PostCard({ post, user, onEdit, onDelete }: Props) {
+export default function PostCard({
+  post,
+  user,
+  onEdit,
+  onDelete,
+  isOwnUser,
+}: Props) {
   return (
     <Box
       sx={{
@@ -53,6 +60,7 @@ export default function PostCard({ post, user, onEdit, onDelete }: Props) {
             post={post}
             onEdit={onEdit}
             onDelete={onDelete}
+            isOwnUser={isOwnUser}
           />
           <PostContent text={post.text} />
           <PostStats />
@@ -67,11 +75,13 @@ function PostHeader({
   post,
   onEdit,
   onDelete,
+  isOwnUser,
 }: {
   user: UserSimple;
   post: Post;
   onEdit: (post: Post) => void;
   onDelete: (id: number) => void;
+  isOwnUser: boolean;
 }) {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
@@ -99,33 +109,37 @@ function PostHeader({
         </Typography>
       </Box>
 
-      <IconButton onClick={handleOpen} sx={{ color: "#fff", p: 0 }}>
-        <MoreHoriz />
-      </IconButton>
-      <Menu
-        anchorEl={anchorEl}
-        open={Boolean(anchorEl)}
-        onClose={handleClose}
-        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-        transformOrigin={{ vertical: "top", horizontal: "right" }}
-      >
-        <MenuItem
-          onClick={() => {
-            handleClose();
-            onEdit(post);
-          }}
-        >
-          Edit
-        </MenuItem>
-        <MenuItem
-          onClick={() => {
-            handleClose();
-            onDelete(post.id);
-          }}
-        >
-          Delete
-        </MenuItem>
-      </Menu>
+      {isOwnUser && (
+        <>
+          <IconButton onClick={handleOpen} sx={{ color: "#fff", p: 0 }}>
+            <MoreHoriz />
+          </IconButton>
+          <Menu
+            anchorEl={anchorEl}
+            open={Boolean(anchorEl)}
+            onClose={handleClose}
+            anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+            transformOrigin={{ vertical: "top", horizontal: "right" }}
+          >
+            <MenuItem
+              onClick={() => {
+                handleClose();
+                onEdit(post);
+              }}
+            >
+              Edit
+            </MenuItem>
+            <MenuItem
+              onClick={() => {
+                handleClose();
+                onDelete(post.id);
+              }}
+            >
+              Delete
+            </MenuItem>
+          </Menu>
+        </>
+      )}
     </Stack>
   );
 }

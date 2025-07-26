@@ -6,8 +6,7 @@ import {
   Container,
   Typography,
 } from "@mui/material";
-import PostCard from "../[username]/components/PostCard";
-
+import PostCard from "./PostCard";
 
 interface Props {
   posts: Post[];
@@ -16,6 +15,7 @@ interface Props {
   error: string | null;
   onEdit: (post: Post) => void;
   onDelete: (id: number) => void;
+  isOwnUser: boolean;
 }
 
 export default function PostList({
@@ -25,6 +25,7 @@ export default function PostList({
   user,
   onEdit,
   onDelete,
+  isOwnUser,
 }: Props) {
   return (
     <Container maxWidth="sm" sx={{ mt: 3, mb: 4 }}>
@@ -36,6 +37,7 @@ export default function PostList({
         error={error}
         onEdit={onEdit}
         onDelete={onDelete}
+        isOwnUser={isOwnUser}
       />
     </Container>
   );
@@ -58,6 +60,7 @@ function PostListContent({
   user,
   onEdit,
   onDelete,
+  isOwnUser,
 }: {
   posts: Post[];
   loading: boolean;
@@ -65,6 +68,7 @@ function PostListContent({
   user: UserSimple;
   onEdit: (post: Post) => void;
   onDelete: (id: number) => void;
+  isOwnUser: boolean;
 }) {
   if (loading) {
     return (
@@ -99,6 +103,7 @@ function PostListContent({
           post={post}
           onEdit={() => onEdit(post)}
           onDelete={onDelete}
+          isOwnUser={isOwnUser}
         />
       ))}
     </>
