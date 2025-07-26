@@ -136,6 +136,18 @@ public class UserServiceImpl implements UserService {
         }
     }
 
+    private void evictFeedUsersCache() {
+        Cache cache = cacheManager.getCache("feedUsers");
+        String key = "page:";
+        if (cache != null) {
+            for (int page = 0;; page++) {
+                if (!cache.evictIfPresent(key + page)) {
+                    break;
+                }
+            }
+        }
+    }
+
     @Transactional
     public UserSimple update(UserUpdateRequest req, Long id) {
         User user = getEntityById(id);
@@ -151,6 +163,7 @@ public class UserServiceImpl implements UserService {
         }
 
         evictCache("userSimple", user.getUsername());
+        evictFeedUsersCache();
 
         userMapper.updateEntity(user, req);
         user = userRepository.save(user);
