@@ -1,11 +1,5 @@
 import { PostWithUser } from "@/interface/interfaces";
-import {
-  Box,
-  Button,
-  CircularProgress,
-  Container,
-  Typography,
-} from "@mui/material";
+import { Box, CircularProgress, Container, Typography } from "@mui/material";
 import PostCard from "./PostCard";
 
 interface Props {

@@ -23,7 +23,7 @@ public class FeedController {
     private final SmpResponseBuilder responseBuilder;
 
     @GetMapping
-    public ResponseEntity<SmpResponse<FeedSimple>> getMyPosts(
+    public ResponseEntity<SmpResponse<FeedSimple>> getFeed(
             @RequestParam(defaultValue = "0") int page) {
 
         FeedSimpleWithError feed = feedService.getFeed(page);

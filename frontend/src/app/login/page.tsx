@@ -43,7 +43,7 @@ export default function LoginPage() {
 
       if (status) {
         localStorage.setItem("AUTH_TOKEN", data.token);
-        router.push("/profile");
+        router.push("/home");
       } else {
         setError(message || "Login failed. Please try again.");
       }
