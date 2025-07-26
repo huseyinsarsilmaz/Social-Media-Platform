@@ -16,6 +16,7 @@ import {
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { UserSimple } from "@/interface/interfaces";
 
 const getImageUrl = (imageName: string | null) =>
@@ -91,6 +92,8 @@ function CustomDialog({
   title: string;
   users: UserSimple[];
 }) {
+  const router = useRouter();
+
   return (
     <Dialog
       open={open}
@@ -130,7 +133,14 @@ function CustomDialog({
       <DialogContent dividers sx={{ maxHeight: 400, p: 0 }}>
         <List dense>
           {users.map((user) => (
-            <ListItem key={user.id} sx={{ px: 2 }}>
+            <ListItem
+              key={user.id}
+              sx={{ px: 2, cursor: "pointer" }}
+              onClick={() => {
+                router.push(`/${user.username}`);
+                onClose();
+              }}
+            >
               <ListItemAvatar>
                 <Avatar
                   src={getImageUrl(user.profilePicture) || "/favicon.ico"}
