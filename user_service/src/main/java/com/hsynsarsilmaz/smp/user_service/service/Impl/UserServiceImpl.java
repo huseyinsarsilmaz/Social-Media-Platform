@@ -129,7 +129,7 @@ public class UserServiceImpl implements UserService {
         mailSender.send(message);
     }
 
-    private void evictCache(String cacheName, Object key) {
+    private void evictCache(String cacheName, String key) {
         Cache cache = cacheManager.getCache(cacheName);
         if (cache != null) {
             cache.evict(key);
@@ -150,7 +150,7 @@ public class UserServiceImpl implements UserService {
 
         }
 
-        evictCache("userSimple", user.getId());
+        evictCache("userSimple", user.getUsername());
 
         userMapper.updateEntity(user, req);
         user = userRepository.save(user);
