@@ -17,81 +17,113 @@ import {
   PostWithUser,
   UserSimple,
 } from "@/interface/interfaces";
+
+import { deletePost, fetchUser, updatePost } from "../components/commonActions";
+
 import NewPostBox from "./components/NewPostBox";
 import ThreeColumnLayout from "../layouts/ThreeColumnLayout";
 import Sidebar from "../components/Sidebar";
-import Trending from "../components/Trending";
 import PostList from "../components/PostList";
 import NewPostDialog from "../components/NewPostDialog";
-import { fetchUser } from "../components/commonActions";
+import EditPostDialog from "../components/EditPostDialog";
 import { fetchFeed } from "./homeActions";
+import Trending from "../components/Trending";
 
 export default function HomePage() {
   const router = useRouter();
 
   const [token, setToken] = useState<string | null>(null);
-  const [user, setUser] = useState<UserSimple | null>(null);
-  const [ownUsername, setOwnUsername] = useState<string | null>(null);
   const [posts, setPosts] = useState<PostWithUser[]>([]);
+  const [user, setUser] = useState<UserSimple | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [postOpen, setPostOpen] = useState(false);
+  const [ownUsername, setOwnUsername] = useState<string | null>(null);
+
+  const [editPostId, setEditPostId] = useState<number | null>(null);
+  const [editText, setEditText] = useState("");
+  const [editingPost, setEditingPost] = useState(false);
+  const [editError, setEditError] = useState<string | null>(null);
 
   useEffect(() => {
     const authToken = localStorage.getItem("AUTH_TOKEN");
     if (!authToken) {
       router.push("/login");
-      return;
+    } else {
+      setToken(authToken);
     }
+  }, []);
 
-    const init = async () => {
-      try {
-        const decoded = jwtDecode<JwtPayload>(authToken);
-        const username = decoded.sub;
-        setToken(authToken);
-        setOwnUsername(username);
+  const loadUser = useCallback(async (token: string) => {
+    try {
+      const decoded = jwtDecode<JwtPayload>(token);
+      setOwnUsername(decoded.sub);
+      const res = await fetchUser(token, decoded.sub);
+      const data = (res.data as ApiResponse).data;
+      setUser(data);
+    } catch (err: any) {
+      setError(err?.response?.data?.message || "Failed to fetch user");
+    }
+  }, []);
 
-        const userRes = await fetchUser(authToken, username);
-        const userData = (userRes.data as ApiResponse).data;
-        setUser(userData);
-
-        const feedRes = await fetchFeed(authToken, 0);
-        const feedData = (feedRes.data as ApiResponse).data.content;
-        setPosts(feedData || []);
-      } catch (err: any) {
-        setError(err?.response?.data?.message || "Failed to load home feed");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    init();
-  }, [router]);
-
-  const reloadFeed = useCallback(async () => {
-    if (!token) return;
+  const loadFeed = useCallback(async (token: string) => {
+    setLoading(true);
+    setError(null);
     try {
       const res = await fetchFeed(token, 0);
       const data = (res.data as ApiResponse).data.content;
       setPosts(data || []);
     } catch (err: any) {
-      setError(err?.response?.data?.message || "Failed to refresh feed");
+      setError(err?.response?.data?.message || "Failed to fetch feed");
+    } finally {
+      setLoading(false);
     }
-  }, [token]);
+  }, []);
 
-  if (loading) {
-    return (
-      <Container maxWidth="lg">
+  const handleDeletePost = async (id: number) => {
+    if (!token || !confirm("Delete this post?")) return;
+    try {
+      await deletePost(token, id);
+      await loadFeed(token);
+    } catch (err: any) {
+      alert(err?.response?.data?.message || "Failed to delete post");
+    }
+  };
+
+  const handleEditPost = async () => {
+    if (!token || !editPostId) return;
+    setEditingPost(true);
+    setEditError(null);
+    try {
+      await updatePost(token, editPostId, editText);
+      setEditPostId(null);
+      setEditText("");
+      await loadFeed(token);
+    } catch (err: any) {
+      setEditError(err?.response?.data?.message || "Update failed");
+    } finally {
+      setEditingPost(false);
+    }
+  };
+
+  useEffect(() => {
+    if (token) {
+      loadUser(token);
+      loadFeed(token);
+    }
+  }, [token, loadUser, loadFeed]);
+
+  const renderContent = () => {
+    if (loading) {
+      return (
         <Box sx={{ mt: 4, textAlign: "center" }}>
           <CircularProgress />
         </Box>
-      </Container>
-    );
-  }
+      );
+    }
 
-  if (error) {
-    return (
-      <Container maxWidth="lg">
+    if (error) {
+      return (
         <Box sx={{ mt: 4, textAlign: "center" }}>
           <Typography color="error" mb={2}>
             {error}
@@ -100,12 +132,10 @@ export default function HomePage() {
             Go to Login
           </Button>
         </Box>
-      </Container>
-    );
-  }
+      );
+    }
 
-  return (
-    <Container maxWidth="lg">
+    return (
       <ThreeColumnLayout
         left={
           <Sidebar
@@ -117,26 +147,40 @@ export default function HomePage() {
           <>
             <NewPostBox
               profilePicture={user?.profilePicture || null}
-              onPostSuccess={reloadFeed}
+              onPostSuccess={() => token && loadFeed(token)}
             />
             <PostList
               ownUsername={ownUsername}
               posts={posts}
               loading={false}
               error={null}
-              onEdit={() => {}}
-              onDelete={() => {}}
+              onEdit={(post) => {
+                setEditPostId(post.id);
+                setEditText(post.text);
+              }}
+              onDelete={handleDeletePost}
+            />
+            <EditPostDialog
+              open={editPostId !== null}
+              onClose={() => setEditPostId(null)}
+              editText={editText}
+              setEditText={setEditText}
+              editingPost={editingPost}
+              editError={editError}
+              onSave={handleEditPost}
             />
             <NewPostDialog
               open={postOpen}
               profilePicture={user?.profilePicture}
               onClose={() => setPostOpen(false)}
-              onPostSuccess={reloadFeed}
+              onPostSuccess={() => token && loadFeed(token)}
             />
           </>
         }
         right={<Trending />}
       />
-    </Container>
-  );
+    );
+  };
+
+  return <Container maxWidth="lg">{renderContent()}</Container>;
 }

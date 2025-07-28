@@ -22,7 +22,7 @@ import {
 
 import ProfileHeader from "./components/ProfileHeader";
 import EditProfileDialog from "./components/EditProfileDialog";
-import EditPostDialog from "./components/EditPostDialog";
+import EditPostDialog from "../components/EditPostDialog";
 import PostList from "../components/PostList";
 import ThreeColumnLayout from "../layouts/ThreeColumnLayout";
 import Sidebar from "../components/Sidebar";

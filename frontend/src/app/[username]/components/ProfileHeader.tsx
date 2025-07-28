@@ -12,7 +12,6 @@ import { format, parseISO } from "date-fns";
 import { UserSimple } from "@/interface/interfaces";
 import FollowingPreview from "./FollowingPreview";
 
-// New prop: followings
 interface Props {
   user: UserSimple;
   followings: UserSimple[];
