@@ -1,11 +1,6 @@
 import axios from "@/lib/axios";
 import { PaginatedResponse, Post, UserSimple } from "@/interface/interfaces";
 
-export const fetchUser = (token: string, username: string) =>
-  axios.get(`/users/${username}`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-
 export const fetchUserPosts = (token: string, userId: number) =>
   axios.get<{ status: boolean; message: string; data: Post[] }>(
     `/posts/user/${userId}`,
@@ -16,20 +11,6 @@ export const fetchUserPosts = (token: string, userId: number) =>
 
 export const updateProfile = (token: string, form: any) =>
   axios.put("/users/me", form, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-
-export const updatePost = (token: string, id: number, text: string) =>
-  axios.put(
-    `/posts/${id}`,
-    { text },
-    {
-      headers: { Authorization: `Bearer ${token}` },
-    }
-  );
-
-export const deletePost = (token: string, id: number) =>
-  axios.delete(`/posts/${id}`, {
     headers: { Authorization: `Bearer ${token}` },
   });
 
@@ -45,18 +26,6 @@ export const uploadImage = (
       headers: {
         Authorization: `Bearer ${token}`,
         "Content-Type": "multipart/form-data",
-      },
-    }
-  );
-
-export const createPost = (token: string, text: string) =>
-  axios.post(
-    "/posts",
-    { text },
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
       },
     }
   );

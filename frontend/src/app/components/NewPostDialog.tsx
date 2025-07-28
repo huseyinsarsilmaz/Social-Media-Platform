@@ -13,7 +13,7 @@ import {
 import { useState } from "react";
 import ImageSharp from "@mui/icons-material/ImageSharp";
 import CloseIcon from "@mui/icons-material/Close";
-import { createPost } from "../[username]/profileActions";
+import { createPost } from "./commonActions";
 
 interface Props {
   open: boolean;

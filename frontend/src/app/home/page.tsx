@@ -11,7 +11,6 @@ import {
   Button,
 } from "@mui/material";
 
-import { fetchFeed, fetchUser } from "./homeActions";
 import {
   ApiResponse,
   JwtPayload,
@@ -24,6 +23,8 @@ import Sidebar from "../components/Sidebar";
 import Trending from "../components/Trending";
 import PostList from "../components/PostList";
 import NewPostDialog from "../components/NewPostDialog";
+import { fetchUser } from "../components/commonActions";
+import { fetchFeed } from "./homeActions";
 
 export default function HomePage() {
   const router = useRouter();

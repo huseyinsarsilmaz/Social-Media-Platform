@@ -6,11 +6,8 @@ import { Container, Typography, CircularProgress, Button } from "@mui/material";
 import { jwtDecode } from "jwt-decode";
 
 import {
-  fetchUser,
   fetchUserPosts,
   updateProfile,
-  updatePost,
-  deletePost,
   uploadImage,
   fetchUserFollowings,
   fetchUserFollowers,
@@ -31,6 +28,7 @@ import ThreeColumnLayout from "../layouts/ThreeColumnLayout";
 import Sidebar from "../components/Sidebar";
 import Trending from "../components/Trending";
 import NewPostDialog from "../components/NewPostDialog";
+import { deletePost, fetchUser, updatePost } from "../components/commonActions";
 
 interface DecodedToken {
   sub: string;
