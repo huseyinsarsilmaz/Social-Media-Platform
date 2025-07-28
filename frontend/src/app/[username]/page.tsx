@@ -29,7 +29,7 @@ import EditPostDialog from "./components/EditPostDialog";
 import PostList from "../components/PostList";
 import ThreeColumnLayout from "../layouts/ThreeColumnLayout";
 import Sidebar from "../components/Sidebar";
-import Trending from "./components/Trending";
+import Trending from "../components/Trending";
 import NewPostDialog from "../components/NewPostDialog";
 
 interface DecodedToken {
