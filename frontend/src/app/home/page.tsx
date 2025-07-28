@@ -11,7 +11,6 @@ import {
   Button,
 } from "@mui/material";
 
-import PostList from "./components/PostList";
 import { fetchFeed, fetchUser } from "./homeActions";
 import { ApiResponse, PostWithUser, UserSimple } from "@/interface/interfaces";
 import NewPostBox from "./components/NewPostBox";
@@ -19,6 +18,7 @@ import ThreeColumnLayout from "../layouts/ThreeColumnLayout";
 import Sidebar from "../components/Sidebar";
 import NewPostDialog from "./components/NewPostDialog";
 import Trending from "../[username]/components/Trending";
+import PostList from "../components/PostList";
 
 interface JwtPayload {
   sub: string;
@@ -117,6 +117,7 @@ export default function HomePage() {
               onPostSuccess={() => token && loadFeed(token)}
             />
             <PostList
+              ownUsername={ownUsername}
               posts={posts}
               loading={false}
               error={null}

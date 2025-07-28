@@ -16,7 +16,12 @@ import {
   fetchUserFollowers,
 } from "./profileActions";
 
-import { ApiResponse, Post, UserSimple } from "@/interface/interfaces";
+import {
+  ApiResponse,
+  Post,
+  PostWithUser,
+  UserSimple,
+} from "@/interface/interfaces";
 
 import ProfileHeader from "./components/ProfileHeader";
 import EditProfileDialog from "./components/EditProfileDialog";
@@ -40,7 +45,7 @@ export default function ProfilePage() {
   const [token, setToken] = useState<string | null>(null);
   const [ownUsername, setOwnUsername] = useState<string | null>(null);
   const [user, setUser] = useState<UserSimple | null>(null);
-  const [posts, setPosts] = useState<Post[]>([]);
+  const [posts, setPosts] = useState<PostWithUser[]>([]);
   const [followings, setFollowings] = useState<UserSimple[]>([]);
   const [followers, setFollowers] = useState<UserSimple[]>([]);
 
@@ -78,13 +83,19 @@ export default function ProfilePage() {
     }
   }, []);
 
-  const loadPosts = useCallback(async (token: string, userId: number) => {
+  const loadPosts = useCallback(async (token: string, user: UserSimple) => {
     setPostsLoading(true);
     setPostsError(null);
     try {
-      const res = await fetchUserPosts(token, userId);
-      const data = (res.data as ApiResponse).data.content;
-      setPosts(data || []);
+      const postsRes = await fetchUserPosts(token, user.id);
+      const posts = (postsRes.data as ApiResponse).data.content || [];
+
+      const wrappedPosts: PostWithUser[] = posts.map((post: Post) => ({
+        user,
+        post,
+      }));
+
+      setPosts(wrappedPosts);
     } catch (err: any) {
       setPostsError(err?.response?.data?.message || "Failed to fetch posts");
     } finally {
@@ -92,27 +103,34 @@ export default function ProfilePage() {
     }
   }, []);
 
-  const loadUser = useCallback(
+  const loadUserAndPosts = useCallback(
     async (token: string, username: string) => {
       try {
+        setLoading(true);
+        setPostsLoading(true);
+        setPostsError(null);
+
         const res = await fetchUser(token, username);
-        const data = (res.data as ApiResponse).data;
-        setUser(data);
+        const user = (res.data as ApiResponse).data;
+        setUser(user);
 
-        const followingRes = await fetchUserFollowings(token, data.id, 0);
-        const followingData =
+        const followingRes = await fetchUserFollowings(token, user.id, 0);
+        const followings =
           (followingRes.data as ApiResponse).data.content || [];
-        const followersRes = await fetchUserFollowers(token, data.id, 0);
-        const followersData =
-          (followersRes.data as ApiResponse).data.content || [];
-        setFollowings(followingData);
-        setFollowers(followersData);
+        setFollowings(followings);
 
-        await loadPosts(token, data.id);
+        const followersRes = await fetchUserFollowers(token, user.id, 0);
+        const followers = (followersRes.data as ApiResponse).data.content || [];
+        setFollowers(followers);
+
+        await loadPosts(token, user);
       } catch (err: any) {
-        setError(err?.response?.data?.message || "Failed to fetch user");
+        const msg = err?.response?.data?.message || "Failed to load profile";
+        setError(msg);
+        setPostsError(msg);
       } finally {
         setLoading(false);
+        setPostsLoading(false);
       }
     },
     [loadPosts]
@@ -120,9 +138,9 @@ export default function ProfilePage() {
 
   useEffect(() => {
     if (token && usernameParam) {
-      loadUser(token, usernameParam);
+      loadUserAndPosts(token, usernameParam);
     }
-  }, [token, usernameParam, loadUser]);
+  }, [token, usernameParam, loadUserAndPosts]);
 
   const handleEditOpen = () => {
     if (!user) return;
@@ -163,7 +181,7 @@ export default function ProfilePage() {
     if (!token || !confirm("Delete this post?")) return;
     try {
       await deletePost(token, id);
-      if (user) await loadPosts(token, user.id);
+      if (user) await loadPosts(token, user);
     } catch (err: any) {
       alert(err?.response?.data?.message || "Failed to delete post");
     }
@@ -177,7 +195,7 @@ export default function ProfilePage() {
       await updatePost(token, editPostId, editText);
       setEditPostId(null);
       setEditText("");
-      await loadPosts(token, user.id);
+      await loadPosts(token, user);
     } catch (err: any) {
       setEditError(err?.response?.data?.message || "Update failed");
     } finally {
@@ -278,13 +296,13 @@ export default function ProfilePage() {
                 open={postOpen}
                 profilePicture={user.profilePicture}
                 onClose={() => setPostOpen(false)}
-                onPostSuccess={() => token && loadPosts(token, user.id)}
+                onPostSuccess={() => token && loadPosts(token, user)}
               />
             )}
 
             <PostList
               posts={posts}
-              user={user}
+              ownUsername={user.username}
               loading={postsLoading}
               error={postsError}
               onEdit={(post) => {
@@ -292,7 +310,6 @@ export default function ProfilePage() {
                 setEditText(post.text);
               }}
               onDelete={handleDeletePost}
-              isOwnUser={ownUsername === usernameParam}
             />
           </>
         }
