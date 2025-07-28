@@ -5,7 +5,6 @@ import { useParams, useRouter } from "next/navigation";
 import { Container, Typography, CircularProgress, Button } from "@mui/material";
 
 import useAuthToken from "../common/hooks/useAuthToken";
-import useUserProfile from "./hooks/useUserProfile";
 import useUserPosts from "./hooks/useUserPosts";
 
 import ProfileHeader from "./components/ProfileHeader";
@@ -25,6 +24,7 @@ import {
   handleDeletePost,
   handleEditPost,
 } from "../common/handlers/commonHandlers";
+import useUserProfile from "./hooks/useUserProfile";
 
 export default function ProfilePage() {
   const router = useRouter();

@@ -1,3 +1,4 @@
+import { ApiResponse, UserSimple } from "@/interface/interfaces";
 import axios from "@/lib/axios";
 
 export const createPost = (token: string, text: string) =>
@@ -13,7 +14,7 @@ export const createPost = (token: string, text: string) =>
   );
 
 export const fetchUser = (token: string, username: string) =>
-  axios.get(`/users/${username}`, {
+  axios.get<ApiResponse<UserSimple>>(`/users/${username}`, {
     headers: { Authorization: `Bearer ${token}` },
   });
 

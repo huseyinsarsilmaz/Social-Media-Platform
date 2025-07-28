@@ -13,8 +13,7 @@ export default function useFeed(token: string | null) {
     setError(null);
     try {
       const res = await fetchFeed(token, 0);
-      const data = (res.data as ApiResponse).data.content;
-      setPosts(data || []);
+      setPosts(res.data.data.content || []);
     } catch (err: any) {
       setError(err?.response?.data?.message || "Failed to fetch feed");
     } finally {

@@ -1,13 +1,15 @@
 import axios from "@/lib/axios";
-import { PaginatedResponse, Post, UserSimple } from "@/interface/interfaces";
+import {
+  ApiResponse,
+  PaginatedResponse,
+  Post,
+  UserSimple,
+} from "@/interface/interfaces";
 
 export const fetchUserPosts = (token: string, userId: number) =>
-  axios.get<{ status: boolean; message: string; data: Post[] }>(
-    `/posts/user/${userId}`,
-    {
-      headers: { Authorization: `Bearer ${token}` },
-    }
-  );
+  axios.get<ApiResponse<PaginatedResponse<Post>>>(`/posts/user/${userId}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
 
 export const updateProfile = (token: string, form: any) =>
   axios.put("/users/me", form, {
@@ -35,11 +37,7 @@ export const fetchUserFollowings = (
   userId: number,
   page: number = 0
 ) =>
-  axios.get<{
-    status: boolean;
-    message: string;
-    data: PaginatedResponse<UserSimple>;
-  }>(`/users/followings`, {
+  axios.get<ApiResponse<PaginatedResponse<UserSimple>>>(`/users/followings`, {
     params: { id: userId, page },
     headers: { Authorization: `Bearer ${token}` },
   });
@@ -49,11 +47,7 @@ export const fetchUserFollowers = (
   userId: number,
   page: number = 0
 ) =>
-  axios.get<{
-    status: boolean;
-    message: string;
-    data: PaginatedResponse<UserSimple>;
-  }>(`/users/followers`, {
+  axios.get<ApiResponse<PaginatedResponse<UserSimple>>>(`/users/followers`, {
     params: { id: userId, page },
     headers: { Authorization: `Bearer ${token}` },
   });

@@ -14,8 +14,7 @@ export default function useUser(token: string | null) {
       const decoded = jwtDecode<JwtPayload>(token);
       setOwnUsername(decoded.sub);
       const res = await fetchUser(token, decoded.sub);
-      const data = (res.data as ApiResponse).data;
-      setUser(data);
+      setUser(res.data.data);
     } catch (err: any) {
       setError(err?.response?.data?.message || "Failed to fetch user");
     }

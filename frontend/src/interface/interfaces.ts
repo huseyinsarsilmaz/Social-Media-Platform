@@ -1,3 +1,16 @@
+export interface ApiResponse<T> {
+  status: boolean;
+  message: string;
+  data: T;
+}
+
+export interface PaginatedResponse<T> {
+  content: T[];
+  page: number;
+  last: boolean;
+  totalElements: number;
+}
+
 export interface UserSimple {
   id: number;
   email: string;
@@ -8,12 +21,6 @@ export interface UserSimple {
   bio: string;
   profilePicture: string | null;
   coverPicture: string | null;
-}
-
-export interface ApiResponse {
-  status: boolean;
-  message: string;
-  data: any;
 }
 
 export interface Post {
@@ -34,14 +41,6 @@ export interface Feed {
   page: number;
   last: boolean;
 }
-
-export interface PaginatedResponse<T> {
-  content: T[];
-  page: number;
-  last: boolean;
-  totalElements: number;
-}
-
 export interface JwtPayload {
   sub: string;
   exp: number;

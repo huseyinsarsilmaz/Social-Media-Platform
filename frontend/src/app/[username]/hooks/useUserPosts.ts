@@ -1,11 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { fetchUserPosts } from "../profileActions";
-import {
-  ApiResponse,
-  Post,
-  PostWithUser,
-  UserSimple,
-} from "@/interface/interfaces";
+import { PostWithUser, UserSimple } from "@/interface/interfaces";
 
 export default function useUserPosts(
   token: string | null,
@@ -20,10 +15,10 @@ export default function useUserPosts(
     setLoading(true);
     setError(null);
     try {
-      const postsRes = await fetchUserPosts(token, user.id);
-      const rawPosts = (postsRes.data as ApiResponse).data.content || [];
-      const wrappedPosts = rawPosts.map((post: Post) => ({ user, post }));
-      setPosts(wrappedPosts);
+      const res = await fetchUserPosts(token, user.id);
+      const rawPosts = res.data.data.content || [];
+      const wrapped = rawPosts.map((post) => ({ user, post }));
+      setPosts(wrapped);
     } catch (err: any) {
       setError(err?.response?.data?.message || "Failed to fetch posts");
     } finally {

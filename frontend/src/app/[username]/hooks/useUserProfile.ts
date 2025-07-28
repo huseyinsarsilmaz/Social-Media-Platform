@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { fetchUserFollowings, fetchUserFollowers } from "../profileActions";
-import { ApiResponse, UserSimple } from "@/interface/interfaces";
+import { UserSimple } from "@/interface/interfaces";
 import { fetchUser } from "@/app/common/components/commonActions";
 
 export default function useUserProfile(
@@ -20,15 +20,16 @@ export default function useUserProfile(
 
     try {
       const res = await fetchUser(token, username);
-      const fetchedUser = (res.data as ApiResponse).data;
+      const fetchedUser = res.data.data;
       setUser(fetchedUser);
 
       const followingRes = await fetchUserFollowings(token, fetchedUser.id, 0);
-      setFollowings((followingRes.data as ApiResponse).data.content || []);
+      setFollowings(followingRes.data.data.content || []);
 
       const followersRes = await fetchUserFollowers(token, fetchedUser.id, 0);
-      setFollowers((followersRes.data as ApiResponse).data.content || []);
+      setFollowers(followersRes.data.data.content || []);
     } catch (err: any) {
+      console.log(err);
       setError(err?.response?.data?.message || "Failed to load profile");
     } finally {
       setLoading(false);
