@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   Box,
@@ -13,35 +13,22 @@ import {
 import useUser from "./hooks/useUser";
 import useFeed from "./hooks/useFeed";
 
-import Sidebar from "../common/components/Sidebar";
 import NewPostBox from "./components/NewPostBox";
-import PostList from "../common/components/PostList";
-import NewPostDialog from "../common/components/NewPostDialog";
-import EditPostDialog from "../common/components/EditPostDialog";
 import ThreeColumnLayout from "../layouts/ThreeColumnLayout";
-import Trending from "../common/components/Trending";
 
 import { handleDeletePost, handleEditPost } from "./handlers/homeHandlers";
+import useAuthToken from "../common/hooks/useAuthToken";
+import Sidebar from "../common/components/Sidebar";
+import PostList from "../common/components/PostList";
+import EditPostDialog from "../common/components/EditPostDialog";
+import NewPostDialog from "../common/components/NewPostDialog";
+import Trending from "../common/components/Trending";
 
 export default function HomePage() {
   const router = useRouter();
+  const { token, ownUsername } = useAuthToken();
 
-  const [token, setToken] = useState<string | null>(null);
-  React.useEffect(() => {
-    const authToken = localStorage.getItem("AUTH_TOKEN");
-    if (!authToken) {
-      router.push("/login");
-    } else {
-      setToken(authToken);
-    }
-  }, [router]);
-
-  const {
-    user,
-    ownUsername,
-    error: userError,
-    reload: reloadUser,
-  } = useUser(token);
+  const { user, error: userError } = useUser(token);
   const {
     posts,
     loading,

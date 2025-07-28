@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Container, Typography, CircularProgress, Button } from "@mui/material";
 
-import useAuthToken from "./hooks/useAuthToken";
+import useAuthToken from "../common/hooks/useAuthToken";
 import useUserProfile from "./hooks/useUserProfile";
 import useUserPosts from "./hooks/useUserPosts";
 
