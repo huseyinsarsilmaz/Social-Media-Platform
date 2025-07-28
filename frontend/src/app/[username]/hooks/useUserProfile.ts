@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { fetchUserFollowings, fetchUserFollowers } from "../profileActions";
 import { ApiResponse, UserSimple } from "@/interface/interfaces";
-import { fetchUser } from "@/app/components/commonActions";
+import { fetchUser } from "@/app/common/components/commonActions";
 
 export default function useUserProfile(
   token: string | null,

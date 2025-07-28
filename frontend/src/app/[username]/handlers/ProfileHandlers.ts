@@ -3,7 +3,7 @@ import {
   uploadImage,
 } from "../profileActions";
 
-import { deletePost, updatePost } from "../../components/commonActions";
+import { deletePost, updatePost } from "../../common/components/commonActions";
 
 import { UserSimple, PostWithUser } from "@/interface/interfaces";
 

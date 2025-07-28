@@ -1,4 +1,4 @@
-import { deletePost, updatePost } from "@/app/components/commonActions";
+import { deletePost, updatePost } from "@/app/common/components/commonActions";
 
 export async function handleDeletePost(
   token: string | null,

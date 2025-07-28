@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { ApiResponse, UserSimple, JwtPayload } from "@/interface/interfaces";
 import { jwtDecode } from "jwt-decode";
-import { fetchUser } from "@/app/components/commonActions";
+import { fetchUser } from "@/app/common/components/commonActions";
 
 export default function useUser(token: string | null) {
   const [user, setUser] = useState<UserSimple | null>(null);

@@ -10,12 +10,12 @@ import useUserPosts from "./hooks/useUserPosts";
 
 import ProfileHeader from "./components/ProfileHeader";
 import EditProfileDialog from "./components/EditProfileDialog";
-import EditPostDialog from "../components/EditPostDialog";
-import PostList from "../components/PostList";
+import EditPostDialog from "../common/components/EditPostDialog";
+import PostList from "../common/components/PostList";
 import ThreeColumnLayout from "../layouts/ThreeColumnLayout";
-import Sidebar from "../components/Sidebar";
-import Trending from "../components/Trending";
-import NewPostDialog from "../components/NewPostDialog";
+import Sidebar from "../common/components/Sidebar";
+import Trending from "../common/components/Trending";
+import NewPostDialog from "../common/components/NewPostDialog";
 import {
   handleDeletePost,
   handleEditPost,

@@ -13,13 +13,13 @@ import {
 import useUser from "./hooks/useUser";
 import useFeed from "./hooks/useFeed";
 
-import Sidebar from "../components/Sidebar";
+import Sidebar from "../common/components/Sidebar";
 import NewPostBox from "./components/NewPostBox";
-import PostList from "../components/PostList";
-import NewPostDialog from "../components/NewPostDialog";
-import EditPostDialog from "../components/EditPostDialog";
+import PostList from "../common/components/PostList";
+import NewPostDialog from "../common/components/NewPostDialog";
+import EditPostDialog from "../common/components/EditPostDialog";
 import ThreeColumnLayout from "../layouts/ThreeColumnLayout";
-import Trending from "../components/Trending";
+import Trending from "../common/components/Trending";
 
 import { handleDeletePost, handleEditPost } from "./handlers/homeHandlers";
 
