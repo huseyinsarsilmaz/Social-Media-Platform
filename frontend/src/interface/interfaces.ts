@@ -41,3 +41,10 @@ export interface PaginatedResponse<T> {
   last: boolean;
   totalElements: number;
 }
+
+export interface JwtPayload {
+  sub: string;
+  exp: number;
+  iat: number;
+  iss: string;
+}

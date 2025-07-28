@@ -12,85 +12,85 @@ import {
 } from "@mui/material";
 
 import { fetchFeed, fetchUser } from "./homeActions";
-import { ApiResponse, PostWithUser, UserSimple } from "@/interface/interfaces";
+import {
+  ApiResponse,
+  JwtPayload,
+  PostWithUser,
+  UserSimple,
+} from "@/interface/interfaces";
 import NewPostBox from "./components/NewPostBox";
 import ThreeColumnLayout from "../layouts/ThreeColumnLayout";
 import Sidebar from "../components/Sidebar";
-import Trending from "../[username]/components/Trending";
+import Trending from "../components/Trending";
 import PostList from "../components/PostList";
 import NewPostDialog from "../components/NewPostDialog";
-
-interface JwtPayload {
-  sub: string;
-  exp: number;
-  iat: number;
-  iss: string;
-}
 
 export default function HomePage() {
   const router = useRouter();
 
   const [token, setToken] = useState<string | null>(null);
-  const [posts, setPosts] = useState<PostWithUser[]>([]);
   const [user, setUser] = useState<UserSimple | null>(null);
+  const [ownUsername, setOwnUsername] = useState<string | null>(null);
+  const [posts, setPosts] = useState<PostWithUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [postOpen, setPostOpen] = useState(false);
-  const [ownUsername, setOwnUsername] = useState<string | null>(null);
 
   useEffect(() => {
     const authToken = localStorage.getItem("AUTH_TOKEN");
     if (!authToken) {
       router.push("/login");
-    } else {
-      setToken(authToken);
+      return;
     }
-  }, []);
 
-  const loadUser = useCallback(async (token: string) => {
-    try {
-      const decoded = jwtDecode<JwtPayload>(token);
-      const res = await fetchUser(token, decoded.sub);
-      setOwnUsername(decoded.sub);
-      const data = (res.data as ApiResponse).data;
-      setUser(data);
-    } catch (err: any) {
-      setError(err?.response?.data?.message || "Failed to fetch user");
-    }
-  }, []);
+    const init = async () => {
+      try {
+        const decoded = jwtDecode<JwtPayload>(authToken);
+        const username = decoded.sub;
+        setToken(authToken);
+        setOwnUsername(username);
 
-  const loadFeed = useCallback(async (token: string) => {
-    setLoading(true);
-    setError(null);
+        const userRes = await fetchUser(authToken, username);
+        const userData = (userRes.data as ApiResponse).data;
+        setUser(userData);
+
+        const feedRes = await fetchFeed(authToken, 0);
+        const feedData = (feedRes.data as ApiResponse).data.content;
+        setPosts(feedData || []);
+      } catch (err: any) {
+        setError(err?.response?.data?.message || "Failed to load home feed");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    init();
+  }, [router]);
+
+  const reloadFeed = useCallback(async () => {
+    if (!token) return;
     try {
       const res = await fetchFeed(token, 0);
       const data = (res.data as ApiResponse).data.content;
       setPosts(data || []);
     } catch (err: any) {
-      setError(err?.response?.data?.message || "Failed to fetch feed");
-    } finally {
-      setLoading(false);
+      setError(err?.response?.data?.message || "Failed to refresh feed");
     }
-  }, []);
+  }, [token]);
 
-  useEffect(() => {
-    if (token) {
-      loadUser(token);
-      loadFeed(token);
-    }
-  }, [token, loadUser, loadFeed]);
-
-  const renderContent = () => {
-    if (loading) {
-      return (
+  if (loading) {
+    return (
+      <Container maxWidth="lg">
         <Box sx={{ mt: 4, textAlign: "center" }}>
           <CircularProgress />
         </Box>
-      );
-    }
+      </Container>
+    );
+  }
 
-    if (error) {
-      return (
+  if (error) {
+    return (
+      <Container maxWidth="lg">
         <Box sx={{ mt: 4, textAlign: "center" }}>
           <Typography color="error" mb={2}>
             {error}
@@ -99,10 +99,12 @@ export default function HomePage() {
             Go to Login
           </Button>
         </Box>
-      );
-    }
+      </Container>
+    );
+  }
 
-    return (
+  return (
+    <Container maxWidth="lg">
       <ThreeColumnLayout
         left={
           <Sidebar
@@ -114,7 +116,7 @@ export default function HomePage() {
           <>
             <NewPostBox
               profilePicture={user?.profilePicture || null}
-              onPostSuccess={() => token && loadFeed(token)}
+              onPostSuccess={reloadFeed}
             />
             <PostList
               ownUsername={ownUsername}
@@ -128,14 +130,12 @@ export default function HomePage() {
               open={postOpen}
               profilePicture={user?.profilePicture}
               onClose={() => setPostOpen(false)}
-              onPostSuccess={() => token && loadFeed(token)}
+              onPostSuccess={reloadFeed}
             />
           </>
         }
         right={<Trending />}
       />
-    );
-  };
-
-  return <Container maxWidth="lg">{renderContent()}</Container>;
+    </Container>
+  );
 }
