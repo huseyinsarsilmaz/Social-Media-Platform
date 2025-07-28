@@ -16,9 +16,9 @@ import { ApiResponse, PostWithUser, UserSimple } from "@/interface/interfaces";
 import NewPostBox from "./components/NewPostBox";
 import ThreeColumnLayout from "../layouts/ThreeColumnLayout";
 import Sidebar from "../components/Sidebar";
-import NewPostDialog from "./components/NewPostDialog";
 import Trending from "../[username]/components/Trending";
 import PostList from "../components/PostList";
+import NewPostDialog from "../components/NewPostDialog";
 
 interface JwtPayload {
   sub: string;
