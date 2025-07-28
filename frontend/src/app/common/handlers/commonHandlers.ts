@@ -1,14 +1,14 @@
-import { deletePost, updatePost } from "@/app/common/components/commonActions";
+import { deletePost, updatePost } from "../components/commonActions";
 
 export async function handleDeletePost(
   token: string | null,
   id: number,
-  reloadFeed: () => Promise<void>
+  reload: () => Promise<void>
 ) {
   if (!token || !confirm("Delete this post?")) return;
   try {
     await deletePost(token, id);
-    await reloadFeed();
+    await reload();
   } catch (err: any) {
     alert(err?.response?.data?.message || "Failed to delete post");
   }
@@ -22,7 +22,7 @@ export async function handleEditPost(
   setEditError: React.Dispatch<React.SetStateAction<string | null>>,
   setEditPostId: React.Dispatch<React.SetStateAction<number | null>>,
   setEditText: React.Dispatch<React.SetStateAction<string>>,
-  reloadFeed: () => Promise<void>
+  reload: () => Promise<void>
 ) {
   if (!token || !editPostId) return;
   setEditingPost(true);
@@ -31,7 +31,7 @@ export async function handleEditPost(
     await updatePost(token, editPostId, editText);
     setEditPostId(null);
     setEditText("");
-    await reloadFeed();
+    await reload();
   } catch (err: any) {
     setEditError(err?.response?.data?.message || "Update failed");
   } finally {

@@ -16,13 +16,16 @@ import useFeed from "./hooks/useFeed";
 import NewPostBox from "./components/NewPostBox";
 import ThreeColumnLayout from "../layouts/ThreeColumnLayout";
 
-import { handleDeletePost, handleEditPost } from "./handlers/homeHandlers";
 import useAuthToken from "../common/hooks/useAuthToken";
 import Sidebar from "../common/components/Sidebar";
 import PostList from "../common/components/PostList";
 import EditPostDialog from "../common/components/EditPostDialog";
 import NewPostDialog from "../common/components/NewPostDialog";
 import Trending from "../common/components/Trending";
+import {
+  handleDeletePost,
+  handleEditPost,
+} from "../common/handlers/commonHandlers";
 
 export default function HomePage() {
   const router = useRouter();

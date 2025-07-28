@@ -17,12 +17,14 @@ import Sidebar from "../common/components/Sidebar";
 import Trending from "../common/components/Trending";
 import NewPostDialog from "../common/components/NewPostDialog";
 import {
-  handleDeletePost,
-  handleEditPost,
   handleFormChange,
   handleImageUpload,
   handleProfileSave,
 } from "./handlers/ProfileHandlers";
+import {
+  handleDeletePost,
+  handleEditPost,
+} from "../common/handlers/commonHandlers";
 
 export default function ProfilePage() {
   const router = useRouter();
