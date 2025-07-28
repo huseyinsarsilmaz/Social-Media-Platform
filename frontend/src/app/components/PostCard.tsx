@@ -16,9 +16,9 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 
-interface Props {
+interface PostCardProps {
   post: Post;
   user: UserSimple;
   onEdit: (post: Post) => void;
@@ -32,7 +32,11 @@ export default function PostCard({
   onEdit,
   onDelete,
   isOwnUser,
-}: Props) {
+}: PostCardProps) {
+  const avatarSrc = user.profilePicture
+    ? `http://localhost:8080/api/users/images/${user.profilePicture}`
+    : undefined;
+
   return (
     <Box
       sx={{
@@ -46,11 +50,7 @@ export default function PostCard({
     >
       <Stack direction="row" spacing={2}>
         <Avatar
-          src={
-            user.profilePicture
-              ? `http://localhost:8080/api/users/images/${user.profilePicture}`
-              : undefined
-          }
+          src={avatarSrc}
           alt={user.name}
           sx={{ width: 40, height: 40 }}
         />
@@ -62,12 +62,22 @@ export default function PostCard({
             onDelete={onDelete}
             isOwnUser={isOwnUser}
           />
-          <PostContent text={post.text} />
+          <Typography sx={{ fontSize: "0.95rem", mt: 0.5 }}>
+            {post.text}
+          </Typography>
           <PostStats />
         </Stack>
       </Stack>
     </Box>
   );
+}
+
+interface PostHeaderProps {
+  user: UserSimple;
+  post: Post;
+  onEdit: (post: Post) => void;
+  onDelete: (id: number) => void;
+  isOwnUser: boolean;
 }
 
 function PostHeader({
@@ -76,22 +86,17 @@ function PostHeader({
   onEdit,
   onDelete,
   isOwnUser,
-}: {
-  user: UserSimple;
-  post: Post;
-  onEdit: (post: Post) => void;
-  onDelete: (id: number) => void;
-  isOwnUser: boolean;
-}) {
+}: PostHeaderProps) {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
-  const handleOpen = (e: React.MouseEvent<HTMLElement>) => {
+  const openMenu = (e: React.MouseEvent<HTMLElement>) =>
     setAnchorEl(e.currentTarget);
-  };
+  const closeMenu = () => setAnchorEl(null);
 
-  const handleClose = () => {
-    setAnchorEl(null);
-  };
+  const timestamp = useMemo(
+    () => formatTimestamp(post.createdAt),
+    [post.createdAt]
+  );
 
   return (
     <Stack direction="row" justifyContent="space-between" alignItems="center">
@@ -105,25 +110,25 @@ function PostHeader({
           sx={{ ml: 1, fontSize: "0.9rem" }}
           component="span"
         >
-          @{user.username} • {formatTimestamp(post.createdAt)}
+          @{user.username} • {timestamp}
         </Typography>
       </Box>
 
       {isOwnUser && (
         <>
-          <IconButton onClick={handleOpen} sx={{ color: "#fff", p: 0 }}>
+          <IconButton onClick={openMenu} sx={{ color: "#fff", p: 0 }}>
             <MoreHoriz />
           </IconButton>
           <Menu
             anchorEl={anchorEl}
             open={Boolean(anchorEl)}
-            onClose={handleClose}
+            onClose={closeMenu}
             anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
             transformOrigin={{ vertical: "top", horizontal: "right" }}
           >
             <MenuItem
               onClick={() => {
-                handleClose();
+                closeMenu();
                 onEdit(post);
               }}
             >
@@ -131,7 +136,7 @@ function PostHeader({
             </MenuItem>
             <MenuItem
               onClick={() => {
-                handleClose();
+                closeMenu();
                 onDelete(post.id);
               }}
             >
@@ -142,10 +147,6 @@ function PostHeader({
       )}
     </Stack>
   );
-}
-
-function PostContent({ text }: { text: string }) {
-  return <Typography sx={{ fontSize: "0.95rem" }}>{text}</Typography>;
 }
 
 function PostStats() {
