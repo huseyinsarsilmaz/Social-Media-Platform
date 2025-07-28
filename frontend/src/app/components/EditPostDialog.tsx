@@ -19,20 +19,7 @@ interface Props {
   onSave: () => void;
 }
 
-const textFieldStyles = {
-  bgcolor: "#1e1e1e",
-  borderRadius: 1,
-  "& label": { color: "rgba(255, 255, 255, 0.7)" },
-  "& label.Mui-focused": { color: "#fff" },
-  "& .MuiInputBase-input": { color: "#fff" },
-  "& .MuiOutlinedInput-root": {
-    "& fieldset": { borderColor: "rgba(255, 255, 255, 0.4)" },
-    "&:hover fieldset": { borderColor: "#fff" },
-    "&.Mui-focused fieldset": { borderColor: "#fff" },
-  },
-};
-
-export default function EditPostDialog({
+const EditPostDialog = ({
   open,
   onClose,
   editText,
@@ -40,7 +27,7 @@ export default function EditPostDialog({
   editingPost,
   editError,
   onSave,
-}: Props) {
+}: Props) => {
   return (
     <Dialog
       open={open}
@@ -53,10 +40,20 @@ export default function EditPostDialog({
     >
       <DialogTitle>Edit Post</DialogTitle>
       <DialogContent dividers sx={{ borderColor: "#2f2f2f" }}>
-        <EditPostError message={editError} />
-        <EditPostTextField
+        {editError && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {editError}
+          </Alert>
+        )}
+        <TextField
+          label="Update your post"
+          multiline
+          minRows={3}
+          fullWidth
           value={editText}
-          onChange={setEditText}
+          onChange={(e) => setEditText(e.target.value)}
+          variant="outlined"
+          sx={textFieldStyles}
           disabled={editingPost}
         />
       </DialogContent>
@@ -74,37 +71,19 @@ export default function EditPostDialog({
       </DialogActions>
     </Dialog>
   );
-}
+};
 
-function EditPostError({ message }: { message: string | null }) {
-  if (!message) return null;
-  return (
-    <Alert severity="error" sx={{ mb: 2 }}>
-      {message}
-    </Alert>
-  );
-}
+const textFieldStyles = {
+  bgcolor: "#1e1e1e",
+  borderRadius: 1,
+  "& label": { color: "rgba(255, 255, 255, 0.7)" },
+  "& label.Mui-focused": { color: "#fff" },
+  "& .MuiInputBase-input": { color: "#fff" },
+  "& .MuiOutlinedInput-root": {
+    "& fieldset": { borderColor: "rgba(255, 255, 255, 0.4)" },
+    "&:hover fieldset": { borderColor: "#fff" },
+    "&.Mui-focused fieldset": { borderColor: "#fff" },
+  },
+};
 
-function EditPostTextField({
-  value,
-  onChange,
-  disabled,
-}: {
-  value: string;
-  onChange: (val: string) => void;
-  disabled: boolean;
-}) {
-  return (
-    <TextField
-      label="Update your post"
-      multiline
-      minRows={3}
-      fullWidth
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      variant="outlined"
-      sx={textFieldStyles}
-      disabled={disabled}
-    />
-  );
-}
+export default EditPostDialog;
