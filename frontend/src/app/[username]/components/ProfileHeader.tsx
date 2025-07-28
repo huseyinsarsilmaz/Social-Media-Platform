@@ -1,3 +1,5 @@
+"use client";
+
 import {
   Avatar,
   Box,
@@ -20,8 +22,8 @@ interface Props {
   isOwnUser: boolean;
 }
 
-const getImageUrl = (imageName: string | null) =>
-  imageName ? `http://localhost:8080/api/users/images/${imageName}` : undefined;
+const getImageUrl = (name: string | null) =>
+  name ? `http://localhost:8080/api/users/images/${name}` : undefined;
 
 export default function ProfileHeader({
   user,
@@ -33,17 +35,24 @@ export default function ProfileHeader({
   return (
     <Container
       maxWidth="sm"
-      sx={{ mt: 2, bgcolor: "#121212", borderRadius: 2, color: "#fff" }}
+      sx={{
+        mt: 2,
+        bgcolor: "#121212",
+        borderRadius: 2,
+        color: "#fff",
+        px: 2,
+        pb: 3,
+      }}
     >
-      <Box sx={{ mt: 6, px: 2 }}>
-        <CoverAndAvatar user={user} />
-        <NameAndEdit
+      <Box sx={{ mt: 6 }}>
+        <CoverSection user={user} />
+        <HeaderRow
           user={user}
           onEditClick={onEditClick}
           isOwnUser={isOwnUser}
         />
-        <Bio user={user} />
-        <JoinDate user={user} />
+        <UserBio bio={user.bio} />
+        <JoinDate date={user.createdAt} />
         <FollowingPreview followings={followings} followers={followers} />
         <Divider sx={{ mt: 3, bgcolor: "#2f2f2f" }} />
       </Box>
@@ -51,7 +60,7 @@ export default function ProfileHeader({
   );
 }
 
-function CoverAndAvatar({ user }: { user: UserSimple }) {
+function CoverSection({ user }: { user: UserSimple }) {
   const coverUrl = getImageUrl(user.coverPicture);
   const profileUrl = getImageUrl(user.profilePicture) || "/favicon.ico";
 
@@ -62,15 +71,14 @@ function CoverAndAvatar({ user }: { user: UserSimple }) {
         borderTopLeftRadius: 8,
         borderTopRightRadius: 8,
         position: "relative",
-        backgroundColor: coverUrl ? "transparent" : "#1da1f2",
-        backgroundImage: coverUrl ? `url(${coverUrl})` : undefined,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
+        background: coverUrl
+          ? `url(${coverUrl}) center/cover no-repeat`
+          : "#1da1f2",
       }}
     >
       <Avatar
-        alt={user.name || user.username}
         src={profileUrl}
+        alt={user.name || user.username}
         sx={{
           width: 96,
           height: 96,
@@ -84,7 +92,7 @@ function CoverAndAvatar({ user }: { user: UserSimple }) {
   );
 }
 
-function NameAndEdit({
+function HeaderRow({
   user,
   onEditClick,
   isOwnUser,
@@ -101,7 +109,7 @@ function NameAndEdit({
       sx={{ mt: 6 }}
     >
       <Box>
-        <Typography variant="h5" fontWeight="bold" component="h1" noWrap>
+        <Typography variant="h5" fontWeight="bold" noWrap>
           {user.name || user.username}
         </Typography>
         <Typography
@@ -112,10 +120,11 @@ function NameAndEdit({
           @{user.username || "unknown"}
         </Typography>
       </Box>
-
       {isOwnUser && (
         <Button
           variant="outlined"
+          onClick={onEditClick}
+          aria-label="Edit profile"
           sx={{
             borderColor: "#1da1f2",
             color: "#1da1f2",
@@ -124,8 +133,6 @@ function NameAndEdit({
               backgroundColor: "rgba(29,161,242,0.1)",
             },
           }}
-          onClick={onEditClick}
-          aria-label="Edit profile"
         >
           Edit Profile
         </Button>
@@ -134,30 +141,26 @@ function NameAndEdit({
   );
 }
 
-function Bio({ user }: { user: UserSimple }) {
+function UserBio({ bio }: { bio?: string | null }) {
   return (
     <Typography sx={{ mt: 1, color: "rgba(255, 255, 255, 0.6)" }}>
-      {user.bio || "No bio available"}
+      {bio || "No bio available"}
     </Typography>
   );
 }
 
-function JoinDate({ user }: { user: UserSimple }) {
+function JoinDate({ date }: { date?: string | null }) {
   return (
     <Stack
       direction="row"
-      spacing={2}
+      spacing={1}
+      alignItems="center"
       sx={{ mt: 1, color: "rgba(255, 255, 255, 0.6)", fontSize: 14 }}
     >
-      <Stack direction="row" spacing={0.5} alignItems="center">
-        <CalendarTodayIcon fontSize="small" />
-        <Typography>
-          Joined{" "}
-          {user.createdAt
-            ? format(parseISO(user.createdAt), "MMMM yyyy")
-            : "unknown"}
-        </Typography>
-      </Stack>
+      <CalendarTodayIcon fontSize="small" />
+      <Typography>
+        Joined {date ? format(parseISO(date), "MMMM yyyy") : "unknown"}
+      </Typography>
     </Stack>
   );
 }
