@@ -21,15 +21,32 @@ import {
   Button,
 } from "@mui/material";
 import { useRouter } from "next/navigation";
+import { useMemo } from "react";
 
-export default function Sidebar({
-  onPostOpen,
-  username,
-}: {
+interface SidebarProps {
   onPostOpen: () => void;
   username: string | null;
-}) {
+}
+
+export default function Sidebar({ onPostOpen, username }: SidebarProps) {
   const router = useRouter();
+
+  const sidebarItems = useMemo(
+    () => [
+      { label: "Home", icon: <Home />, path: "/home" },
+      { label: "Explore", icon: <TravelExplore /> },
+      { label: "Notifications", icon: <Notifications /> },
+      { label: "Messages", icon: <MailOutline /> },
+      { label: "Bookmarks", icon: <BookmarkBorder /> },
+      {
+        label: "Profile",
+        icon: <Person />,
+        path: username ? `/${username}` : "",
+      },
+      { label: "Settings", icon: <Settings /> },
+    ],
+    [username]
+  );
 
   return (
     <Box
@@ -39,7 +56,6 @@ export default function Sidebar({
       height="100%"
     >
       <Box>
-        {/* Logo clickable to /home */}
         <ListItem
           sx={{ justifyContent: "flex-start", px: 2, mb: 2, cursor: "pointer" }}
           disableGutters
@@ -51,21 +67,14 @@ export default function Sidebar({
         </ListItem>
 
         <List>
-          <SidebarItem
-            icon={<Home />}
-            label="Home"
-            onClick={() => router.push("/home")}
-          />
-          <SidebarItem icon={<TravelExplore />} label="Explore" />
-          <SidebarItem icon={<Notifications />} label="Notifications" />
-          <SidebarItem icon={<MailOutline />} label="Messages" />
-          <SidebarItem icon={<BookmarkBorder />} label="Bookmarks" />
-          <SidebarItem
-            icon={<Person />}
-            label="Profile"
-            onClick={() => router.push(username ? username : "")}
-          />
-          <SidebarItem icon={<Settings />} label="Settings" />
+          {sidebarItems.map((item) => (
+            <SidebarItem
+              key={item.label}
+              icon={item.icon}
+              label={item.label}
+              onClick={item.path ? () => router.push(item.path!) : undefined}
+            />
+          ))}
 
           <Box px={2} pt={1} pb={3}>
             <Button
