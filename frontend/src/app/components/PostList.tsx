@@ -35,14 +35,6 @@ export default function PostList({
     );
   }
 
-  if (posts.length === 0) {
-    return (
-      <Typography sx={{ color: "gray" }}>
-        You have not posted anything yet.
-      </Typography>
-    );
-  }
-
   return (
     <Container maxWidth="sm" sx={{ mt: 3, mb: 4 }}>
       {posts.map((pwu) => (
