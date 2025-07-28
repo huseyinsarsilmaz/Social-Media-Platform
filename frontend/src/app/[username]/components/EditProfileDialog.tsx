@@ -42,7 +42,7 @@ const textFieldStyles = {
   },
 };
 
-export default function EditProfileDialog({
+const EditProfileDialog = ({
   open,
   onClose,
   user,
@@ -54,7 +54,14 @@ export default function EditProfileDialog({
   handleImageUpload,
   profileUploading,
   coverUploading,
-}: Props) {
+}: Props) => {
+  const fieldLabels = {
+    email: "Email",
+    username: "Username",
+    name: "Name",
+    bio: "Bio",
+  };
+
   return (
     <Dialog
       open={open}
@@ -67,14 +74,37 @@ export default function EditProfileDialog({
     >
       <DialogTitle>Edit Profile</DialogTitle>
       <DialogContent dividers sx={{ borderColor: "#2f2f2f" }}>
-        {saveError && <SaveError message={saveError} />}
+        {saveError && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {saveError}
+          </Alert>
+        )}
         <CoverAndAvatar
           user={user}
-          handleImageUpload={handleImageUpload}
-          profileUploading={profileUploading}
-          coverUploading={coverUploading}
+          onUpload={handleImageUpload}
+          uploading={{ profile: profileUploading, cover: coverUploading }}
         />
-        <FormFields form={form} onChange={onFormChange} saving={saving} />
+        <Stack spacing={2}>
+          {(Object.keys(fieldLabels) as Array<keyof typeof fieldLabels>).map(
+            (key) => (
+              <TextField
+                key={key}
+                name={key}
+                label={fieldLabels[key]}
+                type={key === "email" ? "email" : "text"}
+                fullWidth
+                multiline={key === "bio"}
+                minRows={key === "bio" ? 3 : undefined}
+                maxRows={key === "bio" ? 5 : undefined}
+                value={form[key]}
+                onChange={onFormChange}
+                disabled={saving}
+                variant="outlined"
+                sx={textFieldStyles}
+              />
+            )
+          )}
+        </Stack>
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose} disabled={saving}>
@@ -86,27 +116,37 @@ export default function EditProfileDialog({
       </DialogActions>
     </Dialog>
   );
-}
+};
 
-function SaveError({ message }: { message: string }) {
-  return (
-    <Alert severity="error" sx={{ mb: 2 }}>
-      {message}
-    </Alert>
-  );
-}
-
-function CoverAndAvatar({
+const CoverAndAvatar = ({
   user,
-  handleImageUpload,
-  profileUploading,
-  coverUploading,
+  onUpload,
+  uploading,
 }: {
   user: UserSimple;
-  handleImageUpload: (file: File, type: "profile" | "cover") => void;
-  profileUploading: boolean;
-  coverUploading: boolean;
-}) {
+  onUpload: (file: File, type: "profile" | "cover") => void;
+  uploading: { profile: boolean; cover: boolean };
+}) => {
+  const renderUploadButton = (
+    id: string,
+    disabled: boolean,
+    onChange: (file: File) => void,
+    sx: object
+  ) => (
+    <label htmlFor={id}>
+      <input
+        type="file"
+        id={id}
+        hidden
+        accept="image/*"
+        onChange={(e) => e.target.files?.[0] && onChange(e.target.files[0])}
+      />
+      <IconButton component="span" sx={sx} disabled={disabled}>
+        <ImageSharp fontSize="small" />
+      </IconButton>
+    </label>
+  );
+
   return (
     <Box
       sx={{
@@ -124,101 +164,44 @@ function CoverAndAvatar({
         backgroundPosition: "center",
       }}
     >
-      <label htmlFor="upload-cover-picture">
-        <input
-          type="file"
-          id="upload-cover-picture"
-          hidden
-          accept="image/*"
-          onChange={(e) =>
-            e.target.files?.[0] && handleImageUpload(e.target.files[0], "cover")
-          }
-        />
-        <IconButton
-          sx={{
-            position: "absolute",
-            top: 8,
-            right: 8,
-            bgcolor: "#1da1f2",
-            color: "#fff",
-            "&:hover": { bgcolor: "#1a8cd8" },
-          }}
-          component="span"
-          disabled={coverUploading}
-        >
-          <ImageSharp fontSize="small" />
-        </IconButton>
-      </label>
-
+      {renderUploadButton(
+        "upload-cover-picture",
+        uploading.cover,
+        (file) => onUpload(file, "cover"),
+        {
+          position: "absolute",
+          top: 8,
+          right: 8,
+          bgcolor: "#1da1f2",
+          color: "#fff",
+          "&:hover": { bgcolor: "#1a8cd8" },
+        }
+      )}
       <Box sx={{ position: "absolute", bottom: -40, left: 16 }}>
         <Avatar
           src={
-            user?.profilePicture
+            user.profilePicture
               ? `http://localhost:8080/api/users/images/${user.profilePicture}`
               : "/favicon.ico"
           }
           sx={{ width: 80, height: 80, border: "3px solid #121212" }}
         />
-        <label htmlFor="upload-profile-picture">
-          <input
-            type="file"
-            id="upload-profile-picture"
-            hidden
-            accept="image/*"
-            onChange={(e) =>
-              e.target.files?.[0] &&
-              handleImageUpload(e.target.files[0], "profile")
-            }
-          />
-          <IconButton
-            size="small"
-            sx={{
-              position: "absolute",
-              bottom: 40,
-              right: 0,
-              bgcolor: "#1da1f2",
-              color: "#fff",
-              "&:hover": { bgcolor: "#1a8cd8" },
-            }}
-            component="span"
-            disabled={profileUploading}
-          >
-            <ImageSharp fontSize="small" />
-          </IconButton>
-        </label>
+        {renderUploadButton(
+          "upload-profile-picture",
+          uploading.profile,
+          (file) => onUpload(file, "profile"),
+          {
+            position: "absolute",
+            bottom: 40,
+            right: 0,
+            bgcolor: "#1da1f2",
+            color: "#fff",
+            "&:hover": { bgcolor: "#1a8cd8" },
+          }
+        )}
       </Box>
     </Box>
   );
-}
+};
 
-function FormFields({
-  form,
-  onChange,
-  saving,
-}: {
-  form: Props["form"];
-  onChange: Props["onFormChange"];
-  saving: boolean;
-}) {
-  return (
-    <Stack spacing={2}>
-      {(["email", "username", "name", "bio"] as const).map((field) => (
-        <TextField
-          key={field}
-          name={field}
-          label={field.charAt(0).toUpperCase() + field.slice(1)}
-          type={field === "email" ? "email" : "text"}
-          fullWidth
-          multiline={field === "bio"}
-          minRows={field === "bio" ? 3 : undefined}
-          maxRows={field === "bio" ? 5 : undefined}
-          value={form[field]}
-          onChange={onChange}
-          disabled={saving}
-          variant="outlined"
-          sx={textFieldStyles}
-        />
-      ))}
-    </Stack>
-  );
-}
+export default EditProfileDialog;
