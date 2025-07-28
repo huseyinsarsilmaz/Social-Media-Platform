@@ -32,126 +32,164 @@ import { deletePost, fetchUser, updatePost } from "../components/commonActions";
 
 interface DecodedToken {
   sub: string;
-  [key: string]: any;
+  [key: string]: unknown;
+}
+
+function useAuthToken(router: ReturnType<typeof useRouter>) {
+  const [token, setToken] = useState<string | null>(null);
+  const [ownUsername, setOwnUsername] = useState<string | null>(null);
+
+  useEffect(() => {
+    const authToken = localStorage.getItem("AUTH_TOKEN");
+    if (!authToken) {
+      router.push("/login");
+      return;
+    }
+    setToken(authToken);
+
+    try {
+      const decoded = jwtDecode<DecodedToken>(authToken);
+      setOwnUsername(decoded.sub);
+    } catch {
+      router.push("/login");
+    }
+  }, [router]);
+
+  return { token, ownUsername };
+}
+
+function useUserProfile(token: string | null, username: string | null) {
+  const [user, setUser] = useState<UserSimple | null>(null);
+  const [followings, setFollowings] = useState<UserSimple[]>([]);
+  const [followers, setFollowers] = useState<UserSimple[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const loadProfileData = useCallback(async () => {
+    if (!token || !username) return;
+    setLoading(true);
+    setError(null);
+
+    try {
+      const res = await fetchUser(token, username);
+      const fetchedUser = (res.data as ApiResponse).data;
+      setUser(fetchedUser);
+
+      const followingRes = await fetchUserFollowings(token, fetchedUser.id, 0);
+      setFollowings((followingRes.data as ApiResponse).data.content || []);
+
+      const followersRes = await fetchUserFollowers(token, fetchedUser.id, 0);
+      setFollowers((followersRes.data as ApiResponse).data.content || []);
+    } catch (err: any) {
+      setError(err?.response?.data?.message || "Failed to load profile");
+    } finally {
+      setLoading(false);
+    }
+  }, [token, username]);
+
+  useEffect(() => {
+    loadProfileData();
+  }, [loadProfileData]);
+
+  return {
+    user,
+    followings,
+    followers,
+    loading,
+    error,
+    reload: loadProfileData,
+    setUser,
+  };
+}
+
+function useUserPosts(token: string | null, user: UserSimple | null) {
+  const [posts, setPosts] = useState<PostWithUser[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const loadPosts = useCallback(async () => {
+    if (!token || !user) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const postsRes = await fetchUserPosts(token, user.id);
+      const rawPosts = (postsRes.data as ApiResponse).data.content || [];
+      const wrappedPosts = rawPosts.map((post: Post) => ({ user, post }));
+      setPosts(wrappedPosts);
+    } catch (err: any) {
+      setError(err?.response?.data?.message || "Failed to fetch posts");
+    } finally {
+      setLoading(false);
+    }
+  }, [token, user]);
+
+  useEffect(() => {
+    loadPosts();
+  }, [loadPosts]);
+
+  return { posts, loading, error, reload: loadPosts, setPosts };
 }
 
 export default function ProfilePage() {
   const router = useRouter();
   const params = useParams();
-  const usernameParam = params?.username as string;
+  const usernameParam = params?.username as string | undefined;
 
-  const [token, setToken] = useState<string | null>(null);
-  const [ownUsername, setOwnUsername] = useState<string | null>(null);
-  const [user, setUser] = useState<UserSimple | null>(null);
-  const [posts, setPosts] = useState<PostWithUser[]>([]);
-  const [followings, setFollowings] = useState<UserSimple[]>([]);
-  const [followers, setFollowers] = useState<UserSimple[]>([]);
+  const { token, ownUsername } = useAuthToken(router);
 
+  const {
+    user,
+    followings,
+    followers,
+    loading: userLoading,
+    error: userError,
+    reload: reloadUser,
+    setUser,
+  } = useUserProfile(token, usernameParam ?? null);
+
+  const {
+    posts,
+    loading: postsLoading,
+    error: postsError,
+    reload: reloadPosts,
+    setPosts,
+  } = useUserPosts(token, user);
+
+  // Profile edit dialog state
   const [form, setForm] = useState({
     email: "",
     username: "",
     name: "",
     bio: "",
   });
-
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+
+  // Image uploading state
   const [uploading, setUploading] = useState({ profile: false, cover: false });
 
-  const [isEditing, setIsEditing] = useState(false);
+  // Post dialogs state
   const [postOpen, setPostOpen] = useState(false);
-  const [postsLoading, setPostsLoading] = useState(false);
-  const [postsError, setPostsError] = useState<string | null>(null);
-
   const [editPostId, setEditPostId] = useState<number | null>(null);
   const [editText, setEditText] = useState("");
   const [editingPost, setEditingPost] = useState(false);
   const [editError, setEditError] = useState<string | null>(null);
 
+  // Initialize form when editing opens
   useEffect(() => {
-    const authToken = localStorage.getItem("AUTH_TOKEN");
-    if (!authToken) {
-      router.push("/login");
-    } else {
-      setToken(authToken);
-      const decoded = jwtDecode<DecodedToken>(authToken);
-      setOwnUsername(decoded.sub);
+    if (isEditing && user) {
+      setForm({
+        email: user.email,
+        username: user.username,
+        name: user.name,
+        bio: user.bio || "",
+      });
+      setSaveError(null);
     }
-  }, []);
+  }, [isEditing, user]);
 
-  const loadPosts = useCallback(async (token: string, user: UserSimple) => {
-    setPostsLoading(true);
-    setPostsError(null);
-    try {
-      const postsRes = await fetchUserPosts(token, user.id);
-      const posts = (postsRes.data as ApiResponse).data.content || [];
-
-      const wrappedPosts: PostWithUser[] = posts.map((post: Post) => ({
-        user,
-        post,
-      }));
-
-      setPosts(wrappedPosts);
-    } catch (err: any) {
-      setPostsError(err?.response?.data?.message || "Failed to fetch posts");
-    } finally {
-      setPostsLoading(false);
-    }
-  }, []);
-
-  const loadUserAndPosts = useCallback(
-    async (token: string, username: string) => {
-      try {
-        setLoading(true);
-        setPostsLoading(true);
-        setPostsError(null);
-
-        const res = await fetchUser(token, username);
-        const user = (res.data as ApiResponse).data;
-        setUser(user);
-
-        const followingRes = await fetchUserFollowings(token, user.id, 0);
-        const followings =
-          (followingRes.data as ApiResponse).data.content || [];
-        setFollowings(followings);
-
-        const followersRes = await fetchUserFollowers(token, user.id, 0);
-        const followers = (followersRes.data as ApiResponse).data.content || [];
-        setFollowers(followers);
-
-        await loadPosts(token, user);
-      } catch (err: any) {
-        const msg = err?.response?.data?.message || "Failed to load profile";
-        setError(msg);
-        setPostsError(msg);
-      } finally {
-        setLoading(false);
-        setPostsLoading(false);
-      }
-    },
-    [loadPosts]
-  );
-
-  useEffect(() => {
-    if (token && usernameParam) {
-      loadUserAndPosts(token, usernameParam);
-    }
-  }, [token, usernameParam, loadUserAndPosts]);
-
-  const handleEditOpen = () => {
-    if (!user) return;
-    setForm({
-      email: user.email,
-      username: user.username,
-      name: user.name,
-      bio: user.bio || "",
-    });
-    setSaveError(null);
-    setIsEditing(true);
-  };
-
+  // Handlers
   const handleFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
@@ -179,21 +217,21 @@ export default function ProfilePage() {
     if (!token || !confirm("Delete this post?")) return;
     try {
       await deletePost(token, id);
-      if (user) await loadPosts(token, user);
+      reloadPosts();
     } catch (err: any) {
       alert(err?.response?.data?.message || "Failed to delete post");
     }
   };
 
   const handleEditPost = async () => {
-    if (!token || !editPostId || !user) return;
+    if (!token || !editPostId) return;
     setEditingPost(true);
     setEditError(null);
     try {
       await updatePost(token, editPostId, editText);
       setEditPostId(null);
       setEditText("");
-      await loadPosts(token, user);
+      reloadPosts();
     } catch (err: any) {
       setEditError(err?.response?.data?.message || "Update failed");
     } finally {
@@ -223,98 +261,94 @@ export default function ProfilePage() {
     }
   };
 
-  const renderContent = () => {
-    if (loading) {
-      return (
-        <Container maxWidth="sm" sx={{ mt: 4, textAlign: "center" }}>
-          <CircularProgress />
-        </Container>
-      );
-    }
+  const handleEditOpen = () => setIsEditing(true);
 
-    if (error) {
-      return (
-        <Container maxWidth="sm" sx={{ mt: 4, textAlign: "center" }}>
-          <Typography color="error" mb={2}>
-            {error}
-          </Typography>
-          <Button variant="contained" onClick={() => router.push("/login")}>
-            Go to Login
-          </Button>
-        </Container>
-      );
-    }
-
-    if (!user) return null;
-
+  // Render logic
+  if (userLoading) {
     return (
-      <ThreeColumnLayout
-        left={
-          <Sidebar
-            onPostOpen={() => setPostOpen(true)}
-            username={ownUsername}
-          />
-        }
-        center={
-          <>
-            <ProfileHeader
-              user={user}
-              followings={followings}
-              followers={followers}
-              onEditClick={handleEditOpen}
-              isOwnUser={ownUsername === usernameParam}
-            />
-
-            <EditProfileDialog
-              open={isEditing}
-              onClose={() => setIsEditing(false)}
-              user={user}
-              form={form}
-              onFormChange={handleFormChange}
-              onSave={handleProfileSave}
-              saving={saving}
-              saveError={saveError}
-              handleImageUpload={handleImageUpload}
-              profileUploading={uploading.profile}
-              coverUploading={uploading.cover}
-            />
-
-            <EditPostDialog
-              open={editPostId !== null}
-              onClose={() => setEditPostId(null)}
-              editText={editText}
-              setEditText={setEditText}
-              editingPost={editingPost}
-              editError={editError}
-              onSave={handleEditPost}
-            />
-
-            {ownUsername === usernameParam && (
-              <NewPostDialog
-                open={postOpen}
-                profilePicture={user.profilePicture}
-                onClose={() => setPostOpen(false)}
-                onPostSuccess={() => token && loadPosts(token, user)}
-              />
-            )}
-
-            <PostList
-              posts={posts}
-              ownUsername={user.username}
-              loading={postsLoading}
-              error={postsError}
-              onEdit={(post) => {
-                setEditPostId(post.id);
-                setEditText(post.text);
-              }}
-              onDelete={handleDeletePost}
-            />
-          </>
-        }
-        right={<Trending />}
-      />
+      <Container maxWidth="sm" sx={{ mt: 4, textAlign: "center" }}>
+        <CircularProgress />
+      </Container>
     );
-  };
+  }
 
-  return renderContent();
+  if (userError) {
+    return (
+      <Container maxWidth="sm" sx={{ mt: 4, textAlign: "center" }}>
+        <Typography color="error" mb={2}>
+          {userError}
+        </Typography>
+        <Button variant="contained" onClick={() => router.push("/login")}>
+          Go to Login
+        </Button>
+      </Container>
+    );
+  }
+
+  if (!user) return null;
+
+  return (
+    <ThreeColumnLayout
+      left={
+        <Sidebar onPostOpen={() => setPostOpen(true)} username={ownUsername} />
+      }
+      center={
+        <>
+          <ProfileHeader
+            user={user}
+            followings={followings}
+            followers={followers}
+            onEditClick={handleEditOpen}
+            isOwnUser={ownUsername === usernameParam}
+          />
+
+          <EditProfileDialog
+            open={isEditing}
+            onClose={() => setIsEditing(false)}
+            user={user}
+            form={form}
+            onFormChange={handleFormChange}
+            onSave={handleProfileSave}
+            saving={saving}
+            saveError={saveError}
+            handleImageUpload={handleImageUpload}
+            profileUploading={uploading.profile}
+            coverUploading={uploading.cover}
+          />
+
+          <EditPostDialog
+            open={editPostId !== null}
+            onClose={() => setEditPostId(null)}
+            editText={editText}
+            setEditText={setEditText}
+            editingPost={editingPost}
+            editError={editError}
+            onSave={handleEditPost}
+          />
+
+          {ownUsername === usernameParam && (
+            <NewPostDialog
+              open={postOpen}
+              profilePicture={user.profilePicture}
+              onClose={() => setPostOpen(false)}
+              onPostSuccess={reloadPosts}
+            />
+          )}
+
+          <PostList
+            posts={posts}
+            ownUsername={user.username}
+            loading={postsLoading}
+            error={postsError}
+            onEdit={(post) => {
+              setEditPostId(post.id);
+              setEditText(post.text);
+            }}
+            onDelete={handleDeletePost}
+          />
+        </>
+      }
+      right={<Trending />}
+    />
+  );
 }
