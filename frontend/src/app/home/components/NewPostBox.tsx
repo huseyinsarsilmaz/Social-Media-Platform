@@ -9,8 +9,8 @@ import {
   Paper,
   Box,
 } from "@mui/material";
-import { useState } from "react";
 import ImageSharp from "@mui/icons-material/ImageSharp";
+import { useState } from "react";
 import { createPost } from "../homeActions";
 
 const textFieldStyles = {
@@ -39,14 +39,20 @@ export default function NewPostBox({
   const [posting, setPosting] = useState(false);
   const [postError, setPostError] = useState<string | null>(null);
 
+  const disabled = posting || !postText.trim();
+  const avatarUrl = profilePicture
+    ? `http://localhost:8080/api/users/images/${profilePicture}`
+    : undefined;
+
   const handlePost = async () => {
-    setPosting(true);
-    setPostError(null);
     const token = localStorage.getItem("AUTH_TOKEN");
     if (!token) {
       window.location.href = "/login";
       return;
     }
+
+    setPosting(true);
+    setPostError(null);
     try {
       await createPost(token, postText);
       setPostText("");
@@ -57,10 +63,6 @@ export default function NewPostBox({
       setPosting(false);
     }
   };
-
-  const avatarUrl = profilePicture
-    ? `http://localhost:8080/api/users/images/${profilePicture}`
-    : undefined;
 
   return (
     <Paper
@@ -73,11 +75,7 @@ export default function NewPostBox({
         borderRadius: 2,
       }}
     >
-      {postError && (
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {postError}
-        </Alert>
-      )}
+      <PostError message={postError} />
 
       <Box sx={{ display: "flex", gap: 2, alignItems: "flex-start" }}>
         <Avatar
@@ -85,17 +83,10 @@ export default function NewPostBox({
           alt="User Avatar"
           sx={{ width: 40, height: 40, mt: "6px" }}
         />
-        <TextField
-          placeholder="What's happening?"
-          multiline
-          minRows={3}
-          fullWidth
+        <PostTextField
           value={postText}
-          onChange={(e) => setPostText(e.target.value)}
-          variant="outlined"
-          sx={textFieldStyles}
+          onChange={setPostText}
           disabled={posting}
-          InputLabelProps={{ shrink: false }}
         />
       </Box>
 
@@ -116,8 +107,8 @@ export default function NewPostBox({
             handlePost();
           }}
           sx={{
-            opacity: posting || !postText.trim() ? 0.6 : 1,
-            pointerEvents: posting || !postText.trim() ? "none" : "auto",
+            opacity: disabled ? 0.6 : 1,
+            pointerEvents: disabled ? "none" : "auto",
             transition: "opacity 0.3s ease",
           }}
         >
@@ -125,5 +116,39 @@ export default function NewPostBox({
         </Button>
       </Box>
     </Paper>
+  );
+}
+
+function PostError({ message }: { message: string | null }) {
+  if (!message) return null;
+  return (
+    <Alert severity="error" sx={{ mb: 2 }}>
+      {message}
+    </Alert>
+  );
+}
+
+function PostTextField({
+  value,
+  onChange,
+  disabled,
+}: {
+  value: string;
+  onChange: (val: string) => void;
+  disabled: boolean;
+}) {
+  return (
+    <TextField
+      placeholder="What's happening?"
+      multiline
+      minRows={3}
+      fullWidth
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      variant="outlined"
+      sx={textFieldStyles}
+      disabled={disabled}
+      InputLabelProps={{ shrink: false }}
+    />
   );
 }
