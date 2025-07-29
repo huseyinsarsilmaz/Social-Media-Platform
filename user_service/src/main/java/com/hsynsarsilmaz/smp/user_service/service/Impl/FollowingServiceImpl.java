@@ -43,6 +43,16 @@ public class FollowingServiceImpl implements FollowingService {
         }
     }
 
+    private void evictFollowingUserCache(Long followingId) {
+        String followingUsername = userService.getEntityById(followingId).getUsername();
+
+        Cache cache = cacheManager.getCache("userSimple");
+        if (cache != null) {
+            cache.evictIfPresent(followingUsername);
+        }
+
+    }
+
     public FollowingSimple follow(Long myId, Long followingId) {
         if (myId == followingId) {
             throw new ReflexiveFollowException();
@@ -52,6 +62,7 @@ public class FollowingServiceImpl implements FollowingService {
             throw new AlreadyExistsException("Following", "Same users");
         }
 
+
         Following following = followingMapper.toEntity(
                 userService.getEntityById(myId),
                 userService.getEntityById(followingId));
@@ -60,6 +71,8 @@ public class FollowingServiceImpl implements FollowingService {
 
         evictFollowCache(followingId, "userFollowers");
         evictFollowCache(myId, "userFollowings");
+        evictFollowingUserCache(followingId);
+
         return followingMapper.toDto(following);
     }
 
@@ -75,6 +88,8 @@ public class FollowingServiceImpl implements FollowingService {
 
         evictFollowCache(followingId, "userFollowers");
         evictFollowCache(myId, "userFollowings");
+        evictFollowingUserCache(followingId);
+
         return followingMapper.toDto(following);
     }
 
