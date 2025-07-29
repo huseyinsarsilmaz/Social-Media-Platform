@@ -13,7 +13,6 @@ import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import { format, parseISO } from "date-fns";
 import { UserSimple } from "@/interface/interfaces";
 import FollowingPreview from "./FollowingPreview";
-import { followUser, unfollowUser } from "../profileActions";
 import { useState } from "react";
 import { handleFollowButtonClick } from "../handlers/ProfileHandlers";
 
