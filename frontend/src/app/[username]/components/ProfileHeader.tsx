@@ -24,6 +24,7 @@ interface Props {
   isOwnUser: boolean;
   isFollowing: boolean;
   token: string;
+  reload: () => Promise<void>;
 }
 
 const getImageUrl = (name: string | null) =>
@@ -37,6 +38,7 @@ export default function ProfileHeader({
   isOwnUser,
   isFollowing,
   token,
+  reload,
 }: Props) {
   return (
     <Container
@@ -58,6 +60,7 @@ export default function ProfileHeader({
           isOwnUser={isOwnUser}
           isFollowing={isFollowing}
           token={token}
+          reload={reload}
         />
         <UserBio bio={user.bio} />
         <JoinDate date={user.createdAt} />
@@ -106,12 +109,14 @@ function HeaderRow({
   isOwnUser,
   isFollowing,
   token,
+  reload,
 }: {
   user: UserSimple;
   onEditClick: () => void;
   isOwnUser: boolean;
   isFollowing: boolean;
   token: string;
+  reload: () => Promise<void>;
 }) {
   return (
     <Stack
@@ -153,6 +158,7 @@ function HeaderRow({
           userId={user.id}
           initialFollowing={isFollowing}
           token={token}
+          reload={reload}
         />
       )}
     </Stack>
@@ -163,10 +169,12 @@ function FollowButton({
   userId,
   initialFollowing,
   token,
+  reload,
 }: {
   userId: number;
   initialFollowing: boolean;
   token: string;
+  reload: () => Promise<void>;
 }) {
   const [isFollowing, setIsFollowing] = useState(initialFollowing);
   const [hovered, setHovered] = useState(false);
@@ -174,7 +182,13 @@ function FollowButton({
   return (
     <Button
       onClick={() =>
-        handleFollowButtonClick(isFollowing, token, userId, setIsFollowing)
+        handleFollowButtonClick(
+          isFollowing,
+          token,
+          userId,
+          setIsFollowing,
+          reload
+        )
       }
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}

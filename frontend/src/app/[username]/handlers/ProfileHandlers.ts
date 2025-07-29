@@ -71,15 +71,18 @@ export const handleFollowButtonClick = async (
   isFollowing: boolean,
   token: string,
   userId: number,
-  setIsFollowing: React.Dispatch<React.SetStateAction<boolean>>
+  setIsFollowing: React.Dispatch<React.SetStateAction<boolean>>,
+  reload: () => Promise<void>
 ) => {
   try {
     if (isFollowing) {
       await unfollowUser(token, userId);
       setIsFollowing(false);
+      await reload();
     } else {
       await followUser(token, userId);
       setIsFollowing(true);
+      await reload();
     }
   } catch (err) {
     console.error("Failed to toggle follow:", err);

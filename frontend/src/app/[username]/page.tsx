@@ -40,13 +40,14 @@ export default function ProfilePage() {
     loading: userLoading,
     error: userError,
     setUser,
+    reload: reloadProfile,
   } = useUserProfile(token, usernameParam ?? null);
 
   const {
     posts,
     loading: postsLoading,
     error: postsError,
-    reload: reload,
+    reload: reloadPosts,
   } = useUserPosts(token, user);
 
   const [form, setForm] = useState({
@@ -118,6 +119,7 @@ export default function ProfilePage() {
               isOwnUser={ownUsername === usernameParam}
               isFollowing={user.following}
               token={token}
+              reload={reloadProfile}
             />
 
             <EditProfileDialog
@@ -161,7 +163,7 @@ export default function ProfilePage() {
                   setEditError,
                   setEditPostId,
                   setEditText,
-                  reload
+                  reloadPosts
                 )
               }
             />
@@ -171,7 +173,7 @@ export default function ProfilePage() {
                 open={postOpen}
                 profilePicture={user.profilePicture}
                 onClose={() => setPostOpen(false)}
-                onPostSuccess={reload}
+                onPostSuccess={reloadPosts}
               />
             )}
 
@@ -184,7 +186,7 @@ export default function ProfilePage() {
                 setEditPostId(post.id);
                 setEditText(post.text);
               }}
-              onDelete={(id) => handleDeletePost(token, id, reload)}
+              onDelete={(id) => handleDeletePost(token, id, reloadPosts)}
             />
           </>
         )
