@@ -66,8 +66,11 @@ public class UserController {
     }
 
     @GetMapping("/{username}")
-    public ResponseEntity<SmpResponse<UserSimple>> getUserByUsername(@PathVariable("username") String username) {
-        UserSimple user = userService.getUserSimpleByUsername(username);
+    public ResponseEntity<SmpResponse<UserSimple>> getUserByUsername(
+            @RequestHeader("X-USER-ID") String myIdS,
+            @PathVariable("username") String username) {
+        Long myId = Long.parseLong(myIdS);
+        UserSimple user = userService.getUserSimpleByUsername(username, myId);
 
         return responseBuilder.success("User", "fetched", user, HttpStatus.OK);
     }

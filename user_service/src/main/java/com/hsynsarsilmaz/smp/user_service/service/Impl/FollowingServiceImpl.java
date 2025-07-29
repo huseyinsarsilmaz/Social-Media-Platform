@@ -98,4 +98,8 @@ public class FollowingServiceImpl implements FollowingService {
         });
     }
 
+    public boolean isFollowing(Long myId, Long followingId) {
+        return followingRepository.existsByFollowerIdAndFollowingId(myId, followingId);
+    }
+
 }

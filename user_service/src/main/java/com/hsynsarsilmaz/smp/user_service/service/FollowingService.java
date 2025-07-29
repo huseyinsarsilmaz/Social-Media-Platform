@@ -13,4 +13,7 @@ public interface FollowingService {
     public Page<UserSimple> getFollowingsOfUser(Long userId, int page);
 
     public Page<UserSimple> getFollowersOfUser(Long userId, int page);
+
+    public boolean isFollowing(Long myId, Long followingId);
+
 }

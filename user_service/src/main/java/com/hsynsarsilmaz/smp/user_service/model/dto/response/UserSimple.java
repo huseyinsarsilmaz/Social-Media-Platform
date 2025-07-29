@@ -18,4 +18,6 @@ public class UserSimple implements Serializable {
     private String bio;
     private String profilePicture;
     private String coverPicture;
+    private boolean isFollowing;
+
 }

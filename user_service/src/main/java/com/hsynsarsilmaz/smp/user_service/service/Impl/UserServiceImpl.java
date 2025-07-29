@@ -6,10 +6,12 @@ import java.util.List;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -27,6 +29,7 @@ import com.hsynsarsilmaz.smp.user_service.model.dto.response.UserSimple;
 import com.hsynsarsilmaz.smp.user_service.model.entity.User;
 import com.hsynsarsilmaz.smp.user_service.model.mapper.UserMapper;
 import com.hsynsarsilmaz.smp.user_service.repository.UserRepository;
+import com.hsynsarsilmaz.smp.user_service.service.FollowingService;
 import com.hsynsarsilmaz.smp.user_service.service.UserService;
 
 import jakarta.transaction.Transactional;
@@ -43,6 +46,13 @@ public class UserServiceImpl implements UserService {
     private final CacheManager cacheManager;
 
     private static final long VERIFICATION_CODE_TTL_MINUTES = 10;
+
+    private FollowingService followingService;
+
+    @Autowired
+    public void setFollowingService(@Lazy FollowingService followingService) {
+        this.followingService = followingService;
+    }
 
     @Value("${spring.mail.username}")
     private String fromEmail;
@@ -61,9 +71,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Cacheable(value = "userSimple", key = "#username")
-    public UserSimple getUserSimpleByUsername(String username) {
+    public UserSimple getUserSimpleByUsername(String username, Long myId) {
         User user = getEntityByUsername(username);
-        return userMapper.toDtoSimple(user);
+        UserSimple userSimple = userMapper.toDtoSimple(user);
+        userSimple.setFollowing(followingService.isFollowing(myId, user.getId()));
+        return userSimple;
     }
 
     @Cacheable(value = "userAuth", key = "#username")
