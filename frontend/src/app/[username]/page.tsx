@@ -39,7 +39,6 @@ export default function ProfilePage() {
     followers,
     loading: userLoading,
     error: userError,
-    reload: reloadUser,
     setUser,
   } = useUserProfile(token, usernameParam ?? null);
 
@@ -48,7 +47,6 @@ export default function ProfilePage() {
     loading: postsLoading,
     error: postsError,
     reload: reloadPosts,
-    setPosts,
   } = useUserPosts(token, user);
 
   const [form, setForm] = useState({
