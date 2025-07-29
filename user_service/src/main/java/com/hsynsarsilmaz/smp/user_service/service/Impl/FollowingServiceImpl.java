@@ -9,6 +9,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.hsynsarsilmaz.smp.common.exception.AlreadyExistsException;
+import com.hsynsarsilmaz.smp.common.exception.NotFoundException;
 import com.hsynsarsilmaz.smp.user_service.exception.ReflexiveFollowException;
 import com.hsynsarsilmaz.smp.user_service.model.dto.response.FollowingSimple;
 import com.hsynsarsilmaz.smp.user_service.model.dto.response.UserSimple;
@@ -60,7 +61,21 @@ public class FollowingServiceImpl implements FollowingService {
         evictFollowCache(followingId, "userFollowers");
         evictFollowCache(myId, "userFollowings");
         return followingMapper.toDto(following);
+    }
 
+    public FollowingSimple unfollow(Long myId, Long followingId) {
+        if (myId == followingId) {
+            throw new ReflexiveFollowException();
+        }
+
+        Following following = followingRepository.findByFollowerIdAndFollowingId(myId, followingId)
+                .orElseThrow(() -> new NotFoundException("Following", "these users"));
+
+        followingRepository.delete(following);
+
+        evictFollowCache(followingId, "userFollowers");
+        evictFollowCache(myId, "userFollowings");
+        return followingMapper.toDto(following);
     }
 
     @Cacheable(value = "userFollowings", key = "':user:' + #userId + ':page:' + #page")
