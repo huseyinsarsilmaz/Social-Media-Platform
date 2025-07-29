@@ -1,4 +1,6 @@
 import {
+  followUser,
+  unfollowUser,
   updateProfile,
   uploadImage,
 } from "../profileActions";
@@ -64,3 +66,22 @@ export async function handleImageUpload(
     setUploading((prev) => ({ ...prev, [type]: false }));
   }
 }
+
+export const handleFollowButtonClick = async (
+  isFollowing: boolean,
+  token: string,
+  userId: number,
+  setIsFollowing: React.Dispatch<React.SetStateAction<boolean>>
+) => {
+  try {
+    if (isFollowing) {
+      await unfollowUser(token, userId);
+      setIsFollowing(false);
+    } else {
+      await followUser(token, userId);
+      setIsFollowing(true);
+    }
+  } catch (err) {
+    console.error("Failed to toggle follow:", err);
+  }
+};

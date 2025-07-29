@@ -46,7 +46,7 @@ export default function ProfilePage() {
     posts,
     loading: postsLoading,
     error: postsError,
-    reload: reloadPosts,
+    reload: reload,
   } = useUserPosts(token, user);
 
   const [form, setForm] = useState({
@@ -108,82 +108,86 @@ export default function ProfilePage() {
         <Sidebar onPostOpen={() => setPostOpen(true)} username={ownUsername} />
       }
       center={
-        <>
-          <ProfileHeader
-            user={user}
-            followings={followings}
-            followers={followers}
-            onEditClick={() => setIsEditing(true)}
-            isOwnUser={ownUsername === usernameParam}
-          />
-
-          <EditProfileDialog
-            open={isEditing}
-            onClose={() => setIsEditing(false)}
-            user={user}
-            form={form}
-            onFormChange={(e) => handleFormChange(e, setForm)}
-            onSave={() =>
-              handleProfileSave(
-                token,
-                form,
-                setSaving,
-                setSaveError,
-                setUser,
-                setIsEditing
-              )
-            }
-            saving={saving}
-            saveError={saveError}
-            handleImageUpload={(file, type) =>
-              handleImageUpload(token, file, type, setUploading, setUser)
-            }
-            profileUploading={uploading.profile}
-            coverUploading={uploading.cover}
-          />
-
-          <EditPostDialog
-            open={editPostId !== null}
-            onClose={() => setEditPostId(null)}
-            editText={editText}
-            setEditText={setEditText}
-            editingPost={editingPost}
-            editError={editError}
-            onSave={() =>
-              handleEditPost(
-                token,
-                editPostId,
-                editText,
-                setEditingPost,
-                setEditError,
-                setEditPostId,
-                setEditText,
-                reloadPosts
-              )
-            }
-          />
-
-          {ownUsername === usernameParam && (
-            <NewPostDialog
-              open={postOpen}
-              profilePicture={user.profilePicture}
-              onClose={() => setPostOpen(false)}
-              onPostSuccess={reloadPosts}
+        token && (
+          <>
+            <ProfileHeader
+              user={user}
+              followings={followings}
+              followers={followers}
+              onEditClick={() => setIsEditing(true)}
+              isOwnUser={ownUsername === usernameParam}
+              isFollowing={user.following}
+              token={token}
             />
-          )}
 
-          <PostList
-            posts={posts}
-            ownUsername={user.username}
-            loading={postsLoading}
-            error={postsError}
-            onEdit={(post) => {
-              setEditPostId(post.id);
-              setEditText(post.text);
-            }}
-            onDelete={(id) => handleDeletePost(token, id, reloadPosts)}
-          />
-        </>
+            <EditProfileDialog
+              open={isEditing}
+              onClose={() => setIsEditing(false)}
+              user={user}
+              form={form}
+              onFormChange={(e) => handleFormChange(e, setForm)}
+              onSave={() =>
+                handleProfileSave(
+                  token,
+                  form,
+                  setSaving,
+                  setSaveError,
+                  setUser,
+                  setIsEditing
+                )
+              }
+              saving={saving}
+              saveError={saveError}
+              handleImageUpload={(file, type) =>
+                handleImageUpload(token, file, type, setUploading, setUser)
+              }
+              profileUploading={uploading.profile}
+              coverUploading={uploading.cover}
+            />
+
+            <EditPostDialog
+              open={editPostId !== null}
+              onClose={() => setEditPostId(null)}
+              editText={editText}
+              setEditText={setEditText}
+              editingPost={editingPost}
+              editError={editError}
+              onSave={() =>
+                handleEditPost(
+                  token,
+                  editPostId,
+                  editText,
+                  setEditingPost,
+                  setEditError,
+                  setEditPostId,
+                  setEditText,
+                  reload
+                )
+              }
+            />
+
+            {ownUsername === usernameParam && (
+              <NewPostDialog
+                open={postOpen}
+                profilePicture={user.profilePicture}
+                onClose={() => setPostOpen(false)}
+                onPostSuccess={reload}
+              />
+            )}
+
+            <PostList
+              posts={posts}
+              ownUsername={user.username}
+              loading={postsLoading}
+              error={postsError}
+              onEdit={(post) => {
+                setEditPostId(post.id);
+                setEditText(post.text);
+              }}
+              onDelete={(id) => handleDeletePost(token, id, reload)}
+            />
+          </>
+        )
       }
       right={<Trending />}
     />

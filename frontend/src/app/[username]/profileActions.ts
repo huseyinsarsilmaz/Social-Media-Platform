@@ -51,3 +51,13 @@ export const fetchUserFollowers = (
     params: { id: userId, page },
     headers: { Authorization: `Bearer ${token}` },
   });
+
+export const followUser = (token: string, userId: number) =>
+  axios.post(`/users/follow/${userId}`, null, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+export const unfollowUser = (token: string, userId: number) =>
+  axios.delete(`/users/unfollow/${userId}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });

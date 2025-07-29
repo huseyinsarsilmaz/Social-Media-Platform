@@ -13,6 +13,9 @@ import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import { format, parseISO } from "date-fns";
 import { UserSimple } from "@/interface/interfaces";
 import FollowingPreview from "./FollowingPreview";
+import { followUser, unfollowUser } from "../profileActions";
+import { useState } from "react";
+import { handleFollowButtonClick } from "../handlers/ProfileHandlers";
 
 interface Props {
   user: UserSimple;
@@ -20,6 +23,8 @@ interface Props {
   followers: UserSimple[];
   onEditClick: () => void;
   isOwnUser: boolean;
+  isFollowing: boolean;
+  token: string;
 }
 
 const getImageUrl = (name: string | null) =>
@@ -31,6 +36,8 @@ export default function ProfileHeader({
   followers,
   onEditClick,
   isOwnUser,
+  isFollowing,
+  token,
 }: Props) {
   return (
     <Container
@@ -50,6 +57,8 @@ export default function ProfileHeader({
           user={user}
           onEditClick={onEditClick}
           isOwnUser={isOwnUser}
+          isFollowing={isFollowing}
+          token={token}
         />
         <UserBio bio={user.bio} />
         <JoinDate date={user.createdAt} />
@@ -96,10 +105,14 @@ function HeaderRow({
   user,
   onEditClick,
   isOwnUser,
+  isFollowing,
+  token,
 }: {
   user: UserSimple;
   onEditClick: () => void;
   isOwnUser: boolean;
+  isFollowing: boolean;
+  token: string;
 }) {
   return (
     <Stack
@@ -120,7 +133,7 @@ function HeaderRow({
           @{user.username || "unknown"}
         </Typography>
       </Box>
-      {isOwnUser && (
+      {isOwnUser ? (
         <Button
           variant="outlined"
           onClick={onEditClick}
@@ -136,8 +149,62 @@ function HeaderRow({
         >
           Edit Profile
         </Button>
+      ) : (
+        <FollowButton
+          userId={user.id}
+          initialFollowing={isFollowing}
+          token={token}
+        />
       )}
     </Stack>
+  );
+}
+
+function FollowButton({
+  userId,
+  initialFollowing,
+  token,
+}: {
+  userId: number;
+  initialFollowing: boolean;
+  token: string;
+}) {
+  const [isFollowing, setIsFollowing] = useState(initialFollowing);
+  const [hovered, setHovered] = useState(false);
+
+  return (
+    <Button
+      onClick={() =>
+        handleFollowButtonClick(isFollowing, token, userId, setIsFollowing)
+      }
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      sx={{
+        borderRadius: "20px",
+        px: 3,
+        fontWeight: "bold",
+        textTransform: "none",
+        ...(isFollowing
+          ? {
+              bgcolor: "#000",
+              color: hovered ? "red" : "#fff",
+              border: "1px solid #333",
+              "&:hover": {
+                bgcolor: "#111",
+              },
+            }
+          : {
+              bgcolor: "#fff",
+              color: "#000",
+              border: "1px solid #ccc",
+              "&:hover": {
+                bgcolor: "#eee",
+              },
+            }),
+      }}
+    >
+      {isFollowing ? (hovered ? "Unfollow" : "Following") : "Follow"}
+    </Button>
   );
 }
 

@@ -21,6 +21,7 @@ export interface UserSimple {
   bio: string;
   profilePicture: string | null;
   coverPicture: string | null;
+  following: boolean;
 }
 
 export interface Post {
