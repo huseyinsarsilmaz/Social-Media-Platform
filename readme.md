@@ -32,10 +32,16 @@ A **full-stack social media platform** inspired by **Twitter** — built with a 
 
 - ✅ Create, update, and delete posts
 - ✅ Post listing per user
-- ✅ Feed with infinite scrolling
 - 🔜 Post search & filtering
 - 🔜 Media (image/video) upload
 - 🔜 Hashtags & mentions
+
+### 📄 Feed
+
+- ✅ Integration with User and Post services
+- 🔜 Feed generation
+- 🔜 Infinite scrolling feed on Home page
+- 🔜 Personalized feed ranking
 
 ### 👥 User Profiles
 
