@@ -40,7 +40,7 @@ public class PostController {
             @Valid @RequestBody AddPostRequest req) {
 
         Long id = Long.parseLong(userId);
-        PostSimple newPost = postService.addPost(req, id);
+        PostSimple newPost = postService.add(req, id);
 
         return responseBuilder.success("Post", "added", newPost, HttpStatus.CREATED);
     }
@@ -62,7 +62,7 @@ public class PostController {
             @Valid @RequestBody UpdatePostRequest req) {
 
         Long usrId = Long.parseLong(userId);
-        PostSimple post = postService.updatePost(req, postId, usrId);
+        PostSimple post = postService.update(req, postId, usrId);
 
         return responseBuilder.success("Post", "updated", post, HttpStatus.OK);
     }
@@ -73,7 +73,7 @@ public class PostController {
             @PathVariable("id") Long postId) {
 
         Long usrId = Long.parseLong(userId);
-        PostSimple post = postService.deletePost(postId, usrId);
+        PostSimple post = postService.delete(postId, usrId);
 
         return responseBuilder.success("Post", "deleted", post, HttpStatus.OK);
     }

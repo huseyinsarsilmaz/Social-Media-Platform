@@ -9,16 +9,18 @@ import com.hsynsarsilmaz.smp.post_service.model.entity.Post;
 
 public interface PostService {
 
-    public PostSimple addPost(AddPostRequest req, Long userId);
+    public PostSimple add(AddPostRequest req, Long userId);
 
-    public PostSimple updatePost(UpdatePostRequest req, Long postId, Long userId);
+    public PostSimple update(UpdatePostRequest req, Long postId, Long userId);
 
-    public PostSimple deletePost(Long postId, Long userId);
+    public PostSimple delete(Long postId, Long userId);
 
-    public void isPostOwned(Post post, Long userId);
+    public void isOwned(Post post, Long userId);
 
     public Page<PostSimple> getByUserId(Long userId, int page);
 
     public Page<PostSimple> getAll(int page);
+
+    public PostSimple like(AddPostRequest req, Long userId);
 
 }

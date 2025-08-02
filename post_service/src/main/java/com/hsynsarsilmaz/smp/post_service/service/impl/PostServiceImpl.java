@@ -59,7 +59,7 @@ public class PostServiceImpl implements PostService {
     }
 
     @Transactional
-    public PostSimple addPost(AddPostRequest req, Long userId) {
+    public PostSimple add(AddPostRequest req, Long userId) {
         Post newPost = postMapper.toEntity(req);
         newPost.setUserId(userId);
 
@@ -77,7 +77,7 @@ public class PostServiceImpl implements PostService {
         return postPage.map(postMapper::toDtoSimple);
     }
 
-    public void isPostOwned(Post post, Long userId) {
+    public void isOwned(Post post, Long userId) {
         if (post.getUserId() != userId) {
             throw new PostNotOwnedException();
         }
@@ -85,9 +85,9 @@ public class PostServiceImpl implements PostService {
     }
 
     @Transactional
-    public PostSimple updatePost(UpdatePostRequest req, Long postId, Long userId) {
+    public PostSimple update(UpdatePostRequest req, Long postId, Long userId) {
         Post post = getEntityById(postId);
-        isPostOwned(post, userId);
+        isOwned(post, userId);
 
         postMapper.updateEntity(post, req);
         post = postRepository.save(post);
@@ -98,9 +98,9 @@ public class PostServiceImpl implements PostService {
     }
 
     @Transactional
-    public PostSimple deletePost(Long postId, Long userId) {
+    public PostSimple delete(Long postId, Long userId) {
         Post post = getEntityById(postId);
-        isPostOwned(post, userId);
+        isOwned(post, userId);
 
         postRepository.delete(post);
 
