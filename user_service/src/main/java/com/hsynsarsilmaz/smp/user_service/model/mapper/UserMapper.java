@@ -34,6 +34,9 @@ public interface UserMapper {
         void updateEntity(@MappingTarget User user, UserUpdateRequest req);
 
         @Named("toDtoSimple")
+        @Mappings({
+                        @Mapping(target = "following", ignore = true),
+        })
         UserSimple toDtoSimple(User user);
 
         @Named("toDtoAuth")

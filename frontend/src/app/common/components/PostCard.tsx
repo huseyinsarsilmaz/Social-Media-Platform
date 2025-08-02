@@ -17,6 +17,7 @@ import {
   Typography,
 } from "@mui/material";
 import { useState, useMemo } from "react";
+import Link from "next/link";
 
 interface PostCardProps {
   post: Post;
@@ -49,11 +50,14 @@ export default function PostCard({
       }}
     >
       <Stack direction="row" spacing={2}>
-        <Avatar
-          src={avatarSrc}
-          alt={user.name}
-          sx={{ width: 40, height: 40 }}
-        />
+        <Link href={`/${user.username}`} style={{ textDecoration: "none" }}>
+          <Avatar
+            src={avatarSrc}
+            alt={user.name}
+            sx={{ width: 40, height: 40, cursor: "pointer" }}
+          />
+        </Link>
+
         <Stack flex={1}>
           <PostHeader
             user={user}
@@ -101,16 +105,36 @@ function PostHeader({
   return (
     <Stack direction="row" justifyContent="space-between" alignItems="center">
       <Box display="flex" alignItems="center" flexWrap="wrap">
-        <Typography fontWeight={600} sx={{ fontSize: "0.95rem" }}>
-          {user.name}
-        </Typography>
+        <Link
+          href={`/${user.username}`}
+          style={{ textDecoration: "none", color: "inherit" }}
+        >
+          <Typography
+            fontWeight={600}
+            sx={{ fontSize: "0.95rem", cursor: "pointer" }}
+          >
+            {user.name}
+          </Typography>
+        </Link>
+        <Link
+          href={`/${user.username}`}
+          style={{ textDecoration: "none", color: "gray" }}
+        >
+          <Typography
+            variant="body2"
+            sx={{ ml: 1, fontSize: "0.9rem", cursor: "pointer" }}
+            component="span"
+          >
+            @{user.username}
+          </Typography>
+        </Link>
         <Typography
           variant="body2"
           color="gray"
           sx={{ ml: 1, fontSize: "0.9rem" }}
           component="span"
         >
-          @{user.username} • {timestamp}
+          • {timestamp}
         </Typography>
       </Box>
 
