@@ -13,6 +13,10 @@ public interface PostMapper {
     @Mapping(target = "userId", ignore = true)
     Post toEntity(PostManipulationRequest req);
 
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    @Mappings({
+            @Mapping(target = "likeCount", ignore = true),
+    })
     @Named("toDtoSimple")
     PostSimple toDtoSimple(Post post);
 
