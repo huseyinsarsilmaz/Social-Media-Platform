@@ -13,12 +13,14 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.stereotype.Service;
 
+import com.hsynsarsilmaz.smp.common.exception.AlreadyExistsException;
 import com.hsynsarsilmaz.smp.common.exception.NotFoundException;
 import com.hsynsarsilmaz.smp.post_service.exception.PostNotOwnedException;
 import com.hsynsarsilmaz.smp.post_service.model.dto.request.AddPostRequest;
 import com.hsynsarsilmaz.smp.post_service.model.dto.request.UpdatePostRequest;
 import com.hsynsarsilmaz.smp.post_service.model.dto.response.PostSimple;
 import com.hsynsarsilmaz.smp.post_service.model.entity.Post;
+import com.hsynsarsilmaz.smp.post_service.model.entity.PostLike;
 import com.hsynsarsilmaz.smp.post_service.model.mapper.PostMapper;
 import com.hsynsarsilmaz.smp.post_service.repository.PostIdLikeCount;
 import com.hsynsarsilmaz.smp.post_service.repository.PostLikeRepository;
@@ -41,6 +43,18 @@ public class PostServiceImpl implements PostService {
     private Post getEntityById(Long postId) {
         return postRepository.findById(postId)
                 .orElseThrow(() -> new NotFoundException("Post", "id"));
+    }
+
+    private PostLike getPostLikeEntity(Long postId, Long userId) {
+        return postLikeRepository.findByPostIdAndUserId(postId, userId)
+                .orElseThrow(() -> new NotFoundException("Post Like", "user and post ids"));
+    }
+
+    private void isPostLikedByUser(Long postId, Long userId) {
+        if (postLikeRepository.findByPostIdAndUserId(postId, userId).isPresent()) {
+            throw new AlreadyExistsException("Like of this post", "this user");
+        }
+
     }
 
     private void evictUserPostsCache(Long userId) {
@@ -153,6 +167,43 @@ public class PostServiceImpl implements PostService {
                 .toList();
 
         return new PageImpl<>(dtoList, pageable, postPage.getTotalElements());
+    }
+
+    @Transactional
+    public PostSimple like(Long postId, Long userId) {
+        Post post = getEntityById(postId);
+        isPostLikedByUser(postId, userId);
+
+        PostLike newLike = PostLike.builder()
+                .postId(postId)
+                .userId(userId)
+                .build();
+
+        postLikeRepository.save(newLike);
+
+        PostSimple postSimple = postMapper.toDtoSimple(post);
+        postSimple.setLikeCount(postLikeRepository.countByPostId(postId));
+
+        evictUserPostsCache(post.getUserId());
+        evictFeedPostsCache();
+
+        return postSimple;
+    }
+
+    @Transactional
+    public PostSimple unlike(Long postId, Long userId) {
+        Post post = getEntityById(postId);
+
+        PostLike like = getPostLikeEntity(postId, userId);
+        postLikeRepository.delete(like);
+
+        PostSimple postSimple = postMapper.toDtoSimple(post);
+        postSimple.setLikeCount(postLikeRepository.countByPostId(postId));
+
+        evictUserPostsCache(post.getUserId());
+        evictFeedPostsCache();
+
+        return postSimple;
     }
 
 }

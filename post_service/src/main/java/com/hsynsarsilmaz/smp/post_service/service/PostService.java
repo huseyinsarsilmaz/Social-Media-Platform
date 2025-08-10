@@ -21,8 +21,8 @@ public interface PostService {
 
     public Page<PostSimple> getAll(int page);
 
-    // public PostSimple like(Long postId, Long userId);
+    public PostSimple like(Long postId, Long userId);
 
-    // public PostSimple unlike(Long postId, Long userId);
+    public PostSimple unlike(Long postId, Long userId);
 
 }
