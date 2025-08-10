@@ -19,7 +19,7 @@ public interface PostService {
 
     public Page<PostSimple> getByUserId(Long userId, int page);
 
-    public Page<PostSimple> getAll(int page);
+    public Page<PostSimple> getAll(int page, Long userId);
 
     public PostSimple like(Long postId, Long userId);
 

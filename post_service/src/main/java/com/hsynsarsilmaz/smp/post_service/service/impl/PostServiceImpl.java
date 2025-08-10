@@ -1,8 +1,10 @@
 package com.hsynsarsilmaz.smp.post_service.service.impl;
 
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.Set;
 
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
@@ -22,7 +24,6 @@ import com.hsynsarsilmaz.smp.post_service.model.dto.response.PostSimple;
 import com.hsynsarsilmaz.smp.post_service.model.entity.Post;
 import com.hsynsarsilmaz.smp.post_service.model.entity.PostLike;
 import com.hsynsarsilmaz.smp.post_service.model.mapper.PostMapper;
-import com.hsynsarsilmaz.smp.post_service.repository.PostIdLikeCount;
 import com.hsynsarsilmaz.smp.post_service.repository.PostLikeRepository;
 import com.hsynsarsilmaz.smp.post_service.repository.PostRepository;
 import com.hsynsarsilmaz.smp.post_service.service.PostService;
@@ -57,28 +58,21 @@ public class PostServiceImpl implements PostService {
 
     }
 
-    private void evictUserPostsCache(Long userId) {
-        Cache cache = cacheManager.getCache("postsByUser");
-        String key = "user:" + userId + ":page:";
-        if (cache != null) {
-            for (int page = 0;; page++) {
-                if (!cache.evictIfPresent(key + page)) {
-                    break;
-                }
-            }
+    private void evictPagedCache(String cacheName, String keyPrefix) {
+        Cache cache = cacheManager.getCache(cacheName);
+        if (cache == null)
+            return;
+
+        for (int page = 0;; page++) {
+            boolean evicted = cache.evictIfPresent(keyPrefix + page);
+            if (!evicted)
+                break;
         }
     }
 
-    private void evictFeedPostsCache() {
-        Cache cache = cacheManager.getCache("feedPosts");
-        String key = "page:";
-        if (cache != null) {
-            for (int page = 0;; page++) {
-                if (!cache.evictIfPresent(key + page)) {
-                    break;
-                }
-            }
-        }
+    private void evictPostsCache(Long userId) {
+        evictPagedCache("postsByUser", "user:" + userId + ":page:");
+        evictPagedCache("feedPosts", "user:" + userId + ":page:");
     }
 
     @Transactional
@@ -88,8 +82,7 @@ public class PostServiceImpl implements PostService {
 
         newPost = postRepository.save(newPost);
 
-        evictUserPostsCache(userId);
-        evictFeedPostsCache();
+        evictPostsCache(userId);
         return postMapper.toDtoSimple(newPost);
     }
 
@@ -101,13 +94,28 @@ public class PostServiceImpl implements PostService {
         List<Post> posts = postPage.getContent();
         List<Long> postIds = posts.stream().map(Post::getId).toList();
 
-        Map<Long, Integer> likeCountMap = postLikeRepository.countLikesByPostIds(postIds).stream()
-                .collect(Collectors.toMap(PostIdLikeCount::getPostId, PostIdLikeCount::getCount));
+        if (postIds.isEmpty()) {
+            return new PageImpl<>(List.of(), pageable, postPage.getTotalElements());
+        }
+
+        List<PostLike> likes = postLikeRepository.findByPostIdIn(postIds);
+
+        Map<Long, Integer> likeCountMap = new HashMap<>();
+        Set<Long> likedPostIds = new HashSet<>();
+
+        for (PostLike like : likes) {
+            Long pid = like.getPostId();
+            likeCountMap.merge(pid, 1, Integer::sum);
+            if (like.getUserId().equals(userId)) {
+                likedPostIds.add(pid);
+            }
+        }
 
         List<PostSimple> dtoList = posts.stream()
                 .map(post -> {
                     PostSimple dto = postMapper.toDtoSimple(post);
                     dto.setLikeCount(likeCountMap.getOrDefault(post.getId(), 0));
+                    dto.setLiked(likedPostIds.contains(post.getId()));
                     return dto;
                 })
                 .toList();
@@ -130,8 +138,7 @@ public class PostServiceImpl implements PostService {
         postMapper.updateEntity(post, req);
         post = postRepository.save(post);
 
-        evictUserPostsCache(userId);
-        evictFeedPostsCache();
+        evictPostsCache(userId);
         return postMapper.toDtoSimple(post);
     }
 
@@ -142,26 +149,40 @@ public class PostServiceImpl implements PostService {
 
         postRepository.delete(post);
 
-        evictUserPostsCache(userId);
-        evictFeedPostsCache();
+        evictPostsCache(userId);
         return postMapper.toDtoSimple(post);
     }
 
-    @Cacheable(value = "feedPosts", key = "'page:' + #page")
-    public Page<PostSimple> getAll(int page) {
+    @Cacheable(value = "feedPosts", key = "':user:' + #userId + 'page:' + #page")
+    public Page<PostSimple> getAll(int page, Long userId) {
         Pageable pageable = PageRequest.of(page, PAGE_SIZE);
         Page<Post> postPage = postRepository.findAllByOrderByCreatedAtDesc(pageable);
 
         List<Post> posts = postPage.getContent();
         List<Long> postIds = posts.stream().map(Post::getId).toList();
 
-        Map<Long, Integer> likeCountMap = postLikeRepository.countLikesByPostIds(postIds).stream()
-                .collect(Collectors.toMap(PostIdLikeCount::getPostId, PostIdLikeCount::getCount));
+        if (postIds.isEmpty()) {
+            return new PageImpl<>(List.of(), pageable, postPage.getTotalElements());
+        }
+
+        List<PostLike> likes = postLikeRepository.findByPostIdIn(postIds);
+
+        Map<Long, Integer> likeCountMap = new HashMap<>();
+        Set<Long> likedPostIds = new HashSet<>();
+
+        for (PostLike like : likes) {
+            Long pid = like.getPostId();
+            likeCountMap.merge(pid, 1, Integer::sum);
+            if (like.getUserId().equals(userId)) {
+                likedPostIds.add(pid);
+            }
+        }
 
         List<PostSimple> dtoList = posts.stream()
                 .map(post -> {
                     PostSimple dto = postMapper.toDtoSimple(post);
                     dto.setLikeCount(likeCountMap.getOrDefault(post.getId(), 0));
+                    dto.setLiked(likedPostIds.contains(post.getId()));
                     return dto;
                 })
                 .toList();
@@ -184,8 +205,7 @@ public class PostServiceImpl implements PostService {
         PostSimple postSimple = postMapper.toDtoSimple(post);
         postSimple.setLikeCount(postLikeRepository.countByPostId(postId));
 
-        evictUserPostsCache(post.getUserId());
-        evictFeedPostsCache();
+        evictPostsCache(userId);
 
         return postSimple;
     }
@@ -200,8 +220,7 @@ public class PostServiceImpl implements PostService {
         PostSimple postSimple = postMapper.toDtoSimple(post);
         postSimple.setLikeCount(postLikeRepository.countByPostId(postId));
 
-        evictUserPostsCache(post.getUserId());
-        evictFeedPostsCache();
+        evictPostsCache(userId);
 
         return postSimple;
     }

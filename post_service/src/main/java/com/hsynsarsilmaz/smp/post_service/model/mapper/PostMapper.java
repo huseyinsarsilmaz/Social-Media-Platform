@@ -10,23 +10,24 @@ import com.hsynsarsilmaz.smp.post_service.model.entity.Post;
 @Mapper(componentModel = "spring")
 public interface PostMapper {
 
-    @Mapping(target = "userId", ignore = true)
-    Post toEntity(PostManipulationRequest req);
+        @Mapping(target = "userId", ignore = true)
+        Post toEntity(PostManipulationRequest req);
 
-    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    @Mappings({
-            @Mapping(target = "likeCount", ignore = true),
-    })
-    @Named("toDtoSimple")
-    PostSimple toDtoSimple(Post post);
+        @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+        @Mappings({
+                        @Mapping(target = "likeCount", ignore = true),
+                        @Mapping(target = "liked", ignore = true),
+        })
+        @Named("toDtoSimple")
+        PostSimple toDtoSimple(Post post);
 
-    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    @Mappings({
-            @Mapping(target = "id", ignore = true),
-            @Mapping(target = "createdAt", ignore = true),
-            @Mapping(target = "updatedAt", ignore = true),
-            @Mapping(target = "userId", ignore = true),
-    })
-    void updateEntity(@MappingTarget Post post, UpdatePostRequest req);
+        @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+        @Mappings({
+                        @Mapping(target = "id", ignore = true),
+                        @Mapping(target = "createdAt", ignore = true),
+                        @Mapping(target = "updatedAt", ignore = true),
+                        @Mapping(target = "userId", ignore = true),
+        })
+        void updateEntity(@MappingTarget Post post, UpdatePostRequest req);
 
 }
