@@ -1,6 +1,5 @@
 package com.hsynsarsilmaz.smp.post_service.controller;
 
-
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -69,11 +68,11 @@ public class PostController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<SmpResponse<PostSimple>> deletePost(
-            @RequestHeader("X-USER-ID") String userId,
+            @RequestHeader("X-USER-ID") String userIdS,
             @PathVariable("id") Long postId) {
 
-        Long usrId = Long.parseLong(userId);
-        PostSimple post = postService.delete(postId, usrId);
+        Long userId = Long.parseLong(userIdS);
+        PostSimple post = postService.delete(postId, userId);
 
         return responseBuilder.success("Post", "deleted", post, HttpStatus.OK);
     }
@@ -85,6 +84,28 @@ public class PostController {
         Page<PostSimple> posts = postService.getAll(page);
 
         return responseBuilder.success("All Posts", "fetched", new PaginatedResponse<PostSimple>(posts), HttpStatus.OK);
+    }
+
+    @PostMapping("/like/{postId}")
+    public ResponseEntity<SmpResponse<PostSimple>> likePost(
+            @RequestHeader("X-USER-ID") String userIdS,
+            @PathVariable Long postId) {
+
+        Long userId = Long.parseLong(userIdS);
+        PostSimple likedPost = postService.like(postId, userId);
+
+        return responseBuilder.success("Post", "liked", likedPost, HttpStatus.OK);
+    }
+
+    @DeleteMapping("/unlike/{postId}")
+    public ResponseEntity<SmpResponse<PostSimple>> unlikePost(
+            @RequestHeader("X-USER-ID") String userIdS,
+            @PathVariable Long postId) {
+
+        Long userId = Long.parseLong(userIdS);
+        PostSimple likedPost = postService.unlike(postId, userId);
+
+        return responseBuilder.success("Post", "unliked", likedPost, HttpStatus.OK);
     }
 
 }
