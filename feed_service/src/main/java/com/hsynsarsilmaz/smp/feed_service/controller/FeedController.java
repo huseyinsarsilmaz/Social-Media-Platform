@@ -3,6 +3,7 @@ package com.hsynsarsilmaz.smp.feed_service.controller;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -24,9 +25,11 @@ public class FeedController {
 
     @GetMapping
     public ResponseEntity<SmpResponse<FeedSimple>> getFeed(
+            @RequestHeader("X-USER-ID") String userIdS,
             @RequestParam(defaultValue = "0") int page) {
 
-        FeedSimpleWithError feed = feedService.getFeed(page);
+        Long userId = Long.parseLong(userIdS);
+        FeedSimpleWithError feed = feedService.getFeed(page, userId);
         if (feed.getMessage() != null) {
             return responseBuilder.failStaticMessage(feed.getMessage(), feed.getErrorCode());
         }

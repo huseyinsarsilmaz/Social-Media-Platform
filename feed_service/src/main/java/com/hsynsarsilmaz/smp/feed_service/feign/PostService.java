@@ -13,6 +13,7 @@ import com.hsynsarsilmaz.smp.feed_service.model.dto.response.PostSimple;
 public interface PostService {
 
     @GetMapping("api/posts/all")
-    ResponseEntity<SmpResponse<PaginatedResponse<PostSimple>>> getAllPosts(@RequestParam("page") int page);
+    ResponseEntity<SmpResponse<PaginatedResponse<PostSimple>>> getAllPosts(@RequestParam("page") int page,
+            @RequestParam("userId") long userId);
 
 }

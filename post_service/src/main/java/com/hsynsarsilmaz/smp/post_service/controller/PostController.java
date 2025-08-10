@@ -79,10 +79,8 @@ public class PostController {
 
     @GetMapping("/all")
     public ResponseEntity<SmpResponse<PaginatedResponse<PostSimple>>> getAllPosts(
-            @RequestHeader("X-USER-ID") String userIdS,
+            @RequestParam long userId,
             @RequestParam(defaultValue = "0") int page) {
-
-        Long userId = Long.parseLong(userIdS);
 
         Page<PostSimple> posts = postService.getAll(page, userId);
 

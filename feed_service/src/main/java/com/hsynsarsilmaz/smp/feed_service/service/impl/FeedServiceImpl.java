@@ -30,11 +30,11 @@ public class FeedServiceImpl implements FeedService {
     private final UserService userService;
     private final PostService postService;
 
-    public FeedSimpleWithError getFeed(int page) {
+    public FeedSimpleWithError getFeed(int page, long userId) {
         PaginatedResponse<PostSimple> postPage = null;
         List<UserSimple> users = null;
         try {
-            SmpResponse<PaginatedResponse<PostSimple>> response = postService.getAllPosts(page).getBody();
+            SmpResponse<PaginatedResponse<PostSimple>> response = postService.getAllPosts(page, userId).getBody();
             if (response != null) {
                 postPage = response.getData();
             } else {
