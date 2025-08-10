@@ -1,12 +1,16 @@
 package com.hsynsarsilmaz.smp.post_service.service.impl;
 
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Page;
-
+import org.springframework.data.domain.PageImpl;
 import org.springframework.stereotype.Service;
 
 import com.hsynsarsilmaz.smp.common.exception.NotFoundException;
@@ -16,6 +20,8 @@ import com.hsynsarsilmaz.smp.post_service.model.dto.request.UpdatePostRequest;
 import com.hsynsarsilmaz.smp.post_service.model.dto.response.PostSimple;
 import com.hsynsarsilmaz.smp.post_service.model.entity.Post;
 import com.hsynsarsilmaz.smp.post_service.model.mapper.PostMapper;
+import com.hsynsarsilmaz.smp.post_service.repository.PostIdLikeCount;
+import com.hsynsarsilmaz.smp.post_service.repository.PostLikeRepository;
 import com.hsynsarsilmaz.smp.post_service.repository.PostRepository;
 import com.hsynsarsilmaz.smp.post_service.service.PostService;
 
@@ -26,8 +32,11 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class PostServiceImpl implements PostService {
     private final PostRepository postRepository;
+    private final PostLikeRepository postLikeRepository;
     private final PostMapper postMapper;
     private final CacheManager cacheManager;
+
+    private static final int PAGE_SIZE = 10;
 
     private Post getEntityById(Long postId) {
         return postRepository.findById(postId)
@@ -72,9 +81,24 @@ public class PostServiceImpl implements PostService {
 
     @Cacheable(value = "postsByUser", key = "'user:' + #userId + ':page:' + #page")
     public Page<PostSimple> getByUserId(Long userId, int page) {
-        Pageable pageable = PageRequest.of(page, 10);
+        Pageable pageable = PageRequest.of(page, PAGE_SIZE);
         Page<Post> postPage = postRepository.findByUserIdOrderByCreatedAtDesc(userId, pageable);
-        return postPage.map(postMapper::toDtoSimple);
+
+        List<Post> posts = postPage.getContent();
+        List<Long> postIds = posts.stream().map(Post::getId).toList();
+
+        Map<Long, Integer> likeCountMap = postLikeRepository.countLikesByPostIds(postIds).stream()
+                .collect(Collectors.toMap(PostIdLikeCount::getPostId, PostIdLikeCount::getCount));
+
+        List<PostSimple> dtoList = posts.stream()
+                .map(post -> {
+                    PostSimple dto = postMapper.toDtoSimple(post);
+                    dto.setLikeCount(likeCountMap.getOrDefault(post.getId(), 0));
+                    return dto;
+                })
+                .toList();
+
+        return new PageImpl<>(dtoList, pageable, postPage.getTotalElements());
     }
 
     public void isOwned(Post post, Long userId) {
@@ -111,9 +135,10 @@ public class PostServiceImpl implements PostService {
 
     @Cacheable(value = "feedPosts", key = "'page:' + #page")
     public Page<PostSimple> getAll(int page) {
-        Pageable pageable = PageRequest.of(page, 10);
+        Pageable pageable = PageRequest.of(page, PAGE_SIZE);
         Page<Post> postPage = postRepository.findAllByOrderByCreatedAtDesc(pageable);
         return postPage.map(postMapper::toDtoSimple);
     }
+
 
 }
