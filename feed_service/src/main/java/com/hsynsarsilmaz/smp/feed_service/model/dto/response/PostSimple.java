@@ -15,5 +15,6 @@ public class PostSimple implements Serializable {
     private String image;
     private Long userId;
     private LocalDateTime createdAt;
-
+    private int likeCount;
+    private boolean isLiked;
 }
