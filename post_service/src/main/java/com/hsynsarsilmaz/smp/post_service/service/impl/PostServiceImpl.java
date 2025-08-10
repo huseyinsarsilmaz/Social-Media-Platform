@@ -137,8 +137,22 @@ public class PostServiceImpl implements PostService {
     public Page<PostSimple> getAll(int page) {
         Pageable pageable = PageRequest.of(page, PAGE_SIZE);
         Page<Post> postPage = postRepository.findAllByOrderByCreatedAtDesc(pageable);
-        return postPage.map(postMapper::toDtoSimple);
-    }
 
+        List<Post> posts = postPage.getContent();
+        List<Long> postIds = posts.stream().map(Post::getId).toList();
+
+        Map<Long, Integer> likeCountMap = postLikeRepository.countLikesByPostIds(postIds).stream()
+                .collect(Collectors.toMap(PostIdLikeCount::getPostId, PostIdLikeCount::getCount));
+
+        List<PostSimple> dtoList = posts.stream()
+                .map(post -> {
+                    PostSimple dto = postMapper.toDtoSimple(post);
+                    dto.setLikeCount(likeCountMap.getOrDefault(post.getId(), 0));
+                    return dto;
+                })
+                .toList();
+
+        return new PageImpl<>(dtoList, pageable, postPage.getTotalElements());
+    }
 
 }
