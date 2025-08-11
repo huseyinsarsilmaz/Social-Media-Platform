@@ -31,3 +31,13 @@ export const deletePost = (token: string, id: number) =>
   axios.delete(`/posts/${id}`, {
     headers: { Authorization: `Bearer ${token}` },
   });
+
+export const likePost = (token: string, postId: number) =>
+  axios.post(`/posts/like/${postId}`, null, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+export const unlikePost = (token: string, postId: number) =>
+  axios.delete(`/posts/unlike/${postId}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });

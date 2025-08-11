@@ -19,6 +19,8 @@ import {
 } from "@mui/material";
 import { useState, useMemo } from "react";
 import Link from "next/link";
+import useAuthToken from "../hooks/useAuthToken";
+import { handleLikeButtonClick } from "../handlers/commonHandlers";
 
 interface PostCardProps {
   post: Post;
@@ -175,6 +177,10 @@ function PostHeader({
 }
 
 function PostStats({ post }: { post: Post }) {
+  const { token } = useAuthToken();
+  const [liked, setLiked] = useState(post.liked);
+  const [likeCount, setLikeCount] = useState(post.likeCount);
+
   return (
     <>
       <Divider sx={{ bgcolor: "#2f2f2f", my: 1 }} />
@@ -187,19 +193,43 @@ function PostStats({ post }: { post: Post }) {
         <Stat icon={<Repeat fontSize="small" />} count={0} />
         <Stat
           icon={
-            post.liked ? (
-              <Favorite fontSize="small" sx={{ color: "#e0245e" }} />
+            liked ? (
+              <Favorite
+                fontSize="small"
+                sx={{ color: "#e0245e" }}
+                onClick={() =>
+                  handleLikeButtonClick(
+                    liked,
+                    token,
+                    post.id,
+                    setLiked,
+                    setLikeCount
+                  )
+                }
+              />
             ) : (
-              <FavoriteBorder fontSize="small" />
+              <FavoriteBorder
+                fontSize="small"
+                onClick={() =>
+                  handleLikeButtonClick(
+                    liked,
+                    token,
+                    post.id,
+                    setLiked,
+                    setLikeCount
+                  )
+                }
+              />
             )
           }
-          count={post.likeCount}
+          count={likeCount}
         />
         <Stat icon={<Share fontSize="small" />} />
       </Stack>
     </>
   );
 }
+
 
 
 function Stat({ icon, count }: { icon: React.ReactNode; count?: number }) {

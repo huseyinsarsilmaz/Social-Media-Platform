@@ -1,4 +1,9 @@
-import { deletePost, updatePost } from "../components/commonActions";
+import {
+  deletePost,
+  likePost,
+  unlikePost,
+  updatePost,
+} from "../components/commonActions";
 
 export async function handleDeletePost(
   token: string | null,
@@ -38,3 +43,27 @@ export async function handleEditPost(
     setEditingPost(false);
   }
 }
+
+export const handleLikeButtonClick = async (
+  liked: boolean,
+  token: string | null,
+  postId: number,
+  setLiked: React.Dispatch<React.SetStateAction<boolean>>,
+  setLikeCount: React.Dispatch<React.SetStateAction<number>>
+) => {
+  try {
+    if (token) {
+      if (liked) {
+        await unlikePost(token, postId);
+        setLiked(false);
+        setLikeCount((prev) => prev - 1);
+      } else {
+        await likePost(token, postId);
+        setLiked(true);
+        setLikeCount((prev) => prev + 1);
+      }
+    }
+  } catch (err) {
+    console.error("Failed to toggle like:", err);
+  }
+};
