@@ -1,6 +1,7 @@
 import { Post, UserSimple } from "@/interface/interfaces";
 import {
   ChatBubbleOutline,
+  Favorite,
   FavoriteBorder,
   MoreHoriz,
   Repeat,
@@ -69,7 +70,7 @@ export default function PostCard({
           <Typography sx={{ fontSize: "0.95rem", mt: 0.5 }}>
             {post.text}
           </Typography>
-          <PostStats />
+          <PostStats post={post} />
         </Stack>
       </Stack>
     </Box>
@@ -173,7 +174,7 @@ function PostHeader({
   );
 }
 
-function PostStats() {
+function PostStats({ post }: { post: Post }) {
   return (
     <>
       <Divider sx={{ bgcolor: "#2f2f2f", my: 1 }} />
@@ -184,12 +185,22 @@ function PostStats() {
       >
         <Stat icon={<ChatBubbleOutline fontSize="small" />} count={0} />
         <Stat icon={<Repeat fontSize="small" />} count={0} />
-        <Stat icon={<FavoriteBorder fontSize="small" />} count={0} />
+        <Stat
+          icon={
+            post.liked ? (
+              <Favorite fontSize="small" sx={{ color: "#e0245e" }} />
+            ) : (
+              <FavoriteBorder fontSize="small" />
+            )
+          }
+          count={post.likeCount}
+        />
         <Stat icon={<Share fontSize="small" />} />
       </Stack>
     </>
   );
 }
+
 
 function Stat({ icon, count }: { icon: React.ReactNode; count?: number }) {
   return (

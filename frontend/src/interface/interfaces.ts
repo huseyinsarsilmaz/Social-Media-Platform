@@ -30,6 +30,8 @@ export interface Post {
   image: string | null;
   userId: number;
   createdAt: string;
+  liked: boolean;
+  likeCount: number;
 }
 
 export interface PostWithUser {
