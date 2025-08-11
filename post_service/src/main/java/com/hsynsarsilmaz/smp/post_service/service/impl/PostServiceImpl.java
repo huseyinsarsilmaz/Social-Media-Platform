@@ -153,7 +153,7 @@ public class PostServiceImpl implements PostService {
         return postMapper.toDtoSimple(post);
     }
 
-    @Cacheable(value = "feedPosts", key = "':user:' + #userId + 'page:' + #page")
+    @Cacheable(value = "feedPosts", key = "'user:' + #userId + ':page:' + #page")
     public Page<PostSimple> getAll(int page, Long userId) {
         Pageable pageable = PageRequest.of(page, PAGE_SIZE);
         Page<Post> postPage = postRepository.findAllByOrderByCreatedAtDesc(pageable);
