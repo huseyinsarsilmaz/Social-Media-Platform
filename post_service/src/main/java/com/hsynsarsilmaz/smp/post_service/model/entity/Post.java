@@ -4,6 +4,8 @@ import com.hsynsarsilmaz.smp.common.model.entity.SmpEntity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -29,4 +31,24 @@ public class Post extends SmpEntity {
 
     @Column(nullable = false)
     private Long userId;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Type type;
+
+    @Column(nullable = true)
+    private Long parentId;
+
+    @Column(nullable = true)
+    private Long repostOfId;
+
+    @Column(nullable = true)
+    private Long quoteOfId;
+
+    public enum Type {
+        ORIGINAL,
+        REPLY,
+        REPOST,
+        QUOTE
+    }
 }
