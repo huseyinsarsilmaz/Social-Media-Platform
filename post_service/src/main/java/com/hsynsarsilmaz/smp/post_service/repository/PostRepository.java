@@ -11,7 +11,5 @@ import com.hsynsarsilmaz.smp.post_service.model.entity.Post;
 @Repository
 public interface PostRepository extends JpaRepository<Post, Long> {
 
-    Page<Post> findByUserIdOrderByCreatedAtDesc(Long userId, Pageable pageable);
-
-    Page<Post> findAllByOrderByCreatedAtDesc(Pageable pageable);
+    Page<Post> findByUserId(Long userId, Pageable pageable);
 }

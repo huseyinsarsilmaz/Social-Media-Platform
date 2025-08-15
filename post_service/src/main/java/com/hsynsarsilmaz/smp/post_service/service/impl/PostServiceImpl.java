@@ -1,15 +1,16 @@
 package com.hsynsarsilmaz.smp.post_service.service.impl;
 
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.Comparator;
+
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-import org.springframework.cache.Cache;
-import org.springframework.cache.CacheManager;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -24,8 +25,12 @@ import com.hsynsarsilmaz.smp.post_service.model.dto.response.PostSimple;
 import com.hsynsarsilmaz.smp.post_service.model.entity.Post;
 import com.hsynsarsilmaz.smp.post_service.model.entity.PostLike;
 import com.hsynsarsilmaz.smp.post_service.model.mapper.PostMapper;
+import com.hsynsarsilmaz.smp.post_service.repository.PostLikeCount;
 import com.hsynsarsilmaz.smp.post_service.repository.PostLikeRepository;
 import com.hsynsarsilmaz.smp.post_service.repository.PostRepository;
+import com.hsynsarsilmaz.smp.post_service.service.EngagementCacheService;
+import com.hsynsarsilmaz.smp.post_service.service.FeedCacheService;
+import com.hsynsarsilmaz.smp.post_service.service.PostCacheService;
 import com.hsynsarsilmaz.smp.post_service.service.PostService;
 
 import jakarta.transaction.Transactional;
@@ -37,7 +42,9 @@ public class PostServiceImpl implements PostService {
     private final PostRepository postRepository;
     private final PostLikeRepository postLikeRepository;
     private final PostMapper postMapper;
-    private final CacheManager cacheManager;
+    private final FeedCacheService feedCacheService;
+    private final PostCacheService postCacheService;
+    private final EngagementCacheService engagementCacheService;
 
     private static final int PAGE_SIZE = 10;
 
@@ -55,72 +62,15 @@ public class PostServiceImpl implements PostService {
         if (postLikeRepository.findByPostIdAndUserId(postId, userId).isPresent()) {
             throw new AlreadyExistsException("Like of this post", "this user");
         }
-
     }
 
-    private void evictPagedCache(String cacheName, String keyPrefix) {
-        Cache cache = cacheManager.getCache(cacheName);
-        if (cache == null)
-            return;
+    private PostSimple updatePostCache(Post post, long userId) {
+        PostSimple postSimple = postMapper.toDtoSimple(post);
+        postCacheService.setPost(postSimple);
+        feedCacheService.evictFeedPages("feed:global:page:");
+        feedCacheService.evictFeedPages("feed:user:" + userId + ":page:");
 
-        for (int page = 0;; page++) {
-            boolean evicted = cache.evictIfPresent(keyPrefix + page);
-            if (!evicted)
-                break;
-        }
-    }
-
-    private void evictPostsCache(Long userId) {
-        evictPagedCache("postsByUser", "user:" + userId + ":page:");
-        evictPagedCache("feedPosts", "user:" + userId + ":page:");
-    }
-
-    @Transactional
-    public PostSimple add(AddPostRequest req, Long userId) {
-        Post newPost = postMapper.toEntity(req);
-        newPost.setUserId(userId);
-
-        newPost = postRepository.save(newPost);
-
-        evictPostsCache(userId);
-        return postMapper.toDtoSimple(newPost);
-    }
-
-    @Cacheable(value = "postsByUser", key = "'user:' + #userId + ':page:' + #page")
-    public Page<PostSimple> getByUserId(Long userId, int page) {
-        Pageable pageable = PageRequest.of(page, PAGE_SIZE);
-        Page<Post> postPage = postRepository.findByUserIdOrderByCreatedAtDesc(userId, pageable);
-
-        List<Post> posts = postPage.getContent();
-        List<Long> postIds = posts.stream().map(Post::getId).toList();
-
-        if (postIds.isEmpty()) {
-            return new PageImpl<>(List.of(), pageable, postPage.getTotalElements());
-        }
-
-        List<PostLike> likes = postLikeRepository.findByPostIdIn(postIds);
-
-        Map<Long, Integer> likeCountMap = new HashMap<>();
-        Set<Long> likedPostIds = new HashSet<>();
-
-        for (PostLike like : likes) {
-            Long pid = like.getPostId();
-            likeCountMap.merge(pid, 1, Integer::sum);
-            if (like.getUserId().equals(userId)) {
-                likedPostIds.add(pid);
-            }
-        }
-
-        List<PostSimple> dtoList = posts.stream()
-                .map(post -> {
-                    PostSimple dto = postMapper.toDtoSimple(post);
-                    dto.setLikeCount(likeCountMap.getOrDefault(post.getId(), 0));
-                    dto.setLiked(likedPostIds.contains(post.getId()));
-                    return dto;
-                })
-                .toList();
-
-        return new PageImpl<>(dtoList, pageable, postPage.getTotalElements());
+        return postSimple;
     }
 
     public void isOwned(Post post, Long userId) {
@@ -131,6 +81,16 @@ public class PostServiceImpl implements PostService {
     }
 
     @Transactional
+    public PostSimple add(AddPostRequest req, Long userId) {
+        Post newPost = postMapper.toEntity(req);
+        newPost.setUserId(userId);
+
+        newPost = postRepository.save(newPost);
+
+        return updatePostCache(newPost, userId);
+    }
+
+    @Transactional
     public PostSimple update(UpdatePostRequest req, Long postId, Long userId) {
         Post post = getEntityById(postId);
         isOwned(post, userId);
@@ -138,8 +98,7 @@ public class PostServiceImpl implements PostService {
         postMapper.updateEntity(post, req);
         post = postRepository.save(post);
 
-        evictPostsCache(userId);
-        return postMapper.toDtoSimple(post);
+        return updatePostCache(post, userId);
     }
 
     @Transactional
@@ -149,45 +108,104 @@ public class PostServiceImpl implements PostService {
 
         postRepository.delete(post);
 
-        evictPostsCache(userId);
-        return postMapper.toDtoSimple(post);
+        return updatePostCache(post, userId);
     }
 
-    @Cacheable(value = "feedPosts", key = "'user:' + #userId + ':page:' + #page")
-    public Page<PostSimple> getAll(int page, Long userId) {
-        Pageable pageable = PageRequest.of(page, PAGE_SIZE);
-        Page<Post> postPage = postRepository.findAllByOrderByCreatedAtDesc(pageable);
+    private void decoratePosts(List<PostSimple> posts, Set<Long> likedPosts) {
+        posts.forEach(dto -> {
+            Integer count = engagementCacheService.getLikeCount(dto.getId());
+            dto.setLikeCount(count != null ? count : 0);
+            dto.setLiked(likedPosts.contains(dto.getId()));
+        });
+    }
 
-        List<Post> posts = postPage.getContent();
-        List<Long> postIds = posts.stream().map(Post::getId).toList();
+    private Page<PostSimple> emptyFeedCache(long userId, Pageable pageable, String cacheKey) {
+        Page<Post> postPage = cacheKey.contains("global")
+                ? postRepository.findAll(pageable)
+                : postRepository.findByUserId(userId, pageable);
 
-        if (postIds.isEmpty()) {
-            return new PageImpl<>(List.of(), pageable, postPage.getTotalElements());
-        }
+        Set<Long> postIds = postPage.getContent().stream()
+                .map(Post::getId)
+                .collect(Collectors.toSet());
+        feedCacheService.setFeedPage(cacheKey, postIds);
 
-        List<PostLike> likes = postLikeRepository.findByPostIdIn(postIds);
+        Set<Long> likedPostIds = engagementCacheService.getUserLikes(userId);
+        List<PostSimple> posts = postPage.stream()
+                .map(postMapper::toDtoSimple)
+                .toList();
 
-        Map<Long, Integer> likeCountMap = new HashMap<>();
-        Set<Long> likedPostIds = new HashSet<>();
+        posts.forEach(postCacheService::setPost);
+        decoratePosts(posts, likedPostIds);
 
-        for (PostLike like : likes) {
-            Long pid = like.getPostId();
-            likeCountMap.merge(pid, 1, Integer::sum);
-            if (like.getUserId().equals(userId)) {
-                likedPostIds.add(pid);
-            }
-        }
+        return new PageImpl<>(posts, pageable, postPage.getTotalElements());
+    }
 
-        List<PostSimple> dtoList = posts.stream()
-                .map(post -> {
-                    PostSimple dto = postMapper.toDtoSimple(post);
-                    dto.setLikeCount(likeCountMap.getOrDefault(post.getId(), 0));
-                    dto.setLiked(likedPostIds.contains(post.getId()));
-                    return dto;
+    private Page<PostSimple> partialFeedCache(Set<Long> postIds, List<PostSimple> cachedPosts, Set<Long> likedPosts,
+            Pageable pageable) {
+        List<Long> missingIds = postIds.stream()
+                .filter(id -> cachedPosts.stream().noneMatch(p -> p.getId() == id))
+                .toList();
+
+        List<Post> missingPosts = postRepository.findAllById(missingIds);
+
+        Map<Long, Integer> likeCounts = postLikeRepository.countByPostIdIn(missingIds).stream()
+                .collect(Collectors.toMap(PostLikeCount::getPostId, PostLikeCount::getCount));
+
+        List<PostSimple> missingDtos = missingPosts.stream()
+                .map(postMapper::toDtoSimple)
+                .peek(dto -> {
+                    dto.setLikeCount(likeCounts.getOrDefault(dto.getId(), 0));
+                    dto.setLiked(likedPosts.contains(dto.getId()));
                 })
                 .toList();
 
-        return new PageImpl<>(dtoList, pageable, postPage.getTotalElements());
+        missingDtos.forEach(postCacheService::setPost);
+
+        List<PostSimple> combinedPosts = Stream.concat(cachedPosts.stream(), missingDtos.stream())
+                .sorted(Comparator.comparing(PostSimple::getCreatedAt).reversed())
+                .toList();
+
+        decoratePosts(combinedPosts, likedPosts);
+        return new PageImpl<>(combinedPosts, pageable, combinedPosts.size());
+    }
+
+    private Page<PostSimple> fullFeedCache(List<PostSimple> cachedPosts, Set<Long> likedPosts, Pageable pageable) {
+        decoratePosts(cachedPosts, likedPosts);
+        return new PageImpl<>(cachedPosts, pageable, cachedPosts.size());
+    }
+
+    private Page<PostSimple> getFeedFromCache(String cacheKey, long userId, int page) {
+        Pageable pageable = PageRequest.of(page, PAGE_SIZE, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Set<Long> postIds = feedCacheService.getFeedPage(cacheKey);
+        if (postIds == null) {
+            return emptyFeedCache(userId, pageable, cacheKey);
+        }
+
+        List<PostSimple> cachedPosts = postIds.stream()
+                .map(postCacheService::getPost)
+                .filter(Objects::nonNull)
+                .toList();
+
+        Set<Long> likedPosts = engagementCacheService.getUserLikes(userId);
+
+        if (cachedPosts.size() < postIds.size()) {
+            return partialFeedCache(postIds, cachedPosts, likedPosts, pageable);
+        } else {
+            return fullFeedCache(cachedPosts, likedPosts, pageable);
+        }
+    }
+
+    public Page<PostSimple> getByUserId(Long userId, int page) {
+        String cacheKey = "feed:user:" + userId + ":page:" + page;
+
+        return getFeedFromCache(cacheKey, userId, page);
+
+    }
+
+    public Page<PostSimple> getGlobalFeed(int page, long userId) {
+        String cacheKey = "feed:global:page:" + page;
+
+        return getFeedFromCache(cacheKey, userId, page);
     }
 
     @Transactional
@@ -202,11 +220,13 @@ public class PostServiceImpl implements PostService {
 
         postLikeRepository.save(newLike);
 
-        PostSimple postSimple = postMapper.toDtoSimple(post);
-        postSimple.setLikeCount(postLikeRepository.countByPostId(postId));
+        engagementCacheService.incrementLikeCount(postId);
+        engagementCacheService.addUserLike(userId, postId);
 
-        evictPostsCache(userId);
-
+        PostSimple postSimple = postCacheService.getPost(postId);
+        if (postSimple == null)
+            postSimple = postMapper.toDtoSimple(post);
+        postSimple.setLikeCount(engagementCacheService.getLikeCount(postId));
         return postSimple;
     }
 
@@ -217,11 +237,13 @@ public class PostServiceImpl implements PostService {
         PostLike like = getPostLikeEntity(postId, userId);
         postLikeRepository.delete(like);
 
-        PostSimple postSimple = postMapper.toDtoSimple(post);
-        postSimple.setLikeCount(postLikeRepository.countByPostId(postId));
+        engagementCacheService.decrementLikeCount(postId);
+        engagementCacheService.removeUserLike(userId, postId);
 
-        evictPostsCache(userId);
-
+        PostSimple postSimple = postCacheService.getPost(postId);
+        if (postSimple == null)
+            postSimple = postMapper.toDtoSimple(post);
+        postSimple.setLikeCount(engagementCacheService.getLikeCount(postId));
         return postSimple;
     }
 

@@ -19,7 +19,7 @@ public interface PostService {
 
     public Page<PostSimple> getByUserId(Long userId, int page);
 
-    public Page<PostSimple> getAll(int page, Long userId);
+    public Page<PostSimple> getGlobalFeed(int page, long userId);
 
     public PostSimple like(Long postId, Long userId);
 

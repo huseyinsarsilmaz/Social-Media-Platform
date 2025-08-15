@@ -1,12 +1,12 @@
 package com.hsynsarsilmaz.smp.post_service.service;
 
-import java.util.List;
+import java.util.Set;
 
 public interface FeedCacheService {
 
-    public List<Long> getFeedPage(String key);
+    public Set<Long> getFeedPage(String key);
 
-    public void setFeedPage(String key, List<Long> postIds);
+    public void setFeedPage(String key, Set<Long> postIds);
 
     public void evictFeedPages(String prefix);
 

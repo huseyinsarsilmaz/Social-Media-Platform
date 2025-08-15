@@ -82,7 +82,7 @@ public class PostController {
             @RequestParam long userId,
             @RequestParam(defaultValue = "0") int page) {
 
-        Page<PostSimple> posts = postService.getAll(page, userId);
+        Page<PostSimple> posts = postService.getGlobalFeed(page, userId);
 
         return responseBuilder.success("All Posts", "fetched", new PaginatedResponse<PostSimple>(posts), HttpStatus.OK);
     }
