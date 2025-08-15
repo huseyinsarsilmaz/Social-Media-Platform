@@ -37,11 +37,12 @@ public class RedisConfig {
         RedisTemplate<String, PostSimple> template = new RedisTemplate<>();
         template.setConnectionFactory(connectionFactory);
 
-        Jackson2JsonRedisSerializer<PostSimple> serializer = new Jackson2JsonRedisSerializer<>(PostSimple.class);
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
         objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-        serializer.setObjectMapper(objectMapper);
+
+        Jackson2JsonRedisSerializer<PostSimple> serializer = new Jackson2JsonRedisSerializer<>(objectMapper,
+                PostSimple.class);
 
         template.setKeySerializer(new StringRedisSerializer());
         template.setValueSerializer(serializer);
