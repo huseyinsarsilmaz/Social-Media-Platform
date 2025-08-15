@@ -3,6 +3,8 @@ package com.hsynsarsilmaz.smp.post_service.model.dto.response;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
+import com.hsynsarsilmaz.smp.post_service.model.entity.Post;
+
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -17,5 +19,9 @@ public class PostSimple implements Serializable {
     private LocalDateTime createdAt;
     private int likeCount;
     private boolean isLiked;
+    private Post.Type type;
+    private Long parentId;
+    private Long repostOfId;
+    private Long quoteOfId;
 
 }
