@@ -53,7 +53,7 @@ A **full-stack social media platform** inspired by **Twitter** — built with a 
 
 ### ❤️ Interactions
 
-- 🔜 Like posts
+- ✅ Like posts
 - 🔜 Comment on posts
 - 🔜 Repost/quote functionality
 
