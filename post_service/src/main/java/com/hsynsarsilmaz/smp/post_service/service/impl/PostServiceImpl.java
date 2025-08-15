@@ -84,6 +84,7 @@ public class PostServiceImpl implements PostService {
     public PostSimple add(AddPostRequest req, Long userId) {
         Post newPost = postMapper.toEntity(req);
         newPost.setUserId(userId);
+        newPost.setType(Post.Type.ORIGINAL);
 
         newPost = postRepository.save(newPost);
 
@@ -121,8 +122,8 @@ public class PostServiceImpl implements PostService {
 
     private Page<PostSimple> emptyFeedCache(long userId, Pageable pageable, String cacheKey) {
         Page<Post> postPage = cacheKey.contains("global")
-                ? postRepository.findAll(pageable)
-                : postRepository.findByUserId(userId, pageable);
+                ? postRepository.findByTypeNot(Post.Type.REPLY, pageable)
+                : postRepository.findByUserIdAndTypeNot(userId, Post.Type.REPLY, pageable);
 
         Set<Long> postIds = postPage.getContent().stream()
                 .map(Post::getId)

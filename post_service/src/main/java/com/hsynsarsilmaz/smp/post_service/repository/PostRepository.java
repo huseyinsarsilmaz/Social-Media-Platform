@@ -12,4 +12,8 @@ import com.hsynsarsilmaz.smp.post_service.model.entity.Post;
 public interface PostRepository extends JpaRepository<Post, Long> {
 
     Page<Post> findByUserId(Long userId, Pageable pageable);
+
+    Page<Post> findByUserIdAndTypeNot(Long userId, Post.Type type, Pageable pageable);
+
+    Page<Post> findByTypeNot(Post.Type type, Pageable pageable);
 }
