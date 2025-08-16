@@ -9,8 +9,13 @@ import com.hsynsarsilmaz.smp.post_service.model.entity.Post;
 
 @Mapper(componentModel = "spring")
 public interface PostMapper {
-
-        @Mapping(target = "userId", ignore = true)
+        @Mappings({
+                        @Mapping(target = "userId", ignore = true),
+                        @Mapping(target = "parentId", ignore = true),
+                        @Mapping(target = "quoteOfId", ignore = true),
+                        @Mapping(target = "repostOfId", ignore = true),
+                        @Mapping(target = "type", ignore = true),
+        })
         Post toEntity(PostManipulationRequest req);
 
         @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
@@ -27,6 +32,10 @@ public interface PostMapper {
                         @Mapping(target = "createdAt", ignore = true),
                         @Mapping(target = "updatedAt", ignore = true),
                         @Mapping(target = "userId", ignore = true),
+                        @Mapping(target = "parentId", ignore = true),
+                        @Mapping(target = "quoteOfId", ignore = true),
+                        @Mapping(target = "repostOfId", ignore = true),
+                        @Mapping(target = "type", ignore = true),
         })
         void updateEntity(@MappingTarget Post post, UpdatePostRequest req);
 
