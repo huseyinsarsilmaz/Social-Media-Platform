@@ -22,7 +22,7 @@ import lombok.NoArgsConstructor;
 @Table(name = "posts")
 public class Post extends SmpEntity {
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private String text;
 
     @Builder.Default
