@@ -35,18 +35,42 @@ export default function PostList({
     );
   }
 
+  // Build maps to quickly look up posts and users by ID
+  const postMap = new Map<number, Post>();
+  const userMap = new Map<number, UserSimple>();
+  posts.forEach((pwu) => {
+    postMap.set(pwu.post.id, pwu.post);
+    userMap.set(pwu.user.id, pwu.user);
+  });
+
   return (
     <Container maxWidth="sm" sx={{ mt: 3, mb: 4 }}>
-      {posts.map((pwu) => (
-        <PostCard
-          key={pwu.post.id}
-          user={pwu.user}
-          post={pwu.post}
-          onEdit={() => onEdit(pwu.post)}
-          onDelete={onDelete}
-          isOwnUser={ownUsername === pwu.user.username}
-        />
-      ))}
+      {posts.map((pwu) => {
+        const referencedPost =
+          pwu.post.type === "REPOST"
+            ? postMap.get(pwu.post.repostOfId!)
+            : pwu.post.type === "QUOTE"
+            ? postMap.get(pwu.post.quoteOfId!)
+            : undefined;
+
+        const referencedUser =
+          referencedPost !== undefined
+            ? userMap.get(referencedPost.userId)
+            : undefined;
+
+        return (
+          <PostCard
+            key={pwu.post.id}
+            user={pwu.user}
+            post={pwu.post}
+            onEdit={() => onEdit(pwu.post)}
+            onDelete={onDelete}
+            isOwnUser={ownUsername === pwu.user.username}
+            referencedPost={referencedPost}
+            referencedUser={referencedUser}
+          />
+        );
+      })}
     </Container>
   );
 }

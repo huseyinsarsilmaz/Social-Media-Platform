@@ -32,6 +32,10 @@ export interface Post {
   createdAt: string;
   liked: boolean;
   likeCount: number;
+  type: string;
+  replyOfId: number | null;
+  repostOfId: number | null;
+  quoteOfId: number | null;
 }
 
 export interface PostWithUser {

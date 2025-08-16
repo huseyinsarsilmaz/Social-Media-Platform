@@ -23,12 +23,15 @@ import useAuthToken from "../hooks/useAuthToken";
 import { handleLikeButtonClick } from "../handlers/commonHandlers";
 
 interface PostCardProps {
-  post: Post;
-  user: UserSimple;
-  onEdit: (post: Post) => void;
-  onDelete: (id: number) => void;
-  isOwnUser: boolean;
+  post: Post
+  user: UserSimple
+  onEdit: (post: Post) => void
+  onDelete: (id: number) => void
+  isOwnUser: boolean
+  referencedPost?: Post
+  referencedUser?: UserSimple
 }
+
 
 export default function PostCard({
   post,
@@ -36,7 +39,10 @@ export default function PostCard({
   onEdit,
   onDelete,
   isOwnUser,
-}: PostCardProps) {
+  referencedPost,
+  referencedUser,
+  hideStats = false
+}: PostCardProps & { hideStats?: boolean }) {
   const avatarSrc = user.profilePicture
     ? `http://localhost:8080/api/users/images/${user.profilePicture}`
     : undefined;
@@ -49,9 +55,16 @@ export default function PostCard({
         pt: 1,
         borderRadius: 2,
         mb: 2,
-        color: "#fff",
+        color: "#fff"
       }}
     >
+      {post.type === "REPOST" && referencedUser && (
+        <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1, color: "gray" }}>
+          <Repeat fontSize="small" />
+          <Typography variant="body2">{user.name} reposted</Typography>
+        </Stack>
+      )}
+
       <Stack direction="row" spacing={2}>
         <Link href={`/${user.username}`} style={{ textDecoration: "none" }}>
           <Avatar
@@ -69,15 +82,44 @@ export default function PostCard({
             onDelete={onDelete}
             isOwnUser={isOwnUser}
           />
-          <Typography sx={{ fontSize: "0.95rem", mt: 0.5 }}>
-            {post.text}
-          </Typography>
-          <PostStats post={post} />
+
+          {post.type === "QUOTE" && referencedPost && referencedUser ? (
+            <>
+              <Typography sx={{ fontSize: "0.95rem", mt: 0.5 }}>{post.text}</Typography>
+              <Box
+                sx={{
+                  mt: 1,
+                  border: "1px solid #2f2f2f",
+                  borderRadius: 2,
+                  overflow: "hidden"
+                }}
+              >
+                <PostCard
+                  post={referencedPost}
+                  user={referencedUser}
+                  onEdit={onEdit}
+                  onDelete={onDelete}
+                  isOwnUser={false}
+                  hideStats
+                />
+              </Box>
+            </>
+          ) : post.type === "REPOST" && referencedPost && referencedUser ? (
+            <>
+              <Typography sx={{ fontSize: "0.95rem", mt: 0.5 }}>{referencedPost.text}</Typography>
+            </>
+          ) : (
+            <Typography sx={{ fontSize: "0.95rem", mt: 0.5 }}>{post.text}</Typography>
+          )}
+
+          {!hideStats && <PostStats post={post} />}
         </Stack>
       </Stack>
     </Box>
   );
 }
+
+
 
 interface PostHeaderProps {
   user: UserSimple;
@@ -229,8 +271,6 @@ function PostStats({ post }: { post: Post }) {
     </>
   );
 }
-
-
 
 function Stat({ icon, count }: { icon: React.ReactNode; count?: number }) {
   return (
