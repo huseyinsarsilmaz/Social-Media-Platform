@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import com.hsynsarsilmaz.smp.common.exception.AlreadyExistsException;
 import com.hsynsarsilmaz.smp.common.exception.NotFoundException;
 import com.hsynsarsilmaz.smp.post_service.exception.PostNotOwnedException;
+import com.hsynsarsilmaz.smp.post_service.exception.RepostParentException;
 import com.hsynsarsilmaz.smp.post_service.model.dto.request.AddPostRequest;
 import com.hsynsarsilmaz.smp.post_service.model.dto.request.UpdatePostRequest;
 import com.hsynsarsilmaz.smp.post_service.model.dto.response.PostSimple;
@@ -70,6 +71,12 @@ public class PostServiceImpl implements PostService {
         }
     }
 
+    private void isParentRepost(Long parentId) {
+        if (getEntityById(parentId).getType() == Post.Type.REPOST) {
+            throw new RepostParentException();
+        }
+    }
+
     private PostSimple updatePostCache(Post post, long userId) {
         PostSimple postSimple = postMapper.toDtoSimple(post);
         postCacheService.setPost(postSimple);
@@ -83,7 +90,6 @@ public class PostServiceImpl implements PostService {
         if (post.getUserId() != userId) {
             throw new PostNotOwnedException();
         }
-
     }
 
     @Transactional
@@ -99,6 +105,7 @@ public class PostServiceImpl implements PostService {
 
     @Transactional
     public PostSimple reply(AddPostRequest req, Long parentId, Long userId) {
+        isParentRepost(parentId);
         Post newPost = postMapper.toEntity(req);
         newPost.setUserId(userId);
         newPost.setType(Post.Type.REPLY);
@@ -111,6 +118,7 @@ public class PostServiceImpl implements PostService {
 
     @Transactional
     public PostSimple repost(AddPostRequest req, Long parentId, Long userId) {
+        isParentRepost(parentId);
         isPostRepostedOrQuotedByUser(parentId, userId);
         Post newPost = postMapper.toEntity(req);
         newPost.setUserId(userId);
@@ -124,6 +132,7 @@ public class PostServiceImpl implements PostService {
 
     @Transactional
     public PostSimple quote(AddPostRequest req, Long parentId, Long userId) {
+        isParentRepost(parentId);
         isPostRepostedOrQuotedByUser(parentId, userId);
         Post newPost = postMapper.toEntity(req);
         newPost.setUserId(userId);
