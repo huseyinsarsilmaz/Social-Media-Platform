@@ -53,7 +53,7 @@ public class PostController {
         Long userId = Long.parseLong(userIds);
         PostSimple newPost = postService.reply(req, parentId, userId);
 
-        return responseBuilder.success("Post reply", "added", newPost, HttpStatus.CREATED);
+        return responseBuilder.success("Post", "replied", newPost, HttpStatus.CREATED);
     }
 
     @PostMapping("/repost/{parentId}")
@@ -64,7 +64,7 @@ public class PostController {
         Long userId = Long.parseLong(userIds);
         PostSimple newPost = postService.repost(parentId, userId);
 
-        return responseBuilder.success("Post reply", "added", newPost, HttpStatus.CREATED);
+        return responseBuilder.success("Post", "reposted", newPost, HttpStatus.CREATED);
     }
 
     @PostMapping("/quote/{parentId}")
@@ -76,7 +76,7 @@ public class PostController {
         Long userId = Long.parseLong(userIds);
         PostSimple newPost = postService.quote(req, parentId, userId);
 
-        return responseBuilder.success("Post reply", "added", newPost, HttpStatus.CREATED);
+        return responseBuilder.success("Post", "quoted", newPost, HttpStatus.CREATED);
     }
 
     @GetMapping("/user/{userId}")
