@@ -44,6 +44,42 @@ public class PostController {
         return responseBuilder.success("Post", "added", newPost, HttpStatus.CREATED);
     }
 
+    @PostMapping("/reply/{parentId}")
+    public ResponseEntity<SmpResponse<PostSimple>> replyPost(
+            @RequestHeader("X-USER-ID") String userIds,
+            @PathVariable("parentId") Long parentId,
+            @Valid @RequestBody AddPostRequest req) {
+
+        Long userId = Long.parseLong(userIds);
+        PostSimple newPost = postService.reply(req, parentId, userId);
+
+        return responseBuilder.success("Post reply", "added", newPost, HttpStatus.CREATED);
+    }
+
+    @PostMapping("/repost/{parentId}")
+    public ResponseEntity<SmpResponse<PostSimple>> repostPost(
+            @RequestHeader("X-USER-ID") String userIds,
+            @PathVariable("parentId") Long parentId,
+            @Valid @RequestBody AddPostRequest req) {
+
+        Long userId = Long.parseLong(userIds);
+        PostSimple newPost = postService.repost(req, parentId, userId);
+
+        return responseBuilder.success("Post reply", "added", newPost, HttpStatus.CREATED);
+    }
+
+    @PostMapping("/quote/{parentId}")
+    public ResponseEntity<SmpResponse<PostSimple>> quotePost(
+            @RequestHeader("X-USER-ID") String userIds,
+            @PathVariable("parentId") Long parentId,
+            @Valid @RequestBody AddPostRequest req) {
+
+        Long userId = Long.parseLong(userIds);
+        PostSimple newPost = postService.quote(req, parentId, userId);
+
+        return responseBuilder.success("Post reply", "added", newPost, HttpStatus.CREATED);
+    }
+
     @GetMapping("/user/{userId}")
     public ResponseEntity<SmpResponse<PaginatedResponse<PostSimple>>> getMyPosts(
             @PathVariable("userId") Long userId,
