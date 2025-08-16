@@ -25,4 +25,10 @@ public interface PostService {
 
     public PostSimple unlike(Long postId, Long userId);
 
+    public PostSimple reply(AddPostRequest req, Long parentId, Long userId);
+
+    public PostSimple repost(AddPostRequest req, Long parentId, Long userId);
+
+    public PostSimple quote(AddPostRequest req, Long parentId, Long userId);
+
 }

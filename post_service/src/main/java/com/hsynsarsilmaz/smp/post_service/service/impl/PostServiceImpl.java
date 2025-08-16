@@ -92,6 +92,42 @@ public class PostServiceImpl implements PostService {
     }
 
     @Transactional
+    public PostSimple reply(AddPostRequest req, Long parentId, Long userId) {
+        Post newPost = postMapper.toEntity(req);
+        newPost.setUserId(userId);
+        newPost.setType(Post.Type.REPLY);
+        newPost.setParentId(parentId);
+
+        newPost = postRepository.save(newPost);
+
+        return updatePostCache(newPost, userId);
+    }
+
+    @Transactional
+    public PostSimple repost(AddPostRequest req, Long parentId, Long userId) {
+        Post newPost = postMapper.toEntity(req);
+        newPost.setUserId(userId);
+        newPost.setType(Post.Type.REPOST);
+        newPost.setRepostOfId(parentId);
+
+        newPost = postRepository.save(newPost);
+
+        return updatePostCache(newPost, userId);
+    }
+
+    @Transactional
+    public PostSimple quote(AddPostRequest req, Long parentId, Long userId) {
+        Post newPost = postMapper.toEntity(req);
+        newPost.setUserId(userId);
+        newPost.setType(Post.Type.QUOTE);
+        newPost.setQuoteOfId(parentId);
+
+        newPost = postRepository.save(newPost);
+
+        return updatePostCache(newPost, userId);
+    }
+
+    @Transactional
     public PostSimple update(UpdatePostRequest req, Long postId, Long userId) {
         Post post = getEntityById(postId);
         isOwned(post, userId);
