@@ -64,6 +64,12 @@ public class PostServiceImpl implements PostService {
         }
     }
 
+    private void isPostRepostedOrQuotedByUser(Long parentId, Long userId) {
+        if (postRepository.existsRepostOrQuoteByUserIdAndPostId(userId, userId)) {
+            throw new AlreadyExistsException("Repost or quote of this post", "this user");
+        }
+    }
+
     private PostSimple updatePostCache(Post post, long userId) {
         PostSimple postSimple = postMapper.toDtoSimple(post);
         postCacheService.setPost(postSimple);
@@ -105,6 +111,7 @@ public class PostServiceImpl implements PostService {
 
     @Transactional
     public PostSimple repost(AddPostRequest req, Long parentId, Long userId) {
+        isPostRepostedOrQuotedByUser(parentId, userId);
         Post newPost = postMapper.toEntity(req);
         newPost.setUserId(userId);
         newPost.setType(Post.Type.REPOST);
@@ -117,6 +124,7 @@ public class PostServiceImpl implements PostService {
 
     @Transactional
     public PostSimple quote(AddPostRequest req, Long parentId, Long userId) {
+        isPostRepostedOrQuotedByUser(parentId, userId);
         Post newPost = postMapper.toEntity(req);
         newPost.setUserId(userId);
         newPost.setType(Post.Type.QUOTE);
