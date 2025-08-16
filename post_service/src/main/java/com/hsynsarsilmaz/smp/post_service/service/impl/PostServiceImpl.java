@@ -65,9 +65,9 @@ public class PostServiceImpl implements PostService {
         }
     }
 
-    private void isPostRepostedOrQuotedByUser(Long parentId, Long userId) {
-        if (postRepository.existsRepostOrQuoteByUserIdAndPostId(userId, userId)) {
-            throw new AlreadyExistsException("Repost or quote of this post", "this user");
+    private void isPostRepostedByUser(Long parentId, Long userId) {
+        if (postRepository.existsByUserIdAndTypeAndRepostOfId(userId, Post.Type.REPOST, userId)) {
+            throw new AlreadyExistsException("Repost of this post", "this user");
         }
     }
 
@@ -119,7 +119,7 @@ public class PostServiceImpl implements PostService {
     @Transactional
     public PostSimple repost(AddPostRequest req, Long parentId, Long userId) {
         isParentRepost(parentId);
-        isPostRepostedOrQuotedByUser(parentId, userId);
+        isPostRepostedByUser(parentId, userId);
         Post newPost = postMapper.toEntity(req);
         newPost.setUserId(userId);
         newPost.setType(Post.Type.REPOST);
@@ -133,7 +133,6 @@ public class PostServiceImpl implements PostService {
     @Transactional
     public PostSimple quote(AddPostRequest req, Long parentId, Long userId) {
         isParentRepost(parentId);
-        isPostRepostedOrQuotedByUser(parentId, userId);
         Post newPost = postMapper.toEntity(req);
         newPost.setUserId(userId);
         newPost.setType(Post.Type.QUOTE);
