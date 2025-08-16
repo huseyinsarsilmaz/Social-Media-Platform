@@ -27,7 +27,7 @@ public interface PostService {
 
     public PostSimple reply(AddPostRequest req, Long parentId, Long userId);
 
-    public PostSimple repost(AddPostRequest req, Long parentId, Long userId);
+    public PostSimple repost(Long parentId, Long userId);
 
     public PostSimple quote(AddPostRequest req, Long parentId, Long userId);
 

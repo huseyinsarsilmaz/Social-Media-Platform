@@ -112,21 +112,19 @@ public class PostServiceImpl implements PostService {
         newPost.setParentId(parentId);
 
         newPost = postRepository.save(newPost);
-
         return updatePostCache(newPost, userId);
     }
 
     @Transactional
-    public PostSimple repost(AddPostRequest req, Long parentId, Long userId) {
+    public PostSimple repost(Long parentId, Long userId) {
         isParentRepost(parentId);
         isPostRepostedByUser(parentId, userId);
-        Post newPost = postMapper.toEntity(req);
+        Post newPost = new Post();
         newPost.setUserId(userId);
         newPost.setType(Post.Type.REPOST);
         newPost.setRepostOfId(parentId);
 
         newPost = postRepository.save(newPost);
-
         return updatePostCache(newPost, userId);
     }
 
@@ -139,7 +137,6 @@ public class PostServiceImpl implements PostService {
         newPost.setQuoteOfId(parentId);
 
         newPost = postRepository.save(newPost);
-
         return updatePostCache(newPost, userId);
     }
 

@@ -59,11 +59,10 @@ public class PostController {
     @PostMapping("/repost/{parentId}")
     public ResponseEntity<SmpResponse<PostSimple>> repostPost(
             @RequestHeader("X-USER-ID") String userIds,
-            @PathVariable("parentId") Long parentId,
-            @Valid @RequestBody AddPostRequest req) {
+            @PathVariable("parentId") Long parentId) {
 
         Long userId = Long.parseLong(userIds);
-        PostSimple newPost = postService.repost(req, parentId, userId);
+        PostSimple newPost = postService.repost(parentId, userId);
 
         return responseBuilder.success("Post reply", "added", newPost, HttpStatus.CREATED);
     }
