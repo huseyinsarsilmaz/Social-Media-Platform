@@ -2,6 +2,7 @@ package com.hsynsarsilmaz.smp.post_service.repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -20,8 +21,13 @@ public interface PostLikeRepository extends JpaRepository<PostLike, Long> {
 
     List<PostLike> findByPostIdIn(List<Long> postIds);
 
-    @Query("SELECT pl.postId AS postId, COUNT(pl.id) AS count " +
-            "FROM PostLike pl WHERE pl.postId IN :postIds " +
-            "GROUP BY pl.postId")
-    List<PostLikeCount> countByPostIdIn(@Param("postIds") List<Long> postIds);
+    @Query("SELECT l.postId AS postId, COUNT(l) AS count " +
+            "FROM PostLike l " +
+            "WHERE l.postId IN :postIds " +
+            "GROUP BY l.postId")
+    List<PostCount> countByPostIdIn(@Param("postIds") List<Long> postIds);
+
+    @Query("SELECT l.postId FROM PostLike l WHERE l.userId = :userId AND l.postId IN :postIds")
+    Set<Long> findPostIdsByUserIdAndPostIdIn(@Param("userId") Long userId, @Param("postIds") List<Long> postIds);
+
 }

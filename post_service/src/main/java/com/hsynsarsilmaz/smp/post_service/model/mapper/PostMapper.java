@@ -21,6 +21,9 @@ public interface PostMapper {
         @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
         @Mappings({
                         @Mapping(target = "likeCount", ignore = true),
+                        @Mapping(target = "replyCount", ignore = true),
+                        @Mapping(target = "repostCount", ignore = true),
+                        @Mapping(target = "reposted", ignore = true),
                         @Mapping(target = "liked", ignore = true),
         })
         @Named("toDtoSimple")

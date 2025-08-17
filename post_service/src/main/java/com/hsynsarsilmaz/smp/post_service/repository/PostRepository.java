@@ -1,9 +1,15 @@
 package com.hsynsarsilmaz.smp.post_service.repository;
 
 import org.springframework.data.domain.Pageable;
+
+import java.util.List;
+import java.util.Set;
+
 import org.springframework.data.domain.Page;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.hsynsarsilmaz.smp.post_service.model.entity.Post;
@@ -22,5 +28,22 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     int countByParentId(Long parentId);
 
     int countByRepostOfIdOrQuoteOfId(Long repostOfId, Long quoteOfId);
+
+    @Query("SELECT p.parentId AS postId, COUNT(p) AS count " +
+                    "FROM Post p " +
+                    "WHERE p.parentId IN :postIds " +
+                    "GROUP BY p.parentId")
+    List<PostCount> countByParentIdIn(@Param("postIds") List<Long> postIds);
+
+    @Query("SELECT p.repostOfId AS postId, COUNT(p) AS count " +
+                    "FROM Post p WHERE p.repostOfId IN :postIds GROUP BY p.repostOfId")
+    List<PostCount> countRepostsByPostIds(@Param("postIds") List<Long> postIds);
+
+    @Query("SELECT p.quoteOfId AS postId, COUNT(p) AS count " +
+                    "FROM Post p WHERE p.quoteOfId IN :postIds GROUP BY p.quoteOfId")
+    List<PostCount> countQuotesByPostIds(@Param("postIds") List<Long> postIds);
+
+    @Query("SELECT p.id FROM Post p WHERE p.userId = :userId AND (p.repostOfId IN :postIds OR p.quoteOfId IN :postIds)")
+    Set<Long> findRepostOrQuoteIdsByUser(@Param("userId") Long userId, @Param("postIds") List<Long> postIds);
 
 }

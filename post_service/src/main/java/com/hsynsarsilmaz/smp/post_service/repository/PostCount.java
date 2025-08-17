@@ -1,7 +1,6 @@
 package com.hsynsarsilmaz.smp.post_service.repository;
 
-public interface PostLikeCount {
+public interface PostCount {
     Long getPostId();
-
     Integer getCount();
 }

@@ -1,8 +1,10 @@
 package com.hsynsarsilmaz.smp.post_service.service.impl;
 
+import java.util.ArrayList;
 import java.util.Comparator;
-
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -25,6 +27,7 @@ import com.hsynsarsilmaz.smp.post_service.model.dto.response.PostSimple;
 import com.hsynsarsilmaz.smp.post_service.model.entity.Post;
 import com.hsynsarsilmaz.smp.post_service.model.entity.PostLike;
 import com.hsynsarsilmaz.smp.post_service.model.mapper.PostMapper;
+import com.hsynsarsilmaz.smp.post_service.repository.PostCount;
 import com.hsynsarsilmaz.smp.post_service.repository.PostLikeRepository;
 import com.hsynsarsilmaz.smp.post_service.repository.PostRepository;
 import com.hsynsarsilmaz.smp.post_service.service.EngagementCacheService;
@@ -164,55 +167,96 @@ public class PostServiceImpl implements PostService {
     }
 
     private void decoratePosts(List<PostSimple> posts, long userId) {
+        if (posts.isEmpty())
+            return;
+
+        List<Long> postIds = posts.stream().map(PostSimple::getId).toList();
+
+        Map<Long, Integer> likeCounts = new HashMap<>();
+        List<Long> missingLikes = new ArrayList<>();
+        for (Long postId : postIds) {
+            int count = engagementCacheService.getLikeCount(postId);
+            if (count == 0)
+                missingLikes.add(postId);
+            likeCounts.put(postId, count);
+        }
+        if (!missingLikes.isEmpty()) {
+            Map<Long, Integer> dbLikes = postLikeRepository.countByPostIdIn(missingLikes).stream()
+                    .collect(Collectors.toMap(PostCount::getPostId, PostCount::getCount));
+            dbLikes.forEach((postId, count) -> {
+                engagementCacheService.setEngagementCounts(postId,
+                        count,
+                        engagementCacheService.getReplyCount(postId),
+                        engagementCacheService.getRepostCount(postId));
+                likeCounts.put(postId, count);
+            });
+        }
+
+        Map<Long, Integer> replyCounts = new HashMap<>();
+        List<Long> missingReplies = new ArrayList<>();
+        for (Long postId : postIds) {
+            int count = engagementCacheService.getReplyCount(postId);
+            if (count == 0)
+                missingReplies.add(postId);
+            replyCounts.put(postId, count);
+        }
+        if (!missingReplies.isEmpty()) {
+            Map<Long, Integer> dbReplies = postRepository.countByParentIdIn(missingReplies).stream()
+                    .collect(Collectors.toMap(PostCount::getPostId, PostCount::getCount));
+            dbReplies.forEach((postId, count) -> {
+                engagementCacheService.setEngagementCounts(postId,
+                        engagementCacheService.getLikeCount(postId),
+                        count,
+                        engagementCacheService.getRepostCount(postId));
+                replyCounts.put(postId, count);
+            });
+        }
+
+        Map<Long, Integer> combinedCounts = new HashMap<>();
+        List<Long> missingPosts = new ArrayList<>();
+
+        for (Long postId : postIds) {
+            int count = engagementCacheService.getRepostCount(postId);
+            if (count == 0) {
+                missingPosts.add(postId);
+            }
+            combinedCounts.put(postId, count);
+        }
+
+        if (!missingPosts.isEmpty()) {
+            Map<Long, Integer> dbReposts = postRepository.countRepostsByPostIds(missingPosts).stream()
+                    .collect(Collectors.toMap(PostCount::getPostId, PostCount::getCount));
+            Map<Long, Integer> dbQuotes = postRepository.countQuotesByPostIds(missingPosts).stream()
+                    .collect(Collectors.toMap(PostCount::getPostId, PostCount::getCount));
+
+            for (Long postId : missingPosts) {
+                int repostCount = dbReposts.getOrDefault(postId, 0);
+                int quoteCount = dbQuotes.getOrDefault(postId, 0);
+                int totalCount = repostCount + quoteCount;
+
+                engagementCacheService.setEngagementCounts(
+                        postId,
+                        engagementCacheService.getLikeCount(postId),
+                        engagementCacheService.getReplyCount(postId),
+                        totalCount);
+
+                combinedCounts.put(postId, totalCount);
+            }
+        }
+
+        Set<Long> likedPosts = postLikeRepository.findPostIdsByUserIdAndPostIdIn(userId, postIds);
+        likedPosts.forEach(postId -> engagementCacheService.addUserLike(userId, postId));
+
+        Set<Long> repostedPosts = postRepository.findRepostOrQuoteIdsByUser(userId, postIds);
+        repostedPosts.forEach(postId -> engagementCacheService.addUserRepost(userId, postId));
+
         for (PostSimple dto : posts) {
             long postId = dto.getId();
-
-            int likeCount = engagementCacheService.getLikeCount(postId);
-            if (likeCount == 0) {
-                likeCount = postLikeRepository.countByPostId(postId);
-                engagementCacheService.setEngagementCounts(postId,
-                        likeCount,
-                        engagementCacheService.getReplyCount(postId),
-                        engagementCacheService.getRepostCount(postId));
-            }
-
-            int replyCount = engagementCacheService.getReplyCount(postId);
-            if (replyCount == 0) {
-                replyCount = postRepository.countByParentId(postId);
-                engagementCacheService.setEngagementCounts(postId,
-                        engagementCacheService.getLikeCount(postId),
-                        replyCount,
-                        engagementCacheService.getRepostCount(postId));
-            }
-
-            int repostCount = engagementCacheService.getRepostCount(postId);
-            if (repostCount == 0) {
-                repostCount = postRepository.countByRepostOfIdOrQuoteOfId(postId, postId);
-                engagementCacheService.setEngagementCounts(postId,
-                        engagementCacheService.getLikeCount(postId),
-                        engagementCacheService.getReplyCount(postId),
-                        repostCount);
-            }
-
-            dto.setLikeCount(likeCount);
-            dto.setReplyCount(replyCount);
-            dto.setRepostCount(repostCount);
-
-            boolean liked = engagementCacheService.isPostLikedByUser(userId, postId);
-            if (!liked) {
-                liked = postLikeRepository.existsByPostIdAndUserId(postId, userId);
-                if (liked)
-                    engagementCacheService.addUserLike(userId, postId);
-            }
-            dto.setLiked(liked);
-
-            boolean reposted = engagementCacheService.isPostRepostedByUser(userId, postId);
-            if (!reposted) {
-                reposted = postRepository.existsByUserIdAndTypeAndRepostOfId(userId, Post.Type.REPOST, postId);
-                if (reposted)
-                    engagementCacheService.addUserRepost(userId, postId);
-            }
-            dto.setReposted(reposted);
+            dto.setLikeCount(likeCounts.get(postId));
+            dto.setReplyCount(replyCounts.get(postId));
+            dto.setRepostCount(combinedCounts.get(postId));
+            dto.setLiked(likedPosts.contains(postId));
+            dto.setReposted(repostedPosts.contains(postId));
         }
     }
 
