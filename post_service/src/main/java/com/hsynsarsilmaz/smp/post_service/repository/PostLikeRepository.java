@@ -14,6 +14,8 @@ import com.hsynsarsilmaz.smp.post_service.model.entity.PostLike;
 public interface PostLikeRepository extends JpaRepository<PostLike, Long> {
     Optional<PostLike> findByPostIdAndUserId(Long postId, Long userId);
 
+    Boolean existsByPostIdAndUserId(Long postId, Long userId);
+
     int countByPostId(Long postId);
 
     List<PostLike> findByPostIdIn(List<Long> postIds);

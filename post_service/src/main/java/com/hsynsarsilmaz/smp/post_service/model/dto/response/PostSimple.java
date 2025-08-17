@@ -19,9 +19,11 @@ public class PostSimple implements Serializable {
     private LocalDateTime createdAt;
     private int likeCount;
     private boolean isLiked;
+    private int replyCount;
+    private int repostCount;
+    private boolean isReposted;
     private Post.Type type;
     private Long parentId;
     private Long repostOfId;
     private Long quoteOfId;
-
 }

@@ -18,4 +18,9 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     Page<Post> findByTypeNot(Post.Type type, Pageable pageable);
 
     boolean existsByUserIdAndTypeAndRepostOfId(Long userId, Post.Type type, Long repostOfId);
+
+    int countByParentId(Long parentId);
+
+    int countByRepostOfIdOrQuoteOfId(Long repostOfId, Long quoteOfId);
+
 }

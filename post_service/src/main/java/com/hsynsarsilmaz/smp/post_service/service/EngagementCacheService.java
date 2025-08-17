@@ -1,19 +1,30 @@
 package com.hsynsarsilmaz.smp.post_service.service;
 
-import java.util.Set;
-
 public interface EngagementCacheService {
+
+    public void setEngagementCounts(Long postId, int likeCount, int replyCount, int repostCount);
+
+    public int getCount(Long postId, String field);
+
     public int getLikeCount(Long postId);
 
-    public void setLikeCount(Long postId, int count);
+    public int getReplyCount(Long postId);
 
-    public void incrementLikeCount(Long postId);
+    public int getRepostCount(Long postId);
 
-    public void decrementLikeCount(Long postId);
+    public void incrementCount(Long postId, String field);
 
-    public Set<Long> getUserLikes(Long userId);
+    public void decrementCount(Long postId, String field);
 
     public void addUserLike(Long userId, Long postId);
 
     public void removeUserLike(Long userId, Long postId);
+
+    public boolean isPostLikedByUser(Long userId, Long postId);
+
+    public void addUserRepost(Long userId, Long postId);
+
+    public void removeUserRepost(Long userId, Long postId);
+
+    public boolean isPostRepostedByUser(Long userId, Long postId);
 }

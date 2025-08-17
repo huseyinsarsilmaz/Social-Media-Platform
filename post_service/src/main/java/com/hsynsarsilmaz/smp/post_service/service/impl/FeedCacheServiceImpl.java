@@ -14,7 +14,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class FeedCacheServiceImpl implements FeedCacheService {
 
-    @Qualifier("redisTemplateForLongList")
+    @Qualifier("redisTemplateForLongSet")
     private final RedisTemplate<String, Set<Long>> redisTemplate;
 
     public void setFeedPage(String key, Set<Long> postIds) {

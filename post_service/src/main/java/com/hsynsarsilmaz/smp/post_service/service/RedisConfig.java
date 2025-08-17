@@ -19,7 +19,7 @@ import com.hsynsarsilmaz.smp.post_service.model.dto.response.PostSimple;
 public class RedisConfig {
 
     @Bean
-    public RedisTemplate<String, Set<Long>> redisTemplateForLongList(RedisConnectionFactory connectionFactory) {
+    public RedisTemplate<String, Set<Long>> redisTemplateForLongSet(RedisConnectionFactory connectionFactory) {
         RedisTemplate<String, Set<Long>> template = new RedisTemplate<>();
         template.setConnectionFactory(connectionFactory);
 
@@ -48,6 +48,20 @@ public class RedisConfig {
         template.setValueSerializer(serializer);
         template.setHashKeySerializer(new StringRedisSerializer());
         template.setHashValueSerializer(serializer);
+
+        template.afterPropertiesSet();
+        return template;
+    }
+
+    @Bean
+    public RedisTemplate<String, Long> redisTemplateForLong(RedisConnectionFactory connectionFactory) {
+        RedisTemplate<String, Long> template = new RedisTemplate<>();
+        template.setConnectionFactory(connectionFactory);
+
+        template.setKeySerializer(new StringRedisSerializer());
+        template.setValueSerializer(new GenericJackson2JsonRedisSerializer());
+        template.setHashKeySerializer(new StringRedisSerializer());
+        template.setHashValueSerializer(new GenericJackson2JsonRedisSerializer());
 
         template.afterPropertiesSet();
         return template;

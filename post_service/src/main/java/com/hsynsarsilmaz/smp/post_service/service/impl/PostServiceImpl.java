@@ -3,7 +3,6 @@ package com.hsynsarsilmaz.smp.post_service.service.impl;
 import java.util.Comparator;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -26,7 +25,6 @@ import com.hsynsarsilmaz.smp.post_service.model.dto.response.PostSimple;
 import com.hsynsarsilmaz.smp.post_service.model.entity.Post;
 import com.hsynsarsilmaz.smp.post_service.model.entity.PostLike;
 import com.hsynsarsilmaz.smp.post_service.model.mapper.PostMapper;
-import com.hsynsarsilmaz.smp.post_service.repository.PostLikeCount;
 import com.hsynsarsilmaz.smp.post_service.repository.PostLikeRepository;
 import com.hsynsarsilmaz.smp.post_service.repository.PostRepository;
 import com.hsynsarsilmaz.smp.post_service.service.EngagementCacheService;
@@ -59,12 +57,6 @@ public class PostServiceImpl implements PostService {
                 .orElseThrow(() -> new NotFoundException("Post Like", "user and post ids"));
     }
 
-    private void isPostLikedByUser(Long postId, Long userId) {
-        if (postLikeRepository.findByPostIdAndUserId(postId, userId).isPresent()) {
-            throw new AlreadyExistsException("Like of this post", "this user");
-        }
-    }
-
     private void isPostRepostedByUser(Long parentId, Long userId) {
         if (postRepository.existsByUserIdAndTypeAndRepostOfId(userId, Post.Type.REPOST, userId)) {
             throw new AlreadyExistsException("Repost of this post", "this user");
@@ -82,6 +74,12 @@ public class PostServiceImpl implements PostService {
         postCacheService.setPost(postSimple);
         feedCacheService.evictFeedPages("feed:global:page:");
         feedCacheService.evictFeedPages("feed:user:" + userId + ":page:");
+
+        postSimple.setLikeCount(engagementCacheService.getLikeCount(post.getId()));
+        postSimple.setReplyCount(engagementCacheService.getReplyCount(post.getId()));
+        postSimple.setRepostCount(engagementCacheService.getRepostCount(post.getId()));
+        postSimple.setLiked(engagementCacheService.isPostLikedByUser(userId, post.getId()));
+        postSimple.setReposted(engagementCacheService.isPostRepostedByUser(userId, post.getId()));
 
         return postSimple;
     }
@@ -123,8 +121,10 @@ public class PostServiceImpl implements PostService {
         newPost.setUserId(userId);
         newPost.setType(Post.Type.REPOST);
         newPost.setRepostOfId(parentId);
-
         newPost = postRepository.save(newPost);
+
+        engagementCacheService.incrementCount(parentId, "repostCount");
+        engagementCacheService.addUserRepost(userId, parentId);
         return updatePostCache(newPost, userId);
     }
 
@@ -135,8 +135,10 @@ public class PostServiceImpl implements PostService {
         newPost.setUserId(userId);
         newPost.setType(Post.Type.QUOTE);
         newPost.setQuoteOfId(parentId);
-
         newPost = postRepository.save(newPost);
+
+        engagementCacheService.incrementCount(parentId, "repostCount");
+        engagementCacheService.addUserRepost(userId, parentId);
         return updatePostCache(newPost, userId);
     }
 
@@ -161,12 +163,57 @@ public class PostServiceImpl implements PostService {
         return updatePostCache(post, userId);
     }
 
-    private void decoratePosts(List<PostSimple> posts, Set<Long> likedPosts) {
-        posts.forEach(dto -> {
-            Integer count = engagementCacheService.getLikeCount(dto.getId());
-            dto.setLikeCount(count != null ? count : 0);
-            dto.setLiked(likedPosts.contains(dto.getId()));
-        });
+    private void decoratePosts(List<PostSimple> posts, long userId) {
+        for (PostSimple dto : posts) {
+            long postId = dto.getId();
+
+            int likeCount = engagementCacheService.getLikeCount(postId);
+            if (likeCount == 0) {
+                likeCount = postLikeRepository.countByPostId(postId);
+                engagementCacheService.setEngagementCounts(postId,
+                        likeCount,
+                        engagementCacheService.getReplyCount(postId),
+                        engagementCacheService.getRepostCount(postId));
+            }
+
+            int replyCount = engagementCacheService.getReplyCount(postId);
+            if (replyCount == 0) {
+                replyCount = postRepository.countByParentId(postId);
+                engagementCacheService.setEngagementCounts(postId,
+                        engagementCacheService.getLikeCount(postId),
+                        replyCount,
+                        engagementCacheService.getRepostCount(postId));
+            }
+
+            int repostCount = engagementCacheService.getRepostCount(postId);
+            if (repostCount == 0) {
+                repostCount = postRepository.countByRepostOfIdOrQuoteOfId(postId, postId);
+                engagementCacheService.setEngagementCounts(postId,
+                        engagementCacheService.getLikeCount(postId),
+                        engagementCacheService.getReplyCount(postId),
+                        repostCount);
+            }
+
+            dto.setLikeCount(likeCount);
+            dto.setReplyCount(replyCount);
+            dto.setRepostCount(repostCount);
+
+            boolean liked = engagementCacheService.isPostLikedByUser(userId, postId);
+            if (!liked) {
+                liked = postLikeRepository.existsByPostIdAndUserId(postId, userId);
+                if (liked)
+                    engagementCacheService.addUserLike(userId, postId);
+            }
+            dto.setLiked(liked);
+
+            boolean reposted = engagementCacheService.isPostRepostedByUser(userId, postId);
+            if (!reposted) {
+                reposted = postRepository.existsByUserIdAndTypeAndRepostOfId(userId, Post.Type.REPOST, postId);
+                if (reposted)
+                    engagementCacheService.addUserRepost(userId, postId);
+            }
+            dto.setReposted(reposted);
+        }
     }
 
     private Page<PostSimple> emptyFeedCache(long userId, Pageable pageable, String cacheKey) {
@@ -179,18 +226,18 @@ public class PostServiceImpl implements PostService {
                 .collect(Collectors.toSet());
         feedCacheService.setFeedPage(cacheKey, postIds);
 
-        Set<Long> likedPostIds = engagementCacheService.getUserLikes(userId);
         List<PostSimple> posts = postPage.stream()
                 .map(postMapper::toDtoSimple)
                 .toList();
 
         posts.forEach(postCacheService::setPost);
-        decoratePosts(posts, likedPostIds);
+
+        decoratePosts(posts, userId);
 
         return new PageImpl<>(posts, pageable, postPage.getTotalElements());
     }
 
-    private Page<PostSimple> partialFeedCache(Set<Long> postIds, List<PostSimple> cachedPosts, Set<Long> likedPosts,
+    private Page<PostSimple> partialFeedCache(long userId, Set<Long> postIds, List<PostSimple> cachedPosts,
             Pageable pageable) {
         List<Long> missingIds = postIds.stream()
                 .filter(id -> cachedPosts.stream().noneMatch(p -> p.getId() == id))
@@ -198,15 +245,8 @@ public class PostServiceImpl implements PostService {
 
         List<Post> missingPosts = postRepository.findAllById(missingIds);
 
-        Map<Long, Integer> likeCounts = postLikeRepository.countByPostIdIn(missingIds).stream()
-                .collect(Collectors.toMap(PostLikeCount::getPostId, PostLikeCount::getCount));
-
         List<PostSimple> missingDtos = missingPosts.stream()
                 .map(postMapper::toDtoSimple)
-                .peek(dto -> {
-                    dto.setLikeCount(likeCounts.getOrDefault(dto.getId(), 0));
-                    dto.setLiked(likedPosts.contains(dto.getId()));
-                })
                 .toList();
 
         missingDtos.forEach(postCacheService::setPost);
@@ -215,18 +255,20 @@ public class PostServiceImpl implements PostService {
                 .sorted(Comparator.comparing(PostSimple::getCreatedAt).reversed())
                 .toList();
 
-        decoratePosts(combinedPosts, likedPosts);
+        decoratePosts(combinedPosts, userId);
+
         return new PageImpl<>(combinedPosts, pageable, combinedPosts.size());
     }
 
-    private Page<PostSimple> fullFeedCache(List<PostSimple> cachedPosts, Set<Long> likedPosts, Pageable pageable) {
-        decoratePosts(cachedPosts, likedPosts);
+    private Page<PostSimple> fullFeedCache(long userId, List<PostSimple> cachedPosts, Pageable pageable) {
+        decoratePosts(cachedPosts, userId);
         return new PageImpl<>(cachedPosts, pageable, cachedPosts.size());
     }
 
     private Page<PostSimple> getFeedFromCache(String cacheKey, long userId, int page) {
         Pageable pageable = PageRequest.of(page, PAGE_SIZE, Sort.by(Sort.Direction.DESC, "createdAt"));
         Set<Long> postIds = feedCacheService.getFeedPage(cacheKey);
+
         if (postIds == null) {
             return emptyFeedCache(userId, pageable, cacheKey);
         }
@@ -236,12 +278,10 @@ public class PostServiceImpl implements PostService {
                 .filter(Objects::nonNull)
                 .toList();
 
-        Set<Long> likedPosts = engagementCacheService.getUserLikes(userId);
-
         if (cachedPosts.size() < postIds.size()) {
-            return partialFeedCache(postIds, cachedPosts, likedPosts, pageable);
+            return partialFeedCache(userId, postIds, cachedPosts, pageable);
         } else {
-            return fullFeedCache(cachedPosts, likedPosts, pageable);
+            return fullFeedCache(userId, cachedPosts, pageable);
         }
     }
 
@@ -261,23 +301,21 @@ public class PostServiceImpl implements PostService {
     @Transactional
     public PostSimple like(Long postId, Long userId) {
         Post post = getEntityById(postId);
-        isPostLikedByUser(postId, userId);
+
+        if (engagementCacheService.isPostLikedByUser(userId, postId)) {
+            return getUpdatedPostSimple(post);
+        }
 
         PostLike newLike = PostLike.builder()
                 .postId(postId)
                 .userId(userId)
                 .build();
-
         postLikeRepository.save(newLike);
 
-        engagementCacheService.incrementLikeCount(postId);
+        engagementCacheService.incrementCount(postId, "likeCount");
         engagementCacheService.addUserLike(userId, postId);
 
-        PostSimple postSimple = postCacheService.getPost(postId);
-        if (postSimple == null)
-            postSimple = postMapper.toDtoSimple(post);
-        postSimple.setLikeCount(engagementCacheService.getLikeCount(postId));
-        return postSimple;
+        return getUpdatedPostSimple(post);
     }
 
     @Transactional
@@ -287,13 +325,22 @@ public class PostServiceImpl implements PostService {
         PostLike like = getPostLikeEntity(postId, userId);
         postLikeRepository.delete(like);
 
-        engagementCacheService.decrementLikeCount(postId);
+        engagementCacheService.decrementCount(postId, "likeCount");
         engagementCacheService.removeUserLike(userId, postId);
 
-        PostSimple postSimple = postCacheService.getPost(postId);
-        if (postSimple == null)
+        return getUpdatedPostSimple(post);
+    }
+
+    private PostSimple getUpdatedPostSimple(Post post) {
+        PostSimple postSimple = postCacheService.getPost(post.getId());
+        if (postSimple == null) {
             postSimple = postMapper.toDtoSimple(post);
-        postSimple.setLikeCount(engagementCacheService.getLikeCount(postId));
+        }
+
+        postSimple.setLikeCount(engagementCacheService.getLikeCount(post.getId()));
+        postSimple.setReplyCount(engagementCacheService.getReplyCount(post.getId()));
+        postSimple.setRepostCount(engagementCacheService.getRepostCount(post.getId()));
+
         return postSimple;
     }
 
