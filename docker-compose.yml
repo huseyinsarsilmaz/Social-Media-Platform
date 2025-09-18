@@ -1,0 +1,96 @@
+services:
+  redis:
+    image: redis:latest
+    container_name: redis
+    ports:
+      - "6379:6379"
+    networks:
+      - backend
+
+  userdb:
+    image: postgres:latest
+    container_name: userdb
+    environment:
+      POSTGRES_DB: userdb
+      POSTGRES_USER: huseyin
+      POSTGRES_PASSWORD: 12345678
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./databases/userdb:/var/lib/postgresql/data
+    networks:
+      - backend
+
+  postdb:
+    image: postgres:latest
+    container_name: postdb
+    environment:
+      POSTGRES_DB: postdb
+      POSTGRES_USER: huseyin
+      POSTGRES_PASSWORD: 12345678
+    ports:
+      - "5433:5432"
+    volumes:
+      - ./databases/postdb:/var/lib/postgresql/data
+    networks:
+      - backend
+
+  service-discovery:
+    build:
+      context: ./service_discovery
+    container_name: service-discovery
+    ports:
+      - "8761:8761"
+    networks:
+      - backend
+
+  api-gateway:
+    build:
+      context: ./api-gateway
+    container_name: api-gateway
+    ports:
+      - "8080:8080"
+    networks:
+      - backend
+    depends_on:
+      - user-service
+      - post-service
+      - feed-service
+      - service-discovery
+
+  user-service:
+    build:
+      context: ./user_service
+    container_name: user-service
+    networks:
+      - backend
+    depends_on:
+      - userdb
+      - redis
+      - service-discovery
+    volumes:
+      - ./uploads/images:/app/uploads/images
+
+  post-service:
+    build:
+      context: ./post_service
+    container_name: post-service
+    networks:
+      - backend
+    depends_on:
+      - postdb
+      - service-discovery
+
+  feed-service:
+    build:
+      context: ./feed_service
+    container_name: feed-service
+    networks:
+      - backend
+    depends_on:
+      - user-service
+      - post-service
+      - service-discovery
+
+networks:
+  backend:
