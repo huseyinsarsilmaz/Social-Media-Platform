@@ -70,7 +70,12 @@ export default function PostCard({
     >
       {post.deleted ? (
         <Typography
-          sx={{ fontSize: "0.95rem", mt: 0.5, fontStyle: "italic", color: "gray" }}
+          sx={{
+            fontSize: "0.95rem",
+            mt: 0.5,
+            fontStyle: "italic",
+            color: "gray",
+          }}
         >
           {post.text}
         </Typography>
@@ -249,9 +254,11 @@ function PostHeader({
 function PostStats({
   post,
   reload,
+  referencedPost,
 }: {
   post: Post;
   reload: () => Promise<void>;
+  referencedPost?: Post;
 }) {
   const { token } = useAuthToken();
   const [liked, setLiked] = useState(post.liked);
@@ -261,46 +268,33 @@ function PostStats({
   const [repostCount, setRepostCount] = useState(post.repostCount);
 
   const [openQuoteDialog, setOpenQuoteDialog] = useState(false);
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
-  const handleRepostQuoteClick = () => {
+  const openRepostMenu = (e: React.MouseEvent<HTMLElement>) =>
+    setAnchorEl(e.currentTarget);
+  const closeRepostMenu = () => setAnchorEl(null);
+
+  const handleRepost = () => {
     if (!token) return (window.location.href = "/login");
-
-    if (reposted) {
-      const action = window.prompt(
-        "You already reposted/quoted this post. Type 'remove' to undo or 'quote' to quote again."
-      );
-      if (!action) return;
-      if (action.toLowerCase() === "remove") {
-        handleRepostButtonClick(
-          true,
-          token,
-          post.id,
-          setReposted,
-          setRepostCount,
-          reload
-        );
-      } else if (action.toLowerCase() === "quote") {
-        setOpenQuoteDialog(true);
-      }
-    } else {
-      const action = window.prompt(
-        "Type 'repost' to repost or 'quote' to quote this post."
-      );
-      if (!action) return;
-      if (action.toLowerCase() === "repost") {
-        handleRepostButtonClick(
-          false,
-          token,
-          post.id,
-          setReposted,
-          setRepostCount,
-          reload
-        );
-      } else if (action.toLowerCase() === "quote") {
-        setOpenQuoteDialog(true);
-      }
-    }
+    handleRepostButtonClick(
+      reposted,
+      token,
+      post.id,
+      setReposted,
+      setRepostCount,
+      reload
+    );
+    closeRepostMenu();
   };
+
+  const handleQuote = () => {
+    if (!token) return (window.location.href = "/login");
+    setOpenQuoteDialog(true);
+    closeRepostMenu();
+  };
+
+  const quotePost =
+    post.type === "REPOST" && referencedPost ? referencedPost : post;
 
   return (
     <>
@@ -318,14 +312,40 @@ function PostStats({
         />
         <Stat
           icon={
-            <Repeat
-              fontSize="small"
-              sx={{
-                color: reposted ? "#1d9bf0" : "inherit",
-                cursor: "pointer",
-              }}
-              onClick={handleRepostQuoteClick}
-            />
+            <>
+              <IconButton
+                size="small"
+                onClick={openRepostMenu}
+                sx={{ color: reposted ? "#1d9bf0" : "inherit" }}
+              >
+                <Repeat fontSize="small" />
+              </IconButton>
+              <Menu
+                anchorEl={anchorEl}
+                open={Boolean(anchorEl)}
+                onClose={closeRepostMenu}
+                anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+                transformOrigin={{ vertical: "top", horizontal: "center" }}
+              >
+                {reposted
+                  ? [
+                      <MenuItem key="undo" onClick={handleRepost}>
+                        Undo Repost
+                      </MenuItem>,
+                      <MenuItem key="quote" onClick={handleQuote}>
+                        Quote Post
+                      </MenuItem>,
+                    ]
+                  : [
+                      <MenuItem key="repost" onClick={handleRepost}>
+                        Repost
+                      </MenuItem>,
+                      <MenuItem key="quote" onClick={handleQuote}>
+                        Quote Post
+                      </MenuItem>,
+                    ]}
+              </Menu>
+            </>
           }
           count={repostCount}
         />
@@ -359,7 +379,7 @@ function PostStats({
           profilePicture={null}
           onClose={() => setOpenQuoteDialog(false)}
           onPostSuccess={reload}
-          quotedPost={post}
+          quotedPost={quotePost}
         />
       )}
     </>
