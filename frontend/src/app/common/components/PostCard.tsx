@@ -145,7 +145,14 @@ export default function PostCard({
                 </Typography>
               )}
 
-              {!hideStats && <PostStats post={actualPost} reload={reload} />}
+              {!hideStats && (
+                <PostStats
+                  post={actualPost}
+                  reload={reload}
+                  profilePicture={user.profilePicture}
+                  referencedUser={referencedUser}
+                />
+              )}
             </Stack>
           </Stack>
         </>
@@ -255,10 +262,14 @@ function PostStats({
   post,
   reload,
   referencedPost,
+  referencedUser,
+  profilePicture,
 }: {
   post: Post;
   reload: () => Promise<void>;
   referencedPost?: Post;
+  referencedUser?: UserSimple;
+  profilePicture: string | null | undefined;
 }) {
   const { token } = useAuthToken();
   const [liked, setLiked] = useState(post.liked);
@@ -376,10 +387,11 @@ function PostStats({
       {openQuoteDialog && (
         <NewPostDialog
           open={openQuoteDialog}
-          profilePicture={null}
+          profilePicture={profilePicture}
           onClose={() => setOpenQuoteDialog(false)}
           onPostSuccess={reload}
           quotedPost={quotePost}
+          referencedUser={referencedUser}
         />
       )}
     </>

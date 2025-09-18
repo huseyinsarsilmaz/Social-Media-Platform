@@ -15,14 +15,16 @@ import { useState } from "react";
 import ImageSharp from "@mui/icons-material/ImageSharp";
 import CloseIcon from "@mui/icons-material/Close";
 import { createPost, createQuote } from "./commonActions";
-import { Post } from "@/interface/interfaces";
+import { Post, UserSimple } from "@/interface/interfaces";
+import PostCard from "./PostCard";
 
 interface Props {
   open: boolean;
   profilePicture: string | null | undefined;
   onClose: () => void;
   onPostSuccess: () => void;
-  quotedPost?: Post; // new optional prop
+  quotedPost?: Post;
+  referencedUser: UserSimple | undefined;
 }
 
 export default function NewPostDialog({
@@ -31,6 +33,7 @@ export default function NewPostDialog({
   onClose,
   onPostSuccess,
   quotedPost,
+  referencedUser,
 }: Props) {
   const [postText, setPostText] = useState("");
   const [posting, setPosting] = useState(false);
@@ -87,23 +90,16 @@ export default function NewPostDialog({
           />
         </Box>
 
-        {quotedPost && (
-          <Box
-            sx={{
-              mt: 2,
-              border: "1px solid #2f2f2f",
-              borderRadius: 2,
-              p: 1,
-              bgcolor: "#1a1a1a",
-            }}
-          >
-            {/* <Typography sx={{ fontSize: "0.9rem", color: "gray" }}>
-              Quoting @{quotedPost.user.username}
-            </Typography> */}
-            <Typography sx={{ fontSize: "0.95rem", mt: 0.5 }}>
-              {quotedPost.text}
-            </Typography>
-          </Box>
+        {quotedPost && referencedUser && (
+          <PostCard
+            post={quotedPost}
+            user={referencedUser}
+            onEdit={() => {}}
+            onDelete={() => {}}
+            reload={() => Promise.resolve()}
+            isOwnUser={false}
+            hideStats
+          />
         )}
 
         <PostImageHint />
