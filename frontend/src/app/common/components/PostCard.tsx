@@ -68,75 +68,83 @@ export default function PostCard({
         color: "#fff",
       }}
     >
-      {post.type === "REPOST" && referencedUser && (
-        <Stack
-          direction="row"
-          alignItems="center"
-          spacing={1}
-          sx={{ mb: 1, color: "gray" }}
+      {post.deleted ? (
+        <Typography
+          sx={{ fontSize: "0.95rem", mt: 0.5, fontStyle: "italic", color: "gray" }}
         >
-          <Repeat fontSize="small" />
-          <Typography variant="body2">{user.name} reposted</Typography>
-        </Stack>
-      )}
-
-      <Stack direction="row" spacing={2}>
-        <Link href={`/${user.username}`} style={{ textDecoration: "none" }}>
-          <Avatar
-            src={avatarSrc}
-            alt={user.name}
-            sx={{ width: 40, height: 40, cursor: "pointer" }}
-          />
-        </Link>
-
-        <Stack flex={1}>
-          <PostHeader
-            user={actualUser}
-            post={actualPost}
-            onEdit={onEdit}
-            onDelete={onDelete}
-            isOwnUser={isOwnUser}
-          />
-
-          {post.type === "QUOTE" && referencedPost && referencedUser ? (
-            <>
-              <Typography sx={{ fontSize: "0.95rem", mt: 0.5 }}>
-                {post.text}
-              </Typography>
-              <Box
-                sx={{
-                  mt: 1,
-                  border: "1px solid #2f2f2f",
-                  borderRadius: 2,
-                  overflow: "hidden",
-                }}
-              >
-                <PostCard
-                  post={referencedPost}
-                  user={referencedUser}
-                  onEdit={onEdit}
-                  onDelete={onDelete}
-                  reload={reload}
-                  isOwnUser={false}
-                  hideStats
-                />
-              </Box>
-            </>
-          ) : post.type === "REPOST" && referencedPost && referencedUser ? (
-            <>
-              <Typography sx={{ fontSize: "0.95rem", mt: 0.5 }}>
-                {referencedPost.text}
-              </Typography>
-            </>
-          ) : (
-            <Typography sx={{ fontSize: "0.95rem", mt: 0.5 }}>
-              {post.text}
-            </Typography>
+          {post.text}
+        </Typography>
+      ) : (
+        <>
+          {post.type === "REPOST" && referencedUser && (
+            <Stack
+              direction="row"
+              alignItems="center"
+              spacing={1}
+              sx={{ mb: 1, color: "gray" }}
+            >
+              <Repeat fontSize="small" />
+              <Typography variant="body2">{user.name} reposted</Typography>
+            </Stack>
           )}
 
-          {!hideStats && <PostStats post={actualPost} reload={reload} />}
-        </Stack>
-      </Stack>
+          <Stack direction="row" spacing={2}>
+            <Link href={`/${user.username}`} style={{ textDecoration: "none" }}>
+              <Avatar
+                src={avatarSrc}
+                alt={user.name}
+                sx={{ width: 40, height: 40, cursor: "pointer" }}
+              />
+            </Link>
+
+            <Stack flex={1}>
+              <PostHeader
+                user={actualUser}
+                post={actualPost}
+                onEdit={onEdit}
+                onDelete={onDelete}
+                isOwnUser={isOwnUser}
+              />
+
+              {post.type === "QUOTE" && referencedPost && referencedUser ? (
+                <>
+                  <Typography sx={{ fontSize: "0.95rem", mt: 0.5 }}>
+                    {post.text}
+                  </Typography>
+                  <Box
+                    sx={{
+                      mt: 1,
+                      border: "1px solid #2f2f2f",
+                      borderRadius: 2,
+                      overflow: "hidden",
+                    }}
+                  >
+                    <PostCard
+                      post={referencedPost}
+                      user={referencedUser}
+                      onEdit={onEdit}
+                      onDelete={onDelete}
+                      reload={reload}
+                      isOwnUser={false}
+                      hideStats
+                    />
+                  </Box>
+                </>
+              ) : post.type === "REPOST" && referencedPost && referencedUser ? (
+                <Typography sx={{ fontSize: "0.95rem", mt: 0.5 }}>
+                  {referencedPost.text}
+                </Typography>
+              ) : (
+                <Typography sx={{ fontSize: "0.95rem", mt: 0.5 }}>
+                  {post.text}
+                </Typography>
+              )}
+
+              {!hideStats && <PostStats post={actualPost} reload={reload} />}
+            </Stack>
+          </Stack>
+        </>
+      )}
     </Box>
   );
 }
