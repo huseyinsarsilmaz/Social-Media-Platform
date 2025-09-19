@@ -137,6 +137,8 @@ public class PostServiceImpl implements PostService {
         newPost.setParentId(parentId);
 
         newPost = postRepository.save(newPost);
+
+        engagementCacheService.incrementCount(parentId, "replyCount");
         return updatePostCache(newPost, userId);
     }
 
