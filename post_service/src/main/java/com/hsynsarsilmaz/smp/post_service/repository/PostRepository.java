@@ -28,6 +28,9 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 
     Optional<Post> findByUserIdAndTypeAndRepostOfId(Long userId, Post.Type type, Long repostOfId);
 
+    @Query("select p.id from Post p where p.parentId = :parentId")
+    List<Long> findIdsByParentId(@Param("parentId") Long parentId);
+
     int countByParentId(Long parentId);
 
     int countByRepostOfIdOrQuoteOfId(Long repostOfId, Long quoteOfId);

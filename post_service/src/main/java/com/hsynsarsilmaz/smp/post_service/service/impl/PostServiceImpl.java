@@ -25,6 +25,7 @@ import com.hsynsarsilmaz.smp.post_service.exception.RepostParentException;
 import com.hsynsarsilmaz.smp.post_service.model.dto.request.AddPostRequest;
 import com.hsynsarsilmaz.smp.post_service.model.dto.request.UpdatePostRequest;
 import com.hsynsarsilmaz.smp.post_service.model.dto.response.PostSimple;
+import com.hsynsarsilmaz.smp.post_service.model.dto.response.PostWithReplies;
 import com.hsynsarsilmaz.smp.post_service.model.entity.Post;
 import com.hsynsarsilmaz.smp.post_service.model.entity.PostLike;
 import com.hsynsarsilmaz.smp.post_service.model.mapper.PostMapper;
@@ -431,6 +432,57 @@ public class PostServiceImpl implements PostService {
         postSimple.setRepostCount(engagementCacheService.getRepostCount(post.getId()));
 
         return postSimple;
+    }
+
+    public PostWithReplies getWithReplies(Long postId) {
+        PostSimple self = postCacheService.getPost(postId);
+        if (self == null) {
+            Post post = getEntityById(postId);
+            self = postMapper.toDtoSimple(post);
+            postCacheService.setPost(self);
+        }
+
+        PostSimple parent = null;
+        if (self.getParentId() != null) {
+            parent = postCacheService.getPost(self.getParentId());
+            if (parent == null) {
+                Optional<Post> parentEntity = postRepository.findById(self.getParentId());
+                if (parentEntity.isPresent()) {
+                    parent = postMapper.toDtoSimple(parentEntity.get());
+                    postCacheService.setPost(parent);
+                }
+            }
+        }
+
+        List<Long> childIds = postRepository.findIdsByParentId(postId);
+        List<PostSimple> children = childIds.stream()
+                .map(id -> {
+                    PostSimple child = postCacheService.getPost(id);
+                    if (child == null) {
+                        Post entity = postRepository.findById(id).orElse(null);
+                        if (entity != null) {
+                            child = postMapper.toDtoSimple(entity);
+                            postCacheService.setPost(child);
+                        }
+                    }
+                    return child;
+                })
+                .filter(Objects::nonNull)
+                .toList();
+
+        List<PostSimple> allPosts = new ArrayList<>();
+        allPosts.add(self);
+        if (parent != null)
+            allPosts.add(parent);
+        allPosts.addAll(children);
+        decoratePosts(allPosts, self.getUserId());
+
+        PostWithReplies dto = new PostWithReplies();
+        dto.setSelf(self);
+        dto.setParent(parent);
+        dto.setChildren(children);
+
+        return dto;
     }
 
 }

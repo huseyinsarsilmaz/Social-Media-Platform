@@ -20,6 +20,7 @@ import com.hsynsarsilmaz.smp.common.util.SmpResponseBuilder;
 import com.hsynsarsilmaz.smp.post_service.model.dto.request.AddPostRequest;
 import com.hsynsarsilmaz.smp.post_service.model.dto.request.UpdatePostRequest;
 import com.hsynsarsilmaz.smp.post_service.model.dto.response.PostSimple;
+import com.hsynsarsilmaz.smp.post_service.model.dto.response.PostWithReplies;
 import com.hsynsarsilmaz.smp.post_service.service.PostService;
 
 import jakarta.validation.Valid;
@@ -153,6 +154,14 @@ public class PostController {
         PostSimple likedPost = postService.unlike(postId, userId);
 
         return responseBuilder.success("Post", "unliked", likedPost, HttpStatus.OK);
+    }
+
+    @GetMapping("/{postId}")
+    public ResponseEntity<SmpResponse<PostWithReplies>> getPostWithReplies(@PathVariable("postId") Long postId) {
+
+        PostWithReplies postWithReplies = postService.getWithReplies(postId);
+
+        return responseBuilder.success("Post with replies", "fetched", postWithReplies, HttpStatus.OK);
     }
 
 }

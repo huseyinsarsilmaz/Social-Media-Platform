@@ -5,6 +5,7 @@ import org.springframework.data.domain.Page;
 import com.hsynsarsilmaz.smp.post_service.model.dto.request.AddPostRequest;
 import com.hsynsarsilmaz.smp.post_service.model.dto.request.UpdatePostRequest;
 import com.hsynsarsilmaz.smp.post_service.model.dto.response.PostSimple;
+import com.hsynsarsilmaz.smp.post_service.model.dto.response.PostWithReplies;
 import com.hsynsarsilmaz.smp.post_service.model.entity.Post;
 
 public interface PostService {
@@ -32,5 +33,7 @@ public interface PostService {
     public PostSimple unrepost(Long parentId, Long userId);
 
     public PostSimple quote(AddPostRequest req, Long parentId, Long userId);
+
+    public PostWithReplies getWithReplies(Long postId);
 
 }
