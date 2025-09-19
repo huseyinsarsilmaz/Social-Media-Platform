@@ -24,7 +24,7 @@ interface Props {
   onClose: () => void;
   onPostSuccess: () => void;
   quotedPost?: Post;
-  referencedUser: UserSimple | undefined;
+  referencedUser?: UserSimple | undefined;
 }
 
 export default function NewPostDialog({
