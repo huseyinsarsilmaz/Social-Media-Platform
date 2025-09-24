@@ -83,25 +83,6 @@ export default function PostPage() {
 
   if (!data) return null;
 
-  const renderReplies = (replies: typeof data.children) =>
-    replies?.map((child) => (
-      <Box key={child.post.id} sx={{ ml: 4 }}>
-        <PostCard
-          post={child.post}
-          user={child.user}
-          onEdit={(p) => {
-            setEditPostId(p.id);
-            setEditText(p.text);
-          }}
-          onDelete={(id) => handleDeletePost(token, id, loadData)}
-          reload={loadData}
-          isOwnUser={child.user.username === ownUsername}
-          referencedPost={data.self?.post || undefined}
-          referencedUser={data.self?.user || undefined}
-        />
-      </Box>
-    ));
-
   return (
     <ThreeColumnLayout
       left={
