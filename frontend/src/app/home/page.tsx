@@ -91,6 +91,7 @@ export default function HomePage() {
                 setEditText(post.text);
               }}
               onDelete={(id) => handleDeletePost(token, id, reloadFeed)}
+              onRepost={reloadFeed}
             />
             <EditPostDialog
               open={editPostId !== null}
