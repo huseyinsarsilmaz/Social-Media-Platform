@@ -2,8 +2,6 @@ services:
   redis:
     image: redis:latest
     container_name: redis
-    ports:
-      - "6379:6379"
     networks:
       - backend
 
@@ -14,8 +12,6 @@ services:
       POSTGRES_DB: userdb
       POSTGRES_USER: huseyin
       POSTGRES_PASSWORD: 12345678
-    ports:
-      - "5432:5432"
     volumes:
       - ./databases/userdb:/var/lib/postgresql/data
     networks:
@@ -28,8 +24,6 @@ services:
       POSTGRES_DB: postdb
       POSTGRES_USER: huseyin
       POSTGRES_PASSWORD: 12345678
-    ports:
-      - "5433:5432"
     volumes:
       - ./databases/postdb:/var/lib/postgresql/data
     networks:
@@ -39,8 +33,6 @@ services:
     build:
       context: ./service_discovery
     container_name: service-discovery
-    ports:
-      - "8761:8761"
     networks:
       - backend
 
@@ -91,6 +83,18 @@ services:
       - user-service
       - post-service
       - service-discovery
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: frontend
+    ports:
+      - "80:3000"
+    networks:
+      - backend
+    depends_on:
+      - api-gateway
+
 
 networks:
   backend:
