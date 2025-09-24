@@ -281,6 +281,7 @@ function PostStats({
   const [repostCount, setRepostCount] = useState(post.repostCount);
 
   const [openQuoteDialog, setOpenQuoteDialog] = useState(false);
+  const [openReplyDialog, setOpenReplyDialog] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
   const openRepostMenu = (e: React.MouseEvent<HTMLElement>) =>
@@ -306,6 +307,11 @@ function PostStats({
     closeRepostMenu();
   };
 
+  const handleReply = () => {
+    if (!token) return (window.location.href = "/login");
+    setOpenReplyDialog(true);
+  };
+
   const quotePost =
     post.type === "REPOST" && referencedPost ? referencedPost : post;
 
@@ -319,7 +325,11 @@ function PostStats({
       >
         <Stat
           icon={
-            <ChatBubbleOutline fontSize="small" sx={{ cursor: "pointer" }} />
+            <ChatBubbleOutline
+              fontSize="small"
+              sx={{ cursor: "pointer" }}
+              onClick={handleReply}
+            />
           }
           count={replyCount}
         />
@@ -367,7 +377,7 @@ function PostStats({
             liked ? (
               <Favorite
                 fontSize="small"
-                sx={{ color: "#e0245e" }}
+                sx={{ color: "#e0245e", cursor: "pointer" }}
                 onClick={() =>
                   handleLikeButtonClick(liked, token, post.id, setLiked, reload)
                 }
@@ -375,6 +385,7 @@ function PostStats({
             ) : (
               <FavoriteBorder
                 fontSize="small"
+                sx={{ cursor: "pointer" }}
                 onClick={() =>
                   handleLikeButtonClick(liked, token, post.id, setLiked, reload)
                 }
@@ -392,13 +403,26 @@ function PostStats({
           profilePicture={profilePicture}
           onClose={() => setOpenQuoteDialog(false)}
           onPostSuccess={reload}
-          quotedPost={quotePost}
+          referencedPost={quotePost}
           referencedUser={referencedUser}
+        />
+      )}
+
+      {openReplyDialog && (
+        <NewPostDialog
+          open={openReplyDialog}
+          profilePicture={profilePicture}
+          onClose={() => setOpenReplyDialog(false)}
+          onPostSuccess={reload}
+          referencedPost={post}
+          referencedUser={referencedUser}
+          isReply
         />
       )}
     </>
   );
 }
+
 
 function Stat({ icon, count }: { icon: React.ReactNode; count?: number }) {
   return (

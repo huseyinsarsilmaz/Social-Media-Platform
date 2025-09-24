@@ -14,7 +14,7 @@ import {
 import { useState } from "react";
 import ImageSharp from "@mui/icons-material/ImageSharp";
 import CloseIcon from "@mui/icons-material/Close";
-import { createPost, createQuote } from "../commonActions";
+import { createPost, createQuote, createReply } from "../commonActions";
 import { Post, UserSimple } from "@/interface/interfaces";
 import PostCard from "./PostCard";
 
@@ -25,6 +25,7 @@ interface Props {
   onPostSuccess: () => void;
   referencedPost?: Post;
   referencedUser?: UserSimple | undefined;
+  isReply?: boolean;
 }
 
 export default function NewPostDialog({
@@ -34,6 +35,7 @@ export default function NewPostDialog({
   onPostSuccess,
   referencedPost,
   referencedUser,
+  isReply = false,
 }: Props) {
   const [postText, setPostText] = useState("");
   const [posting, setPosting] = useState(false);
@@ -51,7 +53,9 @@ export default function NewPostDialog({
     setPosting(true);
     setPostError(null);
     try {
-      if (referencedPost) {
+      if (isReply && referencedPost) {
+        await createReply(token, referencedPost.id, postText);
+      } else if (referencedPost) {
         await createQuote(token, referencedPost.id, postText);
       } else {
         await createPost(token, postText);
@@ -81,6 +85,31 @@ export default function NewPostDialog({
       <Header onClose={onClose} disabled={posting} />
       <DialogContent dividers sx={{ borderColor: "#2f2f2f" }}>
         <PostError message={postError} />
+
+        {isReply && referencedPost && referencedUser && (
+          <Box sx={{ position: "relative", mb: 3 }}>
+            <PostCard
+              post={referencedPost}
+              user={referencedUser}
+              onEdit={() => {}}
+              onDelete={() => {}}
+              reload={() => Promise.resolve()}
+              isOwnUser={false}
+              hideStats
+            />
+            <Box
+              sx={{
+                position: "absolute",
+                bottom: -12,
+                left: 28,
+                width: 2,
+                height: 12,
+                bgcolor: "gray",
+              }}
+            />
+          </Box>
+        )}
+
         <Box sx={{ display: "flex", gap: 2, alignItems: "flex-start" }}>
           <Avatar src={avatarUrl} sx={{ width: 40, height: 40, mt: "6px" }} />
           <PostTextField
@@ -90,16 +119,18 @@ export default function NewPostDialog({
           />
         </Box>
 
-        {referencedPost && referencedUser && (
-          <PostCard
-            post={referencedPost}
-            user={referencedUser}
-            onEdit={() => {}}
-            onDelete={() => {}}
-            reload={() => Promise.resolve()}
-            isOwnUser={false}
-            hideStats
-          />
+        {!isReply && referencedPost && referencedUser && (
+          <Box mt={2}>
+            <PostCard
+              post={referencedPost}
+              user={referencedUser}
+              onEdit={() => {}}
+              onDelete={() => {}}
+              reload={() => Promise.resolve()}
+              isOwnUser={false}
+              hideStats
+            />
+          </Box>
         )}
 
         <PostImageHint />
@@ -117,6 +148,8 @@ export default function NewPostDialog({
         >
           {posting ? (
             <CircularProgress size={24} />
+          ) : isReply ? (
+            "Reply"
           ) : referencedPost ? (
             "Quote"
           ) : (
@@ -127,6 +160,7 @@ export default function NewPostDialog({
     </Dialog>
   );
 }
+
 
 function Header({
   onClose,

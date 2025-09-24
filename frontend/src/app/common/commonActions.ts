@@ -25,6 +25,18 @@ export const createQuote = (token: string, parentId: number, text: string) =>
     }
   );
 
+export const createReply = (token: string, parentId: number, text: string) =>
+  axios.post(
+    `/posts/reply/${parentId}`,
+    { text },
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    }
+  );
+
 export const fetchUser = (token: string, username: string) =>
   axios.get<ApiResponse<UserSimple>>(`/users/${username}`, {
     headers: { Authorization: `Bearer ${token}` },
