@@ -14,7 +14,7 @@ import {
 import { useState } from "react";
 import ImageSharp from "@mui/icons-material/ImageSharp";
 import CloseIcon from "@mui/icons-material/Close";
-import { createPost, createQuote } from "./commonActions";
+import { createPost, createQuote } from "../commonActions";
 import { Post, UserSimple } from "@/interface/interfaces";
 import PostCard from "./PostCard";
 

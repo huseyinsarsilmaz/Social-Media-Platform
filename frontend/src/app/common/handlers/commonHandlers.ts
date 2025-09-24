@@ -5,7 +5,7 @@ import {
   unlikePost,
   unrepostPost,
   updatePost,
-} from "../components/commonActions";
+} from "../commonActions";
 
 export async function handleDeletePost(
   token: string | null,

@@ -11,7 +11,7 @@ import {
 } from "@mui/material";
 import ImageSharp from "@mui/icons-material/ImageSharp";
 import { useState } from "react";
-import { createPost } from "@/app/common/components/commonActions";
+import { createPost } from "@/app/common/commonActions";
 
 const textFieldStyles = {
   bgcolor: "#121212",
