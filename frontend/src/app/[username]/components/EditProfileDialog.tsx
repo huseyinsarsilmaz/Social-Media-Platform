@@ -158,7 +158,7 @@ const CoverAndAvatar = ({
         backgroundColor: "#1da1f2",
         height: 120,
         backgroundImage: user.coverPicture
-          ? `url(http://localhost:8080/api/users/images/${user.coverPicture})`
+          ? `url(${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/users/images/${user.coverPicture})`
           : undefined,
         backgroundSize: "cover",
         backgroundPosition: "center",
@@ -181,7 +181,7 @@ const CoverAndAvatar = ({
         <Avatar
           src={
             user.profilePicture
-              ? `http://localhost:8080/api/users/images/${user.profilePicture}`
+              ? `${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/users/images/${user.profilePicture}`
               : "/favicon.ico"
           }
           sx={{ width: 80, height: 80, border: "3px solid #121212" }}

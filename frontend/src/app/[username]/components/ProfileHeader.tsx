@@ -28,7 +28,9 @@ interface Props {
 }
 
 const getImageUrl = (name: string | null) =>
-  name ? `http://localhost:8080/api/users/images/${name}` : undefined;
+  name
+    ? `${process.env.NEXT_PUBLIC_API_GATEWAY_URL}users/images/${name}`
+    : undefined;
 
 export default function ProfileHeader({
   user,

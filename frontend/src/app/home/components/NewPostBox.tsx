@@ -41,7 +41,7 @@ export default function NewPostBox({
 
   const disabled = posting || !postText.trim();
   const avatarUrl = profilePicture
-    ? `http://localhost:8080/api/users/images/${profilePicture}`
+    ? `${process.env.NEXT_PUBLIC_API_GATEWAY_URL}users/images/${profilePicture}`
     : undefined;
 
   const handlePost = async () => {

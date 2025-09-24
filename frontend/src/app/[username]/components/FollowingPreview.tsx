@@ -21,7 +21,7 @@ import { UserSimple } from "@/interface/interfaces";
 
 const getImageUrl = (imageName: string | null) =>
   imageName
-    ? `http://localhost:8080/api/users/images/${imageName}`
+    ? `${process.env.NEXT_PUBLIC_API_GATEWAY_URL}users/images/${imageName}`
     : "/favicon.ico";
 
 export default function FollowingPreview({

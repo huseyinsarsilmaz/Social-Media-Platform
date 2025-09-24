@@ -49,7 +49,7 @@ export default function PostCard({
   hideStats = false,
 }: PostCardProps & { hideStats?: boolean }) {
   const avatarSrc = user.profilePicture
-    ? `http://localhost:8080/api/users/images/${user.profilePicture}`
+    ? `${process.env.NEXT_PUBLIC_API_GATEWAY_URL}users/images/${user.profilePicture}`
     : undefined;
 
   const actualPost =

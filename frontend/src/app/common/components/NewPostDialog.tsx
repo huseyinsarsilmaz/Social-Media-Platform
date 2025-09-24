@@ -44,7 +44,7 @@ export default function NewPostDialog({
   const token =
     typeof window !== "undefined" ? localStorage.getItem("AUTH_TOKEN") : null;
   const avatarUrl = profilePicture
-    ? `http://localhost:8080/api/users/images/${profilePicture}`
+    ? `${process.env.NEXT_PUBLIC_API_GATEWAY_URL}users/images/${profilePicture}`
     : "";
 
   const handlePost = async () => {
