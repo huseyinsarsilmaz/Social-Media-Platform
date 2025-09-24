@@ -23,7 +23,7 @@ interface Props {
   profilePicture: string | null | undefined;
   onClose: () => void;
   onPostSuccess: () => void;
-  quotedPost?: Post;
+  referencedPost?: Post;
   referencedUser?: UserSimple | undefined;
 }
 
@@ -32,7 +32,7 @@ export default function NewPostDialog({
   profilePicture,
   onClose,
   onPostSuccess,
-  quotedPost,
+  referencedPost,
   referencedUser,
 }: Props) {
   const [postText, setPostText] = useState("");
@@ -51,8 +51,8 @@ export default function NewPostDialog({
     setPosting(true);
     setPostError(null);
     try {
-      if (quotedPost) {
-        await createQuote(token, quotedPost.id, postText);
+      if (referencedPost) {
+        await createQuote(token, referencedPost.id, postText);
       } else {
         await createPost(token, postText);
       }
@@ -90,9 +90,9 @@ export default function NewPostDialog({
           />
         </Box>
 
-        {quotedPost && referencedUser && (
+        {referencedPost && referencedUser && (
           <PostCard
-            post={quotedPost}
+            post={referencedPost}
             user={referencedUser}
             onEdit={() => {}}
             onDelete={() => {}}
@@ -117,7 +117,7 @@ export default function NewPostDialog({
         >
           {posting ? (
             <CircularProgress size={24} />
-          ) : quotedPost ? (
+          ) : referencedPost ? (
             "Quote"
           ) : (
             "Post"
